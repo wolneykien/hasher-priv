@@ -37,7 +37,7 @@ static void __attribute__ ((__noreturn__)) usage (int rc)
 		 "\nThis program is free software, covered by the GNU General Public License;\n"
 		 "pkg-build-priv comes with ABSOLUTELY NO WARRANTY, see license for details.\n"
 		 "\nValid options are:\n\n"
-		 "<number>:\n"
+		 "-<number>:\n"
 		 "       subconfig identifier;\n"
 		 "--version:\n"
 		 "       print program version and exit.\n"
