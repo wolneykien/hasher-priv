@@ -1,7 +1,7 @@
 # $Id$
 
 Name: pkg-build-priv
-Version: 0.1.2
+Version: 0.1.3
 Release: alt1
 
 Summary: A privileged helper for the pkg-build project
@@ -47,6 +47,9 @@ required by pkg-build utilities.
 %doc DESIGN
 
 %changelog
+* Tue Apr 29 2003 Dmitry V. Levin <ldv@altlinux.org> 0.1.3-alt1
+- chdiruid.c: extended error diagnostics.
+
 * Sat Apr 12 2003 Dmitry V. Levin <ldv@altlinux.org> 0.1.2-alt1
 - killuid.c: fixed build and work on linux kernel 2.2.x
 - chrootuid.c: added /usr/X11R6/bin to the PATH of second user
