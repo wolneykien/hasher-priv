@@ -26,6 +26,7 @@ TARGETS = $(PROJECT) $(SCRIPTS) $(SUDOERS)
 
 sysconfdir = /etc
 libexecdir = /usr/lib
+sbindir = /usr/sbin
 configdir = $(sysconfdir)/$(PROJECT)
 helperdir = $(libexecdir)/$(PROJECT)
 DESTDIR =
@@ -51,6 +52,8 @@ install: all
 	$(MKDIR_P) -m750 $(DESTDIR)$(helperdir)
 	$(INSTALL) -p -m700 $(PROJECT) $(DESTDIR)$(helperdir)/
 	$(INSTALL) -p -m755 $(SCRIPTS) $(DESTDIR)$(helperdir)/
+	$(MKDIR_P) -m755 $(DESTDIR)$(sbindir)
+	$(INSTALL) -p -m755 pkg-build-useradd $(DESTDIR)$(sbindir)/
 
 clean:
 	$(RM) $(TARGETS) $(DEP) $(OBJ) core *~

@@ -1,7 +1,7 @@
 # $Id$
 
 Name: pkg-build-priv
-Version: 0.0.5
+Version: 0.1
 Release: alt1
 
 Summary: A privileged helper for the pkg-build project
@@ -33,6 +33,7 @@ required by pkg-build utilities.
 /usr/sbin/groupadd -r -f pkg-build
 
 %files
+%_sbindir/pkg-build-useradd
 # config
 %attr(400,root,root) %config(noreplace) %_sysconfdir/sudo.d/%name
 %attr(700,root,root) %dir %configdir
@@ -44,6 +45,9 @@ required by pkg-build utilities.
 %attr(755,root,root) %helperdir/*.sh
 
 %changelog
+* Sun Apr 06 2003 Dmitry V. Levin <ldv@altlinux.org> 0.1-alt1
+- Added %_sbindir/pkg-build-useradd.
+
 * Sun Apr 06 2003 Dmitry V. Levin <ldv@altlinux.org> 0.0.5-alt1
 - Added CALLER_NUM support.
 
