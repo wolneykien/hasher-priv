@@ -55,7 +55,7 @@ chrootuid (const char *name, uid_t uid, gid_t gid, const char *epath)
 	if (setgid (gid) < 0)
 		error (EXIT_FAILURE, errno, "chrootuid: setgid");
 
-	if (setuid (gid) < 0)
+	if (setuid (uid) < 0)
 		error (EXIT_FAILURE, errno, "chrootuid: setuid");
 
 	umask (022);
