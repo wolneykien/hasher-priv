@@ -1,7 +1,7 @@
 # $Id$
 
 Name: pkg-build-priv
-Version: 0.0.1
+Version: 0.0.2
 Release: alt1
 
 Summary: A privileged helper for the pkg-build project
@@ -44,5 +44,12 @@ required by pkg-build utilities.
 %attr(755,root,root) %helperdir/*.sh
 
 %changelog
+* Mon Mar 31 2003 Dmitry V. Levin <ldv@altlinux.org> 0.0.2-alt1
+- priv.h:
+  + lowered minimal uid/gid from 500 to 100.
+- chdiruid.c:
+  + added check for "st_gid != change_gid1";
+  + removed check for "st_mode & S_IWGRP".
+
 * Sun Mar 30 2003 Dmitry V. Levin <ldv@altlinux.org> 0.0.1-alt1
 - Initial revision.
