@@ -14,7 +14,7 @@ Source: %name-%version.tar.bz2
 %define helperdir %_libexecdir/%name
 %define configdir %_sysconfdir/%name
 
-Provides: helperdir
+Provides: %helperdir
 PreReq: coreutils, shadow-utils, glibc-utils
 Obsoletes: pkg-build-priv
 
