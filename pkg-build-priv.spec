@@ -1,7 +1,7 @@
 # $Id$
 
 Name: pkg-build-priv
-Version: 0.2.0
+Version: 0.2.1
 Release: alt1
 
 Summary: A privileged helper for the pkg-build project
@@ -51,6 +51,12 @@ required by pkg-build utilities.
 %doc DESIGN
 
 %changelog
+* Thu Jun 26 2003 Dmitry V. Levin <ldv@altlinux.org> 0.2.1-alt1
+- pkg-build-priv:
+  + fixed typo in usage text;
+  + in chrootuid, export user-dependent USER variable.
+- pkg-build-useradd: add user also to the main group of user2.
+
 * Sat May 10 2003 Dmitry V. Levin <ldv@altlinux.org> 0.2.0-alt1
 - Config file parser now supports options for setting umask,
   nice and resource limits.
