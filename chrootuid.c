@@ -121,7 +121,7 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	   const char *euser, const char *epath)
 {
 	const char *const env[] =
-		{ ehome, euser, epath, "SHELL=/bin/sh", "TERM=linux", 0 };
+		{ ehome, euser, epath, "SHELL=/bin/sh", "TERM=dumb", 0 };
 	int     master = -1, slave = -1;
 	pid_t   pid;
 
