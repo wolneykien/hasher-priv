@@ -51,6 +51,9 @@ set_rlimits (void)
 		if (p->soft)
 			rlim.rlim_cur = *(p->soft);
 
+		if ((unsigned long)rlim.rlim_max < (unsigned long)rlim.rlim_cur)
+			rlim.rlim_cur = rlim.rlim_max;
+
 		if (setrlimit (p->resource, &rlim) < 0)
 			error (EXIT_FAILURE, errno, "setrlimit: %s", p->name);
 	}
