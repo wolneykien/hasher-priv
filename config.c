@@ -206,9 +206,10 @@ str2wlim (const char *name, const char *value, const char *filename)
 
 static void
 modify_wlim (unsigned *pval, const char *value,
-	    const char *optname, const char *filename)
+	     const char *optname, const char *filename)
 {
 	unsigned val = str2wlim (optname, value, filename);
+
 	if (*pval == 0 || (val > 0 && val < *pval))
 		*pval = val;
 }
@@ -325,41 +326,37 @@ read_config (int fd, const char *name)
 }
 
 static void
-check_fd (int fd, const char *name, int regular)
+check_stat (struct stat *st, const char *name)
 {
-	struct stat st;
+	if (st->st_uid)
+		error (EXIT_FAILURE, 0, "%s: bad owner: %u", name,
+		       st->st_uid);
 
-	if (fstat (fd, &st) < 0)
-		error (EXIT_FAILURE, errno, "fstat: %s", name);
-
-	if (st.st_uid)
-		error (EXIT_FAILURE, 0, "%s: bad owner: %u", name, st.st_uid);
-
-	if (st.st_mode & (S_IWGRP | S_IWOTH))
+	if (st->st_mode & (S_IWGRP | S_IWOTH))
 		error (EXIT_FAILURE, 0, "%s: bad perms: %o", name,
-		       st.st_mode & 07777);
-
-	if (regular)
-	{
-		if (!S_ISREG (st.st_mode))
-			error (EXIT_FAILURE, 0, "%s: bad file type: %o",
-			       name, st.st_mode & ~07777);
-
-		if (st.st_size > MAX_CONFIG_SIZE)
-			error (EXIT_FAILURE, 0, "%s: file too large: %lu",
-			       name, (unsigned long) st.st_size);
-	}
+		       st->st_mode & 07777);
 }
 
 static void
 load_config (const char *name)
 {
+	struct stat st;
 	int     fd = open (name, O_RDONLY | O_NOFOLLOW | O_NOCTTY);
 
 	if (fd < 0)
 		error (EXIT_FAILURE, errno, "open: %s", name);
 
-	check_fd (fd, name, 1);
+	if (fstat (fd, &st) < 0)
+		error (EXIT_FAILURE, errno, "fstat: %s", name);
+
+	check_stat (&st, name);
+
+	if (!S_ISREG (st.st_mode))
+		error (EXIT_FAILURE, 0, "%s: not a regular file", name);
+
+	if (st.st_size > MAX_CONFIG_SIZE)
+		error (EXIT_FAILURE, 0, "%s: file too large: %lu",
+		       name, (unsigned long) st.st_size);
 
 	read_config (fd, name);
 
@@ -374,18 +371,28 @@ load_config (const char *name)
 static void
 xchdir (const char *name)
 {
-	int     fd = open (name, O_RDONLY | O_NOFOLLOW | O_DIRECTORY);
+	struct stat st, st2;
 
-	if (fd < 0)
-		error (EXIT_FAILURE, errno, "open directory: %s", name);
+	if (lstat (name, &st) < 0)
+		error (EXIT_FAILURE, errno, "lstat: %s", name);
 
-	check_fd (fd, name, 0);
+	check_stat (&st, name);
 
-	if (fchdir (fd) < 0)
-		error (EXIT_FAILURE, errno, "fchdir: %s", name);
+	if (!S_ISDIR (st.st_mode))
+		error (EXIT_FAILURE, ENOTDIR, "%s", name);
 
-	if (close (fd) < 0)
-		error (EXIT_FAILURE, errno, "close: %s", name);
+	if (chdir (name) < 0)
+		error (EXIT_FAILURE, errno, "chdir: %s", name);
+
+	if (lstat (".", &st2) < 0)
+		error (EXIT_FAILURE, errno, "lstat: %s", name);
+
+	if (st.st_dev != st2.st_dev ||
+	    st.st_ino != st2.st_ino ||
+	    st.st_mode != st2.st_mode ||
+	    st.st_uid != st2.st_uid ||
+	    st.st_gid != st2.st_gid || st.st_rdev != st2.st_rdev)
+		error (EXIT_FAILURE, 0, "%s: changed during execution", name);
 }
 
 static void
@@ -486,11 +493,14 @@ parse_env (void)
 	const char *e;
 
 	if ((e = getenv ("wlimit_time_elapsed")) && *e)
-		modify_wlim (&wlimit.time_elapsed, e, "wlimit_time_elapsed", "environment");
+		modify_wlim (&wlimit.time_elapsed, e, "wlimit_time_elapsed",
+			     "environment");
 
 	if ((e = getenv ("wlimit_time_idle")) && *e)
-		modify_wlim (&wlimit.time_idle, e, "wlimit_time_idle", "environment");
+		modify_wlim (&wlimit.time_idle, e, "wlimit_time_idle",
+			     "environment");
 
 	if ((e = getenv ("wlimit_bytes_written")) && *e)
-		modify_wlim (&wlimit.bytes_written, e, "wlimit_bytes_written", "environment");
+		modify_wlim (&wlimit.bytes_written, e, "wlimit_bytes_written",
+			     "environment");
 }
