@@ -45,7 +45,7 @@ Here is a hasher-priv (*uid=root,egid=hashman,gid!=egid) control flow:
       prefix
       umask
       nice
-      allowed_fstypes
+      allowed_mountpoints
       rlimit_(hard|soft)_*
       wlimit_(time_elapsed|time_idle|bytes_written)
   + safe chdir to "user.d"

@@ -56,10 +56,11 @@ static void __attribute__ ((__noreturn__)) usage (int rc)
 		 "       execute program in given chroot with credentials of user2;\n"
 		 "makedev <chroot path>:\n"
 		 "       make devices in given chroot;\n"
-		 "mount <chroot path> <fs type>:\n"
-		 "       mount file system of given type;\n"
+		 "mount <chroot path> <mount point>:\n"
+		 "       mount appropriate file system to the given mount point;\n"
 		 "umount <chroot path>:\n"
-		 "       umount all file systems.\n", __progname);
+		 "       umount all previously mounted file systems.\n",
+		 __progname);
 	exit (rc);
 }
 
@@ -75,7 +76,7 @@ static void __attribute__ ((__noreturn__)) print_version (void)
 }
 
 const char *chroot_path;
-const char *mount_fstype;
+const char *mountpoint;
 const char **chroot_argv;
 unsigned caller_num;
 
@@ -171,7 +172,7 @@ parse_cmdline (int argc, const char *argv[])
 		if (ac != 3)
 			usage (EXIT_FAILURE);
 		chroot_path = av[1];
-		mount_fstype = av[2];
+		mountpoint = av[2];
 		return TASK_MOUNT;
 	} else if (!strcmp ("umount", av[0]))
 	{

@@ -40,7 +40,7 @@ exit_handler()
 {
 	local rc=$?
 	trap - EXIT
-	[ -z "$chroot_prefix" -o -z "$mount_fstypes" ] ||
+	[ -z "$chroot_prefix" -o -z "$mountpoints" ] ||
 		sudo @helper@ $n umount "$chroot_prefix" ||:
 	killuid
 	exit $rc
@@ -50,9 +50,9 @@ killuid
 
 trap exit_handler EXIT HUP INT QUIT PIPE TERM
 
-if [ -n "$chroot_prefix" -a -n "$mount_fstypes" ]; then
-	for fs in $mount_fstypes; do
-		sudo @helper@ $n mount "$chroot_prefix" "$fs"
+if [ -n "$chroot_prefix" -a -n "$mountpoints" ]; then
+	for target in `printf %s "$mountpoints" |tr ',' ' '`; do
+		sudo @helper@ $n mount "$chroot_prefix" "$target"
 	done
 fi
 

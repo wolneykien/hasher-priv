@@ -35,7 +35,7 @@
 #include "xmalloc.h"
 
 const char *chroot_prefix;
-const char *allowed_fstypes;
+const char *allowed_mountpoints;
 const char *change_user1, *change_user2;
 uid_t   change_uid1, change_uid2;
 gid_t   change_gid1, change_gid2;
@@ -233,26 +233,26 @@ parse_wlim (const char *name, const char *value,
 }
 
 static void
-parse_fstypes (const char *value)
+parse_mountpoints (const char *value)
 {
-	char   *fstypes = xstrdup (value);
-	char   *fs;
+	char   *targets = xstrdup (value);
+	char   *target;
 
-	for (fs = fstypes; *fs; ++fs)
-		*fs = tolower (*fs);
-	allowed_fstypes = xstrdup (fstypes);
+	for (target = targets; *target; ++target)
+		*target = tolower (*target);
+	allowed_mountpoints = xstrdup (targets);
 
-	for (fs = fstypes ? strtok (fstypes, " \t,") : 0; fs;
-	     fs = strtok (0, " \t,"))
+	for (target = targets ? strtok (targets, " \t,") : 0; target;
+	     target = strtok (0, " \t,"))
 	{
-		if (strcmp (fs, "proc")
-		    && strcmp (fs, "devpts") && strcmp (fs, "sysfs"))
+		if (strcmp (target, "/proc")
+		    && strcmp (target, "/dev/pts") && strcmp (target, "/sys"))
 			error (EXIT_FAILURE, 0,
-			       "config: %s: file system type not supported",
-			       fs);
+			       "config: %s: mount point not supported",
+			       target);
 	}
 
-	free (fstypes);
+	free (targets);
 }
 
 static void
@@ -283,8 +283,8 @@ set_config (const char *name, const char *value, const char *filename)
 		change_umask = str2umask (name, value, filename);
 	else if (!strcasecmp ("nice", name))
 		change_nice = str2nice (name, value, filename);
-	else if (!strcasecmp ("allowed_fstypes", name))
-		parse_fstypes (value);
+	else if (!strcasecmp ("allowed_mountpoints", name))
+		parse_mountpoints (value);
 	else if (!strncasecmp (rlim_prefix, name, sizeof (rlim_prefix) - 1))
 		parse_rlim (name + sizeof (rlim_prefix) - 1, value, name,
 			    filename);

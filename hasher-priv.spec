@@ -58,7 +58,7 @@ required by hasher utilities.
 %changelog
 * Fri Jul 09 2004 Dmitry V. Levin <ldv@altlinux.org> 0.9-alt1
 - Implemented mount/umount modes.
-- New config option: allowed_fstypes.
+- New config option: allowed_mountpoints.
 - DESIGN: document it.
 
 * Wed Jul 07 2004 Dmitry V. Levin <ldv@altlinux.org> 0.8-alt1

@@ -78,29 +78,29 @@ mount_sysfs (void)
 int
 do_mount (void)
 {
-	char   *fstypes = allowed_fstypes ? xstrdup (allowed_fstypes) : 0;
-	char   *fs;
+	char   *targets =
+		allowed_mountpoints ? xstrdup (allowed_mountpoints) : 0;
+	char   *target;
 
-	for (fs = fstypes ? strtok (fstypes, " \t,") : 0; fs;
-	     fs = strtok (0, " \t,"))
-		if (!strcasecmp (fs, mount_fstype))
+	for (target = targets ? strtok (targets, " \t,") : 0; target;
+	     target = strtok (0, " \t,"))
+		if (!strcasecmp (target, mountpoint))
 			break;
 
-	if (!fs)
+	if (!target)
 		error (EXIT_FAILURE, 0,
-		       "mount: %s: file system type not allowed",
-		       mount_fstype);
+		       "mount: %s: mount point not allowed", mountpoint);
 
-	if (!strcmp (fs, "proc"))
+	if (!strcmp (target, "/proc"))
 		mount_proc ();
-	else if (!strcmp (fs, "devpts"))
+	else if (!strcmp (target, "/dev/pts"))
 		mount_devpts ();
-	else if (!strcmp (fs, "sysfs"))
+	else if (!strcmp (target, "/sys"))
 		mount_sysfs ();
 	else
 		error (EXIT_FAILURE, 0,
-		       "mount: %s: file system type not supported", fs);
+		       "mount: %s: mount point not supported", target);
 
-	free (fstypes);
+	free (targets);
 	return 0;
 }

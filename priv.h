@@ -91,8 +91,8 @@ extern const char *__progname;
 extern const char *chroot_path;
 extern const char **chroot_argv;
 
-extern const char *mount_fstype;
-extern const char *allowed_fstypes;
+extern const char *mountpoint;
+extern const char *allowed_mountpoints;
 
 extern const char *chroot_prefix;
 extern const char *caller_user, *caller_home;

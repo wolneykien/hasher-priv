@@ -35,7 +35,7 @@
 #endif
 
 static int
-xumount (const char *fstype)
+xumount (const char *target)
 {
 	int     unmounted = 0;
 
@@ -49,7 +49,7 @@ xumount (const char *fstype)
 	if (unmounted)
 		errno = 0;
 	else if (errno != EINVAL)
-		error (EXIT_SUCCESS, errno, "umount: %s", fstype);
+		error (EXIT_SUCCESS, errno, "umount: %s", target);
 
 	return unmounted;
 }
@@ -82,30 +82,30 @@ umount_sysfs (void)
 int
 do_umount (void)
 {
-	char   *fstypes = allowed_fstypes ? xstrdup (allowed_fstypes) : 0;
-	char   *fs;
+	char   *targets =
+		allowed_mountpoints ? xstrdup (allowed_mountpoints) : 0;
+	char   *target;
 	int     unmounted = 0;
 
-	if (!fstypes)
-		error (EXIT_FAILURE, 0,
-		       "umount: no file system types allowed");
+	if (!targets)
+		error (EXIT_FAILURE, 0, "umount: no mount points allowed");
 
-	for (fs = fstypes ? strtok (fstypes, " \t,") : 0; fs;
-	     fs = strtok (0, " \t,"))
+	for (target = targets ? strtok (targets, " \t,") : 0; target;
+	     target = strtok (0, " \t,"))
 	{
-		if (!strcmp (fs, "proc"))
+		if (!strcmp (target, "/proc"))
 			unmounted |= umount_proc ();
-		else if (!strcmp (fs, "devpts"))
+		else if (!strcmp (target, "/dev/pts"))
 			unmounted |= umount_devpts ();
-		else if (!strcmp (fs, "sysfs"))
+		else if (!strcmp (target, "/sys"))
 			unmounted |= umount_sysfs ();
 		else
 			error (EXIT_SUCCESS, 0,
-			       "umount: %s: file system type not supported",
-			       fs);
+			       "umount: %s: mount point not supported",
+			       target);
 	}
 
-	free (fstypes);
+	free (targets);
 
 	if (!unmounted)
 		error (EXIT_FAILURE, 0, "umount: no file systems mounted");
