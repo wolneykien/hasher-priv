@@ -40,7 +40,7 @@ INSTALL = install
 HELP2MAN = help2man -N -s8
 CPPFLAGS = $(RPM_OPT_FLAGS) -Wall -Werror -D_GNU_SOURCE -DENABLE_SETFSUGID -DPROJECT_VERSION=\"$(VERSION)\"
 
-SRC = main.c caller.c chdiruid.c cmdline.c config.c fds.c getugid.c killuid.c chrootuid.c makedev.c xmalloc.c
+SRC = main.c caller.c chdiruid.c cmdline.c config.c fds.c getugid.c ipc.c killuid.c chrootuid.c makedev.c xmalloc.c
 OBJ = $(SRC:.c=.o)
 DEP = $(SRC:.c=.d)
 

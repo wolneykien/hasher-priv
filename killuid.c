@@ -51,6 +51,8 @@ killuid (uid_t uid)
 	if (kill (-1, SIGKILL))
 		error (EXIT_FAILURE, errno, "killuid: kill");
 
+	purge_ipc (uid);
+
 	return 0;
 };
 

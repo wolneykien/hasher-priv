@@ -60,6 +60,7 @@ Here is a hasher-priv (*uid=root,egid=hashman,gid!=egid) control flow:
     + drop dumpable flag (just in case - not required)
     + setuid to specified uid
     + kill (-1, SIGKILL)
+    + purge all SYSV IPC objects
   + makedev
     + safe chdir to chroot_path
     + safe chdir to dev
