@@ -44,7 +44,7 @@ LDLIBS = -lutil
 
 SRC = caller.c chdir.c chdiruid.c chrootuid.c cmdline.c config.c fds.c \
 	getugid.c ipc.c killuid.c main.c makedev.c mount.c parent.c \
-	signal.c umount.c xmalloc.c
+	signal.c tty.c umount.c xmalloc.c
 OBJ = $(SRC:.c=.o)
 DEP = $(SRC:.c=.d)
 

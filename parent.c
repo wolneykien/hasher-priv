@@ -28,10 +28,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
+#include <signal.h>
 #include <sys/wait.h>
 #include <pwd.h>
 #include <grp.h>
-#include <termios.h>
 
 #include "priv.h"
 
@@ -75,20 +75,7 @@ write_loop (int fd, const char *buffer, size_t count)
 }
 
 static int child_rc;
-static int tty_is_saved;
-static struct termios tty_orig;
 static volatile pid_t child_pid;
-
-static void
-restore_tty (void)
-{
-	if (tty_is_saved)
-	{
-		/* restore only once */
-		tty_is_saved = 0;
-		tcsetattr (STDIN_FILENO, TCSAFLUSH, &tty_orig);
-	}
-}
 
 static void
 unblock_fd (int fd)
@@ -204,36 +191,6 @@ work_limits_ok (unsigned long bytes_read, unsigned long bytes_written)
 	}
 
 	return 1;
-}
-
-static int
-init_tty (void)
-{
-	if (tcgetattr (STDIN_FILENO, &tty_orig))
-		return 0;	/* not a tty */
-
-	if (enable_tty_stdin)
-	{
-		struct termios tty_changed = tty_orig;
-
-		tty_is_saved = 1;
-		if (atexit (restore_tty))
-			error (EXIT_FAILURE, errno, "atexit");
-
-		cfmakeraw (&tty_changed);
-		tty_changed.c_iflag |= IXON;
-		tty_changed.c_cc[VMIN] = 1;
-		tty_changed.c_cc[VTIME] = 0;
-
-		if (tcsetattr (STDIN_FILENO, TCSAFLUSH, &tty_changed))
-			error (EXIT_FAILURE, errno, "tcsetattr");
-
-		return 1;
-	} else
-	{
-		nullify_stdin ();
-		return 0;
-	}
 }
 
 int

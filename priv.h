@@ -65,6 +65,9 @@ typedef void VALIDATE_FPTR (struct stat *, const char *);
 
 void    sanitize_fds (void);
 void    nullify_stdin (void);
+int     init_tty (void);
+void    restore_tty (void);
+void    connect_tty (int fd);
 task_t  parse_cmdline (int ac, const char *av[]);
 void    init_caller_data (void);
 void    parse_env (void);

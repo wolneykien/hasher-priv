@@ -25,10 +25,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <fcntl.h>
+#include <signal.h>
 #include <time.h>
-#include <sys/wait.h>
-#include <sys/ioctl.h>
 #include <pwd.h>
 #include <grp.h>
 #include <pty.h>
@@ -63,29 +61,6 @@ set_rlimits (void)
 		if (setrlimit (p->resource, &rlim) < 0)
 			error (EXIT_FAILURE, errno, "setrlimit: %s", p->name);
 	}
-}
-
-static void
-connect_tty (int fd)
-{
-	int     stdin_isatty = isatty (STDIN_FILENO);
-
-	if (setsid () < 0)
-		error (EXIT_FAILURE, errno, "setsid");
-
-	if (ioctl (fd, TIOCSCTTY, 0) < 0)
-		error (EXIT_FAILURE, errno, "ioctl TIOCSCTTY");
-
-	if (stdin_isatty)
-		dup2 (fd, STDIN_FILENO);
-	dup2 (fd, STDOUT_FILENO);
-	dup2 (fd, STDERR_FILENO);
-	if (fd > STDERR_FILENO)
-		close (fd);
-
-	if (stdin_isatty && !enable_tty_stdin)
-		nullify_stdin ();
-
 }
 
 static int
