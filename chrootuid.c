@@ -223,7 +223,7 @@ work_limits_ok (unsigned long bytes_written)
 			time_t  time_now;
 
 			time (&time_now);
-			if (time_start + (time_t) wlimit.time_elapsed >=
+			if (time_start + (time_t) wlimit.time_elapsed <=
 			    time_now)
 			{
 				kill_and_forget ();
