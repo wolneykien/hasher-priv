@@ -32,16 +32,14 @@
 static void __attribute__ ((__noreturn__)) usage (int rc)
 {
 	fprintf ((rc == EXIT_SUCCESS) ? stdout : stderr,
-		 "Usage: %s [options] <args>\n"
 		 "Privileged hasher helper.\n"
-		 "\nThis program is free software, covered by the GNU General Public License;\n"
-		 "hasher-priv comes with ABSOLUTELY NO WARRANTY, see license for details.\n"
-		 "\nValid options are:\n\n"
-		 "-<number>:\n"
+		 "\nUsage: %s [options] <args>\n"
+		 "\nValid options are:\n"
+		 "  -<number>:\n"
 		 "       subconfig identifier;\n"
-		 "--version:\n"
+		 "  --version:\n"
 		 "       print program version and exit.\n"
-		 "-h or --help:\n"
+		 "  -h or --help:\n"
 		 "       print this help text and exit.\n"
 		 "\nValid args are any of:\n\n"
 		 "getugid1:\n"
@@ -67,7 +65,12 @@ static void __attribute__ ((__noreturn__)) usage (int rc)
 
 static void __attribute__ ((__noreturn__)) print_version (void)
 {
-	printf ("hasher-priv version %s\n", PROJECT_VERSION);
+	printf ("hasher-priv version %s\n"
+		"\nCopyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>\n"
+		"\nThis is free software; see the source for copying conditions.\n"
+		"There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
+		"\nWritten by Dmitry V. Levin <ldv@altlinux.org>\n",
+		PROJECT_VERSION);
 	exit (EXIT_SUCCESS);
 }
 
