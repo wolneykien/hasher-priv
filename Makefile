@@ -1,6 +1,6 @@
 #
 # $Id$
-# Copyright (C) 2003  Dmitry V. Levin <ldv@altlinux.org>
+# Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
 # 
 # Makefile for the hasher-priv project.
 #
@@ -38,7 +38,8 @@ DESTDIR =
 MKDIR_P = mkdir -p
 INSTALL = install
 HELP2MAN = help2man -N -s8
-CPPFLAGS = $(RPM_OPT_FLAGS) -Wall -Werror -D_GNU_SOURCE -DENABLE_SETFSUGID -DPROJECT_VERSION=\"$(VERSION)\"
+RPM_OPT_FLAGS = -pipe -Wall -Werror -O2
+CPPFLAGS = $(RPM_OPT_FLAGS) -D_GNU_SOURCE -DENABLE_SETFSUGID -DPROJECT_VERSION=\"$(VERSION)\"
 
 SRC = main.c caller.c chdiruid.c cmdline.c config.c fds.c getugid.c ipc.c killuid.c chrootuid.c makedev.c xmalloc.c
 OBJ = $(SRC:.c=.o)
