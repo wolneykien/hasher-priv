@@ -319,8 +319,7 @@ handle_parent (pid_t child, int pty_fd, int pipe_fd)
 	}
 
 	wait_child ();
-	if (use_pty)
-		(void) close (pty_fd);
+	(void) close (pty_fd);
 	dfl_signal_handler (SIGCHLD);
 	forget_child ();
 

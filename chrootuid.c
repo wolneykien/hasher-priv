@@ -92,7 +92,8 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	if (pipe (out) < 0)
 		error (EXIT_FAILURE, errno, "pipe");
 
-	if (use_pty && openpty (&master, &slave, 0, 0, 0) < 0)
+	/* Always create pty, necessary for ioctl TIOCSCTTY in child. */
+	if (openpty (&master, &slave, 0, 0, 0) < 0)
 		error (EXIT_FAILURE, errno, "openpty");
 
 	if (chroot (".") < 0)
@@ -118,7 +119,7 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 
 		/* Process is no longer privileged at this point. */
 
-		if (close (out[1]) || (use_pty && close (slave)))
+		if (close (out[1]) || close (slave))
 			error (EXIT_FAILURE, errno, "close");
 
 		return handle_parent (pid, master, out[0]);
@@ -132,7 +133,7 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 
 		/* Process is no longer privileged at this point. */
 
-		if (close (out[0]) || (use_pty && close (master)))
+		if (close (out[0]) || close (master))
 			error (EXIT_FAILURE, errno, "close");
 
 		return handle_child ((char *const *) env, slave, out[1]);
