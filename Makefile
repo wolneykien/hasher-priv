@@ -30,6 +30,7 @@ sysconfdir = /etc
 libexecdir = /usr/lib
 sbindir = /usr/sbin
 mandir = /usr/share/man
+man8dir = $(mandir)/man8
 configdir = $(sysconfdir)/$(PROJECT)
 helperdir = $(libexecdir)/$(PROJECT)
 DESTDIR =
@@ -52,14 +53,14 @@ $(PROJECT): $(OBJ)
 
 install: all
 	$(MKDIR_P) -m700 $(DESTDIR)$(configdir)/user.d
-	echo 'prefix=~' > $(DESTDIR)$(configdir)/system
+	$(INSTALL) -p -m755 system.conf $(DESTDIR)$(configdir)/system
 	$(MKDIR_P) -m750 $(DESTDIR)$(helperdir)
 	$(INSTALL) -p -m700 $(PROJECT) $(DESTDIR)$(helperdir)/
 	$(INSTALL) -p -m755 $(SCRIPTS) $(DESTDIR)$(helperdir)/
 	$(MKDIR_P) -m755 $(DESTDIR)$(sbindir)
 	$(INSTALL) -p -m755 pkg-build-useradd $(DESTDIR)$(sbindir)/
-	$(MKDIR_P) -m755 $(DESTDIR)$(mandir)/man8
-	$(INSTALL) -p -m644 $(MAN8PAGES) $(DESTDIR)$(mandir)/man8/
+	$(MKDIR_P) -m755 $(DESTDIR)$(man8dir)
+	$(INSTALL) -p -m644 $(MAN8PAGES) $(DESTDIR)$(man8dir)/
 
 clean:
 	$(RM) $(TARGETS) $(DEP) $(OBJ) core *~
