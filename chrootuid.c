@@ -125,6 +125,7 @@ child (uid_t uid, gid_t gid, char *const *env, int *out)
 	umask (change_umask);
 
 	dfl_signal_handler (SIGPIPE);
+	dfl_signal_handler (SIGTERM);
 
 	if (dup2 (out[1], STDOUT_FILENO) != STDOUT_FILENO ||
 	    dup2 (out[1], STDERR_FILENO) != STDERR_FILENO)
@@ -198,7 +199,10 @@ kill_and_forget (void)
 
 	forget_and_unblock ();
 	if (pid)
-		kill (pid, SIGHUP);
+	{
+		kill (pid, SIGTERM);
+		child_rc = 128 + SIGTERM;
+	}
 }
 
 static int
@@ -208,7 +212,7 @@ work_limits_ok (unsigned long bytes_written)
 	    && bytes_written >= (unsigned long) wlimit.bytes_written)
 	{
 		kill_and_forget ();
-		error (128 + SIGHUP, 0,
+		error (128 + SIGTERM, 0,
 		       "bytes written limit (%u bytes) exceeded",
 		       wlimit.bytes_written);
 	}
@@ -227,7 +231,7 @@ work_limits_ok (unsigned long bytes_written)
 			    time_now)
 			{
 				kill_and_forget ();
-				error (128 + SIGHUP, 0,
+				error (128 + SIGTERM, 0,
 				       "time elapsed limit (%u seconds) exceeded",
 				       wlimit.time_elapsed);
 			}
@@ -241,6 +245,7 @@ static int
 parent (int *out)
 {
 	unsigned long bytes_read = 0;
+	unsigned i;
 
 	if (setgid (caller_gid) < 0)
 		error (EXIT_FAILURE, errno, "setgid");
@@ -280,7 +285,7 @@ parent (int *out)
 			if (!rc)
 			{
 				kill_and_forget ();
-				error (128 + SIGHUP, 0,
+				error (128 + SIGTERM, 0,
 				       "idle time limit (%u seconds) exceeded",
 				       wlimit.time_idle);
 			} else if (rc < 0 && errno == EINTR)
@@ -301,6 +306,13 @@ parent (int *out)
 		if (write_loop (STDOUT_FILENO, buffer, n) != n)
 			error (EXIT_FAILURE, errno, "write");
 	}
+
+	for (i = 0; i < 10; ++i)
+		if (child_pid)
+			usleep (100000);
+
+	if (child_pid)
+		kill_and_forget ();
 
 	return child_rc;
 }
