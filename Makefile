@@ -82,9 +82,9 @@ $(PROJECT).8: $(PROJECT)
 ifneq ($(MAKECMDGOALS),indent)
 ifneq ($(MAKECMDGOALS),clean)
 
-%.d:	%.c
+%.d:	%.c Makefile
 	@echo Making dependences for $<
-	@$(SHELL) -ec "$(CC) -MM $(CPPFLAGS) $< | sed -e 's|\($*\)\.o[ :]*|\1.o $@ : |g' > $@; [ -s $@ ] || $(RM) $@"
+	@$(CC) -MM $(CPPFLAGS) $< |sed -e 's,\($*\)\.o[ :]*,\1.o $@: Makefile ,g' >$@
 
 ifneq ($(DEP),)
 -include $(DEP)
