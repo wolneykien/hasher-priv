@@ -12,4 +12,4 @@ Runas_Alias	PKG_BUILD_RUN_AS = root
 Cmnd_Alias	PKG_BUILD_CMD = @helper@
 
 # User privilege specification
-PKG_BUILD_USER	ALL = (PKG_BUILD_RUN_AS) PKG_BUILD_CMD
+PKG_BUILD_USER	ALL = (PKG_BUILD_RUN_AS) NOPASSWD: PKG_BUILD_CMD
