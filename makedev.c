@@ -49,6 +49,8 @@ do_makedev (void)
 	xmknod ("null", S_IFCHR | 0666, 1, 3);
 	xmknod ("zero", S_IFCHR | 0666, 1, 5);
 	xmknod ("urandom", S_IFCHR | 0644, 1, 9);
+	/* I don't want to provide real random. */
+	xmknod ("random", S_IFCHR | 0644, 1, 9);
 	umask (m);
 
 	return 0;
