@@ -26,10 +26,21 @@ if [ -n "$1" -a -z "${1##-*}" ]; then
 	shift
 fi
 
-sudo @helper@ $n killuid1
-set +e
+killuid()
+{
+	sudo @helper@ $n killuid1
+}
+
+exit_handler()
+{
+	local rc=$?
+	trap - EXIT
+	killuid
+	exit $rc
+}
+
+killuid
+
+trap exit_handler EXIT HUP INT QUIT PIPE TERM
+
 sudo @helper@ $n chrootuid1 "$@"
-rc=$?
-sudo @helper@ $n killuid1 &&
-	exit $rc ||
-	exit 1
