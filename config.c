@@ -158,11 +158,11 @@ set_rlim (const char *name, const char *value, int hard,
 	for (p = change_limit; p->name; ++p)
 		if (!strcasecmp (name, p->name))
 		{
-			rlim_t *limit = hard ? p->hard : p->soft;
+			rlim_t **limit = hard ? &(p->hard) : &(p->soft);
 
-			free (limit);
-			limit = xmalloc (sizeof (*limit));
-			*limit = str2rlim (optname, value, filename);
+			free (*limit);
+			*limit = xmalloc (sizeof (**limit));
+			**limit = str2rlim (optname, value, filename);
 			return;
 		}
 
