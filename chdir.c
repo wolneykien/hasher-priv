@@ -52,11 +52,9 @@ safe_chdir (const char *name, VALIDATE_FPTR validator)
 	if (lstat (".", &st2) < 0)
 		error (EXIT_FAILURE, errno, "lstat: %s", name);
 
-	if (st.st_dev != st2.st_dev ||
-	    st.st_ino != st2.st_ino ||
-	    st.st_mode != st2.st_mode ||
-	    st.st_uid != st2.st_uid ||
-	    st.st_gid != st2.st_gid || st.st_rdev != st2.st_rdev)
+	if (st.st_dev != st2.st_dev || st.st_ino != st2.st_ino ||
+	    st.st_rdev != st2.st_rdev || st.st_mode != st2.st_mode ||
+	    st.st_uid != st2.st_uid || st.st_gid != st2.st_gid)
 		error (EXIT_FAILURE, 0, "%s: changed during execution", name);
 }
 
