@@ -39,7 +39,6 @@ const char *change_user1, *change_user2;
 uid_t   change_uid1, change_uid2;
 gid_t   change_gid1, change_gid2;
 
-
 static void
 set_config (const char *name, const char *value, const char *filename)
 {
