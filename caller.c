@@ -32,9 +32,8 @@
 #include "xmalloc.h"
 
 const char *caller_user, *caller_home;
-uid_t caller_uid;
-gid_t caller_gid;
-unsigned caller_num;
+uid_t   caller_uid;
+gid_t   caller_gid;
 
 static const char *
 xgetenv (const char *name)
@@ -59,17 +58,6 @@ xatoul (const char *str, const char *name)
 	return n;
 }
 
-static unsigned
-get_caller_num (const char *name)
-{
-	const char *value = getenv (name);
-
-	if (!value || !*value)
-		return 0;
-
-	return xatoul (value, name);
-}
-
 void
 init_caller_data (void)
 {
@@ -78,7 +66,6 @@ init_caller_data (void)
 	caller_user = xstrdup (xgetenv ("SUDO_USER"));
 	caller_uid = xatoul (xgetenv ("SUDO_UID"), "SUDO_UID");
 	caller_gid = xatoul (xgetenv ("SUDO_GID"), "SUDO_GID");
-	caller_num = get_caller_num ("CALLER_NUM");
 
 	pw = getpwnam (caller_user);
 

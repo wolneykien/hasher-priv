@@ -213,8 +213,8 @@ check_user (const char *user_name, uid_t * user_uid, gid_t * user_gid,
 }
 
 const char *change_user1, *change_user2;
-uid_t change_uid1, change_uid2;
-gid_t change_gid1, change_gid2;
+uid_t   change_uid1, change_uid2;
+gid_t   change_gid1, change_gid2;
 
 void
 configure (void)
@@ -231,13 +231,13 @@ configure (void)
 
 	if (caller_num)
 	{
-		char *fname;
+		char   *fname;
 
 		/* Discard user1 and user2. */
-		free ((void *)change_user1);
+		free ((void *) change_user1);
 		change_user1 = 0;
 
-		free ((void *)change_user2);
+		free ((void *) change_user2);
 		change_user2 = 0;
 
 		xasprintf (&fname, "%s:%u", caller_user, caller_num);
