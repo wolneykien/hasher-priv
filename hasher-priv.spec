@@ -1,7 +1,7 @@
 # $Id$
 
 Name: hasher-priv
-Version: 1.0
+Version: 1.0.1
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -16,8 +16,8 @@ Obsoletes: pkg-build-priv
 # Automatically added by buildreq on Fri May 02 2003
 BuildRequires: help2man
 
-%define helperdir %_libexecdir/hasher-priv
-%define configdir %_sysconfdir/hasher-priv
+%define helperdir %_libexecdir/%name
+%define configdir %_sysconfdir/%name
 
 %description
 This package provides helpers for executing privileged operations
@@ -50,12 +50,17 @@ required by hasher utilities.
 %attr(640,root,hashman) %config(noreplace) %configdir/system
 # helpers
 %attr(750,root,hashman) %dir %helperdir
-%attr(2710,root,hashman) %helperdir/hasher-priv
+%attr(2710,root,hashman) %helperdir/%name
 %attr(755,root,root) %helperdir/*.sh
 
 %doc DESIGN
 
 %changelog
+* Sat Sep 11 2004 Dmitry V. Levin <ldv@altlinux.org> 1.0.1-alt1
+- Enhanced use_pty mode:
+  pass $TERM value, translate window size changes.
+- Pass libexecdir to %%make_build (#4902).
+
 * Thu Jul 15 2004 Dmitry V. Levin <ldv@altlinux.org> 1.0-alt1
 - Added hasher-priv.conf(5) manpage.
 - Added more docs to hasher-priv(8) manpage.
