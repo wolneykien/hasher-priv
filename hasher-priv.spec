@@ -1,7 +1,7 @@
 # $Id$
 
 Name: hasher-priv
-Version: 0.8
+Version: 0.9
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -56,6 +56,11 @@ required by hasher utilities.
 %doc DESIGN
 
 %changelog
+* Fri Jul 09 2004 Dmitry V. Levin <ldv@altlinux.org> 0.9-alt1
+- Implemented mount/umount modes.
+- New config option: allowed_fstypes.
+- DESIGN: document it.
+
 * Wed Jul 07 2004 Dmitry V. Levin <ldv@altlinux.org> 0.8-alt1
 - config:
   + read work limit hints from environment variables;
