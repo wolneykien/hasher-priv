@@ -57,7 +57,9 @@ required by hasher utilities.
 
 %changelog
 * Wed Jul 07 2004 Dmitry V. Levin <ldv@altlinux.org> 0.8-alt1
-- Read work limit hints from environment variables.
+- config:
+  + read work limit hints from environment variables;
+  + use lstat+chdir+lstat instead of open+fstat+fchdir+close.
 
 * Tue Jul 06 2004 Dmitry V. Levin <ldv@altlinux.org> 0.7.1-alt1
 - chroot prefix: trim trailing slashes.
