@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2003  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
 
   Purge all SYSV IPC objects for given uid.
 
@@ -30,23 +30,21 @@
 #include <sys/shm.h>
 #include <sys/msg.h>
 
-#if defined (__GLIBC__) && defined (_SEM_SEMUN_UNDEFINED)
-union semun
+union sem_un
 {
 	int     val;
 	struct semid_ds *buf;
-	unsigned short *array;
+	struct seminfo *info;
 };
-#endif /* __GLIBC__ && _SEM_SEMUN_UNDEFINED */
 
 static void
 purge_sem (uid_t uid)
 {
 	int     maxid, id;
-	struct seminfo seminfo;
-	union semun arg;
+	struct seminfo info;
+	union sem_un arg;
 
-	arg.array = (unsigned short *) &seminfo;
+	arg.info = &info;
 	maxid = semctl (0, 0, SEM_INFO, arg);
 	if (maxid < 0)
 	{
@@ -59,7 +57,7 @@ purge_sem (uid_t uid)
 		int     semid;
 		struct semid_ds buf;
 
-		arg.buf = (struct semid_ds *) &buf;
+		arg.buf = &buf;
 		if ((semid = semctl (id, 0, SEM_STAT, arg)) < 0)
 			continue;
 
@@ -71,13 +69,21 @@ purge_sem (uid_t uid)
 	}
 }
 
+union shm_un
+{
+	struct shmid_ds *buf;
+	struct shm_info *info;
+};
+
 static void
 purge_shm (uid_t uid)
 {
 	int     maxid, id;
-	struct shm_info shm_info;
+	struct shm_info info;
+	union shm_un arg;
 
-	maxid = shmctl (0, SHM_INFO, (struct shmid_ds *) &shm_info);
+	arg.info = &info;
+	maxid = shmctl (0, SHM_INFO, arg.buf);
 	if (maxid < 0)
 	{
 		error (0, errno, "shmctl: SHM_INFO");
@@ -99,13 +105,21 @@ purge_shm (uid_t uid)
 	}
 }
 
+union msg_un
+{
+	struct msqid_ds *buf;
+	struct msginfo *info;
+};
+
 static void
 purge_msg (uid_t uid)
 {
 	int     maxid, id;
-	struct msginfo msginfo;
+	struct msginfo info;
+	union msg_un arg;
 
-	maxid = msgctl (0, MSG_INFO, (struct msqid_ds *) &msginfo);
+	arg.info = &info;
+	maxid = msgctl (0, MSG_INFO, arg.buf);
 	if (maxid < 0)
 	{
 		error (0, errno, "msgctl: MSG_INFO");
