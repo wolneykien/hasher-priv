@@ -28,11 +28,11 @@ behaviour.
 .BR hasher\-priv (8)
 first loads systemwide config file
 .IR /etc/hasher\-priv/system ,
-then it loads user config file
+then it loads pser-user config file
 \fI/etc/hasher\-priv/user.d/\fBUSER\fR,
 and finally, if subconfig identifier
-.I NUMBER
-is specified, it loads user subconfig file
+.B NUMBER
+is specified, it loads per-user per-number subconfig file
 \fI/etc/hasher\-priv/user.d/\fBUSER\fI:\fBNUMBER\fR.
 .SH FORMAT
 The format of each config file is very simple.  Each line is either
