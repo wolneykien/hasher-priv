@@ -31,15 +31,16 @@
 
 static void __attribute__ ((__noreturn__)) usage (int rc)
 {
-	fprintf (stderr,
-		 "%s: privileged pkg-build helper.\n"
+	fprintf ((rc == EXIT_SUCCESS) ? stdout : stderr,
+		 "Usage: %s [options] <args>\n"
+		 "privileged pkg-build helper.\n"
 		 "\nThis program is free software, covered by the GNU General Public License;\n"
 		 "pkg-build-priv comes with ABSOLUTELY NO WARRANTY, see license for details.\n"
-		 "\nUsage: %s [options] <args>\n"
 		 "\nValid options are:\n"
 		 "<number>: subconfig identifier;\n"
+		 "--version: print program version and exit.\n"
 		 "-h or --help: print this help text and exit.\n"
-		 "\nValid args are any of:\n"
+		 "\nValid args are any of:\n\n"
 		 "getugid1:\n"
 		 "       print uid:gid pair for user1;\n"
 		 "killuid1:\n"
@@ -54,8 +55,14 @@ static void __attribute__ ((__noreturn__)) usage (int rc)
 		 "       execute program in given chroot with credentials of user2;\n"
 		 "makedev <chroot path>:\n"
 		 "       make devices in given chroot.\n",
-		 __progname, __progname);
+		 __progname);
 	exit (rc);
+}
+
+static void __attribute__ ((__noreturn__)) print_version (void)
+{
+	printf ("pkg-build-priv version %s\n", PROJECT_VERSION);
+	exit (EXIT_SUCCESS);
 }
 
 const char *chroot_path;
@@ -96,6 +103,9 @@ parse_cmdline (int argc, const char *argv[])
 		/* option */
 		if (!strcmp ("-h", av[0]) || !strcmp ("--help", av[0]))
 			usage (EXIT_SUCCESS);
+
+		if (!strcmp ("--version", av[0]))
+			print_version ();
 
 		caller_num = get_caller_num (&av[0][1]);
 		--ac;
