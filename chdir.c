@@ -37,15 +37,15 @@
 void
 safe_chdir (const char *name, VALIDATE_FPTR validator)
 {
-	struct stat st, st2;
+	struct stat st1, st2;
 
-	if (lstat (name, &st) < 0)
+	if (lstat (name, &st1) < 0)
 		error (EXIT_FAILURE, errno, "lstat: %s", name);
 
-	if (!S_ISDIR (st.st_mode))
+	if (!S_ISDIR (st1.st_mode))
 		error (EXIT_FAILURE, ENOTDIR, "%s", name);
 
-	validator (&st, name);
+	validator (&st1, name);
 
 	if (chdir (name) < 0)
 		error (EXIT_FAILURE, errno, "chdir: %s", name);
@@ -53,9 +53,9 @@ safe_chdir (const char *name, VALIDATE_FPTR validator)
 	if (lstat (".", &st2) < 0)
 		error (EXIT_FAILURE, errno, "lstat: %s", name);
 
-	if (st.st_dev != st2.st_dev || st.st_ino != st2.st_ino ||
-	    st.st_rdev != st2.st_rdev || st.st_mode != st2.st_mode ||
-	    st.st_uid != st2.st_uid || st.st_gid != st2.st_gid)
+	if (st1.st_dev != st2.st_dev || st1.st_ino != st2.st_ino ||
+	    st1.st_rdev != st2.st_rdev || st1.st_mode != st2.st_mode ||
+	    st1.st_uid != st2.st_uid || st1.st_gid != st2.st_gid)
 		error (EXIT_FAILURE, 0, "%s: changed during execution", name);
 }
 
