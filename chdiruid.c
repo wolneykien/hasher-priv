@@ -33,8 +33,6 @@
 
 #include "priv.h"
 
-#define       ENABLE_SUPPLEMENTARY_GROUPS
-
 #ifdef ENABLE_SETFSUGID
 #include <sys/fsuid.h>
 

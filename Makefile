@@ -38,7 +38,7 @@ DESTDIR =
 MKDIR_P = mkdir -p
 INSTALL = install
 HELP2MAN = help2man -N -s8
-CPPFLAGS = -D_GNU_SOURCE -DENABLE_SETFSUGID -D_FILE_OFFSET_BITS=64 -DPROJECT_VERSION=\"$(VERSION)\"
+CPPFLAGS = -D_GNU_SOURCE -DENABLE_SETFSUGID -DENABLE_SUPPLEMENTARY_GROUPS -D_FILE_OFFSET_BITS=64 -DPROJECT_VERSION=\"$(VERSION)\"
 CFLAGS = -pipe -Wall -Werror -W -O2
 
 SRC = main.c caller.c chdiruid.c cmdline.c config.c fds.c getugid.c ipc.c killuid.c chrootuid.c makedev.c xmalloc.c
