@@ -25,8 +25,8 @@
 
 #include <sys/types.h>
 
-#define	MIN_CHANGE_UID	500
-#define	MIN_CHANGE_GID	500
+#define	MIN_CHANGE_UID	100
+#define	MIN_CHANGE_GID	100
 #define	MAX_CONFIG_SIZE	16384
 
 typedef enum
