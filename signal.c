@@ -33,11 +33,11 @@
 void
 block_signal_handler (int no, int what)
 {
-	sigset_t unblock;
+	sigset_t set;
 
-	sigemptyset (&unblock);
-	sigaddset (&unblock, no);
-	if (sigprocmask (what, &unblock, 0) < 0)
+	sigemptyset (&set);
+	sigaddset (&set, no);
+	if (sigprocmask (what, &set, 0) < 0)
 		error (EXIT_FAILURE, errno, "sigprocmask");
 }
 
