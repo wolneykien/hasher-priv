@@ -41,7 +41,7 @@ HELP2MAN = help2man -N -s8
 CPPFLAGS = -D_GNU_SOURCE -DENABLE_SETFSUGID -DENABLE_SUPPLEMENTARY_GROUPS -D_FILE_OFFSET_BITS=64 -DPROJECT_VERSION=\"$(VERSION)\"
 CFLAGS = -pipe -Wall -Werror -W -O2
 
-SRC = main.c caller.c chdiruid.c cmdline.c config.c fds.c getugid.c ipc.c killuid.c chrootuid.c makedev.c xmalloc.c
+SRC = main.c caller.c chdir.c chdiruid.c cmdline.c config.c fds.c getugid.c ipc.c killuid.c chrootuid.c makedev.c mount.c umount.c xmalloc.c
 OBJ = $(SRC:.c=.o)
 DEP = $(SRC:.c=.d)
 
