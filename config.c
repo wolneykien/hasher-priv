@@ -234,18 +234,18 @@ set_config (const char *name, const char *value, const char *filename)
 		change_user2 = xstrdup (value);
 	else if (!strcasecmp ("prefix", name))
 	{
-		const char *prefix =
-			strcmp (value, "~") ? value : caller_home;
-		int     n;
+		char   *prefix =
+			xstrdup (strcmp (value, "~") ? value : caller_home);
+		int     n = strlen (prefix) - 1;
 
-		chroot_prefix = xstrdup (prefix);
-		for (n = strlen (chroot_prefix) - 1; n > 0; --n)
+		for (; n > 0; --n)
 		{
-			if (chroot_prefix[n] == '/')
-				chroot_prefix[n] = '\0';
+			if (prefix[n] == '/')
+				prefix[n] = '\0';
 			else
 				break;
 		}
+		chroot_prefix = prefix;
 	} else if (!strcasecmp ("umask", name))
 		change_umask = str2umask (name, value, filename);
 	else if (!strcasecmp ("nice", name))
