@@ -44,9 +44,12 @@ required by pkg-build utilities.
 %attr(700,root,root) %helperdir/pkg-build-priv
 %attr(755,root,root) %helperdir/*.sh
 
+%doc DESIGN
+
 %changelog
 * Sun Apr 06 2003 Dmitry V. Levin <ldv@altlinux.org> 0.1-alt1
 - Added %_sbindir/pkg-build-useradd.
+- Added DESIGN file.
 
 * Sun Apr 06 2003 Dmitry V. Levin <ldv@altlinux.org> 0.0.5-alt1
 - Added CALLER_NUM support.
