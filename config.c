@@ -233,8 +233,18 @@ set_config (const char *name, const char *value, const char *filename)
 	else if (!strcasecmp ("user2", name))
 		change_user2 = xstrdup (value);
 	else if (!strcasecmp ("prefix", name))
+	{
+		int     n;
+
 		chroot_prefix = xstrdup (value);
-	else if (!strcasecmp ("umask", name))
+		for (n = strlen (chroot_prefix) - 1; n > 0; --n)
+		{
+			if (chroot_prefix[n] == '/')
+				chroot_prefix[n] = '\0';
+			else
+				break;
+		}
+	} else if (!strcasecmp ("umask", name))
 		change_umask = str2umask (name, value, filename);
 	else if (!strcasecmp ("nice", name))
 		change_nice = str2nice (name, value, filename);
