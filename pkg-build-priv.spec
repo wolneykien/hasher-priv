@@ -41,7 +41,7 @@ required by pkg-build utilities.
 # helpers
 %attr(750,root,pkg-build) %dir %helperdir
 %attr(700,root,root) %helperdir/pkg-build-priv
-%attr(750,root,root) %helperdir/*.sh
+%attr(755,root,root) %helperdir/*.sh
 
 %changelog
 * Sun Mar 30 2003 Dmitry V. Levin <ldv@altlinux.org> 0.0.1-alt1
