@@ -24,8 +24,7 @@ VERSION = $(shell grep ^Version: hasher-priv.spec |head -1 |awk '{print $$2}')
 SCRIPTS = getugid1.sh chrootuid1.sh getugid2.sh chrootuid2.sh makedev.sh maketty.sh
 MAN5PAGES = $(PROJECT).conf.5
 MAN8PAGES = $(PROJECT).8 hasher-useradd.8
-SUDOERS = $(PROJECT).sudoers
-TARGETS = $(PROJECT) $(SCRIPTS) $(SUDOERS) $(MAN5PAGES) $(MAN8PAGES)
+TARGETS = $(PROJECT) $(SCRIPTS) $(MAN5PAGES) $(MAN8PAGES)
 
 sysconfdir = /etc
 libexecdir = /usr/lib
@@ -78,9 +77,6 @@ indent:
 	indent *.h *.c
 
 %.sh: %.sh.in Makefile
-	sed -e 's|@helper@|$(helperdir)/$(PROJECT)|g' <$< >$@
-
-%.sudoers: %.sudoers.in Makefile
 	sed -e 's|@helper@|$(helperdir)/$(PROJECT)|g' <$< >$@
 
 %.5: %.5.in

@@ -1,7 +1,7 @@
 # $Id$
 
 Name: hasher-priv
-Version: 1.0.1
+Version: 1.0.2
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -10,7 +10,7 @@ Group: Development/Other
 
 Source: %name-%version.tar.bz2
 
-PreReq: coreutils, shadow-utils, glibc-utils, sudo
+PreReq: coreutils, shadow-utils, glibc-utils
 Obsoletes: pkg-build-priv
 
 # Automatically added by buildreq on Fri May 02 2003
@@ -31,31 +31,35 @@ required by hasher utilities.
 
 %install
 %makeinstall
-%__install -pD -m400 %name.sudoers $RPM_BUILD_ROOT%_sysconfdir/sudo.d/%name
 
 %pre
-! getent group pkg-build >/dev/null ||
+if getent group pkg-build >/dev/null; then
 	groupmod -n hashman pkg-build
-/usr/sbin/groupadd -r -f hashman
-[ -d %configdir -o ! -d %_sysconfdir/pkg-build-priv ] ||
+fi
+if [ -d %_sysconfdir/pkg-build-priv -a ! -d %configdir ]; then
 	%__mv %_sysconfdir/pkg-build-priv %configdir
+fi
+/usr/sbin/groupadd -r -f hashman
 
 %files
 %_sbindir/hasher-useradd
 %_mandir/man?/*
 # config
-%attr(400,root,root) %config(noreplace) %_sysconfdir/sudo.d/%name
 %attr(710,root,hashman) %dir %configdir
 %attr(710,root,hashman) %dir %configdir/user.d
 %attr(640,root,hashman) %config(noreplace) %configdir/system
 # helpers
 %attr(750,root,hashman) %dir %helperdir
-%attr(2710,root,hashman) %helperdir/%name
+%attr(6710,root,hashman) %helperdir/%name
 %attr(755,root,root) %helperdir/*.sh
 
 %doc DESIGN
 
 %changelog
+* Thu Nov 18 2004 Dmitry V. Levin <ldv@altlinux.org> 1.0.2-alt1
+- Changed privileged helper to suid program,
+  to get rid of sudo dependence.
+
 * Sat Sep 11 2004 Dmitry V. Levin <ldv@altlinux.org> 1.0.1-alt1
 - Enhanced use_pty mode:
   pass $TERM value, translate window size changes.

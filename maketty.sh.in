@@ -26,4 +26,4 @@ if [ -n "$1" -a -z "${1##-*}" ]; then
 	shift
 fi
 
-exec sudo @helper@ $n maketty "$@"
+exec @helper@ $n maketty "$@"

@@ -23,16 +23,16 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
       umount <chroot path>
 + read work limit hints from environment variables
 + initialize data related to caller
-  + caller_user initialized here from SUDO_USER
-    + caller_user must be existing user with valid home directory
-    + must be true: caller_user == caller_user->pw_name
-  + caller_uid initialized here from SUDO_UID
+  + caller_uid initialized here from getuid()
     + caller_uid must be valid uid
-    + must be true: caller_uid == caller_user->pw_uid
-  + caller_gid initialized here from SUDO_GID
+  + caller_gid initialized here from getgid()
     + caller_gid must be valid gid
-    + must be true: caller_gid == caller_user->pw_gid
+  + caller_user initialized here from getpenam(LOGNAME)->pw_name or
+    getpwuid(caller_uid)->pw_name
+    + must be true: caller_uid == pw->pw_uid
+    + must be true: caller_gid == pw->pw_gid
   + caller_home initialized here
+    + caller_user's home directory must exist
 + drop all environment variables
 + load configuration
   + safe chdir to /etc/hasher-priv

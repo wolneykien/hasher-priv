@@ -35,7 +35,7 @@ rm_ttydev=
 
 killuid()
 {
-	sudo @helper@ $n killuid2
+	@helper@ $n killuid2
 }
 
 exit_handler()
@@ -43,7 +43,7 @@ exit_handler()
 	local rc=$?
 	trap - EXIT
 	[ -n "$chroot_prefix" -a -n "$mounted" ] &&
-		sudo @helper@ $n umount "$chroot_prefix" ||:
+		@helper@ $n umount "$chroot_prefix" ||:
 	[ -n "$rm_ttydev" ] &&
 		rm -f "$chroot_prefix/dev/tty" "$chroot_prefix/dev/ptmx" ||:
 	killuid
@@ -57,7 +57,7 @@ trap exit_handler EXIT HUP INT QUIT PIPE TERM
 need_maketty=
 if [ -n "$chroot_prefix" -a -n "$mountpoints" ]; then
 	for target in `printf %s "$mountpoints" |tr ',' ' '`; do
-		sudo @helper@ $n mount "$chroot_prefix" "$target" &&
+		@helper@ $n mount "$chroot_prefix" "$target" &&
 			mounted=1 ||
 			exit
 		[ "$target" != /dev/pts ] || need_maketty=1
@@ -65,9 +65,9 @@ if [ -n "$chroot_prefix" -a -n "$mountpoints" ]; then
 fi
 
 if [ -n "$need_maketty" ]; then
-	sudo @helper@ $n maketty "$chroot_prefix" &&
+	@helper@ $n maketty "$chroot_prefix" &&
 		rm_ttydev=1 ||
 		exit
 fi
 
-sudo @helper@ $n chrootuid2 "$@"
+@helper@ $n chrootuid2 "$@"

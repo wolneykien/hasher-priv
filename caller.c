@@ -37,50 +37,40 @@ const char *caller_user, *caller_home;
 uid_t   caller_uid;
 gid_t   caller_gid;
 
-static const char *
-xgetenv (const char *name)
-{
-	const char *value = getenv (name);
-
-	if (!value || !*value)
-		error (EXIT_FAILURE, 0, "undefined variable: %s", name);
-
-	return value;
-}
-
-static unsigned long
-xatoul (const char *str, const char *name)
-{
-	char   *p = 0;
-	unsigned long n = strtoul (str, &p, 10);
-
-	if (!p || *p || !n || n > INT_MAX)
-		error (EXIT_FAILURE, 0, "invalid variable: %s", name);
-
-	return n;
-}
-
 /*
  * Initialize caller_user, caller_uid, caller_gid and caller_home.
  */
 void
 init_caller_data (void)
 {
-	struct passwd *pw;
+	const char *logname;
+	struct passwd *pw = 0;
 
-	caller_user = xstrdup (xgetenv ("SUDO_USER"));
-	caller_uid = xatoul (xgetenv ("SUDO_UID"), "SUDO_UID");
-	caller_gid = xatoul (xgetenv ("SUDO_GID"), "SUDO_GID");
+	caller_uid = getuid ();
+	if (caller_uid < MIN_CHANGE_UID)
+		error (EXIT_FAILURE, 0, "caller has invalid uid: %u",
+		       caller_uid);
 
-	pw = getpwnam (caller_user);
+	caller_gid = getgid ();
+	if (caller_gid < MIN_CHANGE_GID)
+		error (EXIT_FAILURE, 0, "caller has invalid gid: %u",
+		       caller_gid);
+
+	logname = getenv ("LOGNAME");
+	if (!logname || !*logname || strchr (logname, ':'))
+		logname = 0;
+
+	if (logname && (pw = getpwnam (logname)))
+		if (caller_uid != pw->pw_uid || caller_gid != pw->pw_gid)
+			pw = 0;
+
+	if (!pw)
+		pw = getpwuid (caller_uid);
 
 	if (!pw || !pw->pw_name)
-		error (EXIT_FAILURE, 0, "caller %s: lookup failure",
-		       caller_user);
+		error (EXIT_FAILURE, 0, "caller lookup failure");
 
-	if (strcmp (caller_user, pw->pw_name))
-		error (EXIT_FAILURE, 0, "caller %s: name mismatch",
-		       caller_user);
+	caller_user = xstrdup (pw->pw_name);
 
 	if (caller_uid != pw->pw_uid)
 		error (EXIT_FAILURE, 0, "caller %s: uid mismatch",
@@ -90,10 +80,11 @@ init_caller_data (void)
 		error (EXIT_FAILURE, 0, "caller %s: gid mismatch",
 		       caller_user);
 
+	errno = 0;
 	if (pw->pw_dir && *pw->pw_dir)
 		caller_home = canonicalize_file_name (pw->pw_dir);
 
 	if (!caller_home || !*caller_home)
-		error (EXIT_FAILURE, 0, "caller %s: invalid home",
+		error (EXIT_FAILURE, errno, "caller %s: invalid home",
 		       caller_user);
 }
