@@ -120,7 +120,7 @@ chdiruid (const char *path, chdiruid_t type)
 	if (chdir (path) < 0)
 		error (EXIT_FAILURE, errno, "chdir: %s", path);
 
-	if (!(cwd = get_current_dir_name ()))
+	if (!(cwd = getcwd (0, 0)))
 		error (EXIT_FAILURE, errno, "getcwd");
 
 	if ((type == CHDIRUID_ABSOLUTE) && chroot_prefix && *chroot_prefix
