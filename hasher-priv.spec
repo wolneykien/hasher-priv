@@ -1,7 +1,7 @@
 # $Id$
 
 Name: hasher-priv
-Version: 0.9.9
+Version: 0.9.9.1
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -56,6 +56,9 @@ required by hasher utilities.
 %doc DESIGN
 
 %changelog
+* Thu Jul 15 2004 Dmitry V. Levin <ldv@altlinux.org> 0.9.9.1-alt1
+- Added hasher-priv.conf(5) manpage.
+
 * Tue Jul 13 2004 Dmitry V. Levin <ldv@altlinux.org> 0.9.9-alt1
 - maketty: new mode, controlled by allow_ttydev config option.
 - chrootuid: use pty for communicating with child,

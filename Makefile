@@ -22,14 +22,16 @@
 PROJECT = hasher-priv
 VERSION = $(shell grep ^Version: hasher-priv.spec |head -1 |awk '{print $$2}')
 SCRIPTS = getugid1.sh chrootuid1.sh getugid2.sh chrootuid2.sh makedev.sh maketty.sh
+MAN5PAGES = $(PROJECT).conf.5
 MAN8PAGES = $(PROJECT).8 hasher-useradd.8
 SUDOERS = $(PROJECT).sudoers
-TARGETS = $(PROJECT) $(SCRIPTS) $(SUDOERS) $(MAN8PAGES)
+TARGETS = $(PROJECT) $(SCRIPTS) $(SUDOERS) $(MAN5PAGES) $(MAN8PAGES)
 
 sysconfdir = /etc
 libexecdir = /usr/lib
 sbindir = /usr/sbin
 mandir = /usr/share/man
+man5dir = $(mandir)/man5
 man8dir = $(mandir)/man8
 configdir = $(sysconfdir)/$(PROJECT)
 helperdir = $(libexecdir)/$(PROJECT)
@@ -63,6 +65,8 @@ install: all
 	$(INSTALL) -p -m755 $(SCRIPTS) $(DESTDIR)$(helperdir)/
 	$(MKDIR_P) -m755 $(DESTDIR)$(sbindir)
 	$(INSTALL) -p -m755 hasher-useradd $(DESTDIR)$(sbindir)/
+	$(MKDIR_P) -m755 $(DESTDIR)$(man5dir)
+	$(INSTALL) -p -m644 $(MAN5PAGES) $(DESTDIR)$(man5dir)/
 	$(MKDIR_P) -m755 $(DESTDIR)$(man8dir)
 	$(INSTALL) -p -m644 $(MAN8PAGES) $(DESTDIR)$(man8dir)/
 
@@ -72,13 +76,17 @@ clean:
 indent:
 	indent *.h *.c
 
-%.sh: %.sh.in
-	sed -e 's|@helper@|$(helperdir)/$(PROJECT)|g' < $< > $@
+%.sh: %.sh.in Makefile
+	sed -e 's|@helper@|$(helperdir)/$(PROJECT)|g' <$< >$@
 
-%.sudoers: %.sudoers.in
-	sed -e 's|@helper@|$(helperdir)/$(PROJECT)|g' < $< > $@
+%.sudoers: %.sudoers.in Makefile
+	sed -e 's|@helper@|$(helperdir)/$(PROJECT)|g' <$< >$@
 
-%.8: % %.8.inc
+%.5: %.5.in
+	sed -e 's/@VERSION@/$(VERSION)/g' <$< >$@
+	chmod --reference=$< $@
+
+%.8: % %.8.inc Makefile
 	$(HELP2MAN8) -i $@.inc ./$< >$@
 
 # We need dependencies only if goal isn't "indent" or "clean".
