@@ -38,7 +38,7 @@ DESTDIR =
 MKDIR_P = mkdir -p
 INSTALL = install
 HELP2MAN = help2man -N -s8
-RPM_OPT_FLAGS = -pipe -Wall -Werror -O2
+RPM_OPT_FLAGS = -pipe -Wall -Werror -W -O2
 CPPFLAGS = $(RPM_OPT_FLAGS) -D_GNU_SOURCE -DENABLE_SETFSUGID -DPROJECT_VERSION=\"$(VERSION)\"
 
 SRC = main.c caller.c chdiruid.c cmdline.c config.c fds.c getugid.c ipc.c killuid.c chrootuid.c makedev.c xmalloc.c
