@@ -61,6 +61,7 @@ chrootuid (const char *name, uid_t uid, gid_t gid, const char *ehome,
 		error (EXIT_FAILURE, errno, "chrootuid: setuid");
 
 	umask (022);
+	nice (10);
 
 	execve (chroot_argv[0], (char *const *) chroot_argv,
 		(char *const *) env);
