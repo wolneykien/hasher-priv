@@ -160,7 +160,7 @@ forget_and_unblock (void)
 }
 
 static void
-sigchld_handler ( __attribute__ ((unused)) int signo)
+sigchld_handler (int __attribute__ ((unused)) signo)
 {
 	int     status;
 
