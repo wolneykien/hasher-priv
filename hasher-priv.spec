@@ -27,7 +27,7 @@ required by hasher utilities.
 %setup -q
 
 %build
-%make_build CFLAGS="$RPM_OPT_FLAGS -Werror -W"
+%make_build CFLAGS="$RPM_OPT_FLAGS -Werror -W" libexecdir=%_libexecdir
 
 %install
 %makeinstall
