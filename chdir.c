@@ -30,8 +30,8 @@
 #include "priv.h"
 
 /*
- * Change the current working directory.
- * Call validator before chdir.
+ * Change the current working directory
+ * using lstat+validate+chdir+lstat+compare technique.
  */
 void
 safe_chdir (const char *name, VALIDATE_FPTR validator)
@@ -58,6 +58,11 @@ safe_chdir (const char *name, VALIDATE_FPTR validator)
 		error (EXIT_FAILURE, 0, "%s: changed during execution", name);
 }
 
+/*
+ * Ensure that owner is caller_uid:change_gid1,
+ * no world writable permissions, and group writable
+ * bit is set if and only if sticky bit is also set.
+ */
 void
 stat_userok_validator (struct stat *st, const char *name)
 {
@@ -77,6 +82,10 @@ stat_userok_validator (struct stat *st, const char *name)
 		       "%s: bad perms: %o", name, st->st_mode & 07777);
 }
 
+/*
+ * Ensure that owner is root and permissions contain no
+ * group or world writable bits set.
+ */
 void
 stat_rootok_validator (struct stat *st, const char *name)
 {
@@ -89,6 +98,10 @@ stat_rootok_validator (struct stat *st, const char *name)
 		       st->st_mode & 07777);
 }
 
+/*
+ * Ensure that owner is either root or caller_uid:change_gid1,
+ * and permissions contain no group or world writable bits set.
+ */
 void
 stat_permok_validator (struct stat *st, const char *name)
 {

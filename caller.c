@@ -58,6 +58,9 @@ xatoul (const char *str, const char *name)
 	return n;
 }
 
+/*
+ * Initialize caller_user, caller_uid, caller_gid and caller_home.
+ */
 void
 init_caller_data (void)
 {
