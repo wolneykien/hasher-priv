@@ -137,7 +137,10 @@ chdiruid (const char *path, chdiruid_t type)
 	if (st.st_uid != caller_uid)
 		error (EXIT_FAILURE, 0, "%s: bad owner: %u", cwd, st.st_uid);
 
-	if (st.st_mode & (S_IWGRP | S_IWOTH))
+	if (st.st_gid != change_gid1)
+		error (EXIT_FAILURE, 0, "%s: bad group: %u", cwd, st.st_gid);
+
+	if (st.st_mode & S_IWOTH)
 		error (EXIT_FAILURE, 0, "%s: bad perms: %o", cwd,
 		       st.st_mode & 07777);
 
