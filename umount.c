@@ -58,7 +58,7 @@ static int
 umount_proc (void)
 {
 	chdiruid (chroot_path);
-	safe_chdir ("proc", stat_perms_validator);
+	safe_chdir ("proc", stat_permok_validator);
 	return xumount ("proc");
 }
 
@@ -67,7 +67,7 @@ umount_devpts (void)
 {
 	chdiruid (chroot_path);
 	chdiruid ("dev");
-	safe_chdir ("pts", stat_perms_validator);
+	safe_chdir ("pts", stat_permok_validator);
 	return xumount ("devpts");
 }
 
@@ -75,7 +75,7 @@ static int
 umount_sysfs (void)
 {
 	chdiruid (chroot_path);
-	safe_chdir ("sys", stat_perms_validator);
+	safe_chdir ("sys", stat_permok_validator);
 	return xumount ("sysfs");
 }
 

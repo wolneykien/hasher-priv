@@ -71,7 +71,7 @@ void    purge_ipc (uid_t uid);
 void    safe_chdir (const char *name, VALIDATE_FPTR validator);
 void    stat_userok_validator (struct stat *st, const char *name);
 void    stat_rootok_validator (struct stat *st, const char *name);
-void    stat_perms_validator (struct stat *st, const char *name);
+void    stat_permok_validator (struct stat *st, const char *name);
 
 int     do_getugid1 (void);
 int     do_killuid1 (void);

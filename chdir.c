@@ -92,7 +92,7 @@ stat_rootok_validator (struct stat *st, const char *name)
 }
 
 void
-stat_perms_validator (struct stat *st, const char *name)
+stat_permok_validator (struct stat *st, const char *name)
 {
 	if (st->st_uid && st->st_uid != caller_uid)
 		error (EXIT_FAILURE, 0,
