@@ -91,6 +91,14 @@ unblock_fd (int fd)
 		error (EXIT_FAILURE, errno, "fcntl F_SETFL");
 }
 
+volatile unsigned sigwinch_arrived;
+
+static void
+sigwinch_handler (int __attribute__ ((unused)) signo)
+{
+	++sigwinch_arrived;
+}
+
 static void
 sigchld_handler (int __attribute__ ((unused)) signo)
 {
@@ -221,7 +229,8 @@ handle_parent (pid_t child, int pty_fd, int pipe_fd)
 		close (pipe_fd);
 
 	/* redirect standard descriptors, init tty if necessary */
-	init_tty ();
+	if (init_tty () && tty_copy_winsize (STDIN_FILENO, pty_fd) == 0)
+		(void) signal (SIGWINCH, sigwinch_handler);
 
 	while (work_limits_ok (total_bytes_read, total_bytes_written))
 	{
@@ -237,6 +246,12 @@ handle_parent (pid_t child, int pty_fd, int pipe_fd)
 		{
 			struct timeval tmout;
 			int     rc;
+
+			if (sigwinch_arrived)
+			{
+				--sigwinch_arrived;
+				tty_copy_winsize (STDIN_FILENO, pty_fd);
+			}
 
 			if (read_avail)
 				FD_SET (in_fd, &write_fds);

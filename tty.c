@@ -99,3 +99,14 @@ connect_fds (int pty_fd, int pipe_fd)
 	if (!use_pty && isatty (STDIN_FILENO))
 		nullify_stdin ();
 }
+
+int
+tty_copy_winsize (int master_fd, int slave_fd)
+{
+	int     rc;
+	struct winsize ws;
+
+	if ((rc = ioctl (master_fd, TIOCGWINSZ, &ws)) < 0)
+		return rc;
+	return ioctl (slave_fd, TIOCSWINSZ, &ws);
+}

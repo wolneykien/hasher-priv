@@ -32,6 +32,7 @@
 #include <pty.h>
 
 #include "priv.h"
+#include "xmalloc.h"
 
 static void
 set_rlimits (void)
@@ -95,11 +96,13 @@ static int
 chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	   const char *euser, const char *epath)
 {
-	const char *const env[] =
-		{ ehome, euser, epath, "SHELL=/bin/sh", "TERM=dumb", 0 };
 	int     master = -1, slave = -1;
 	int     out[2];
 	pid_t   pid;
+	char *term_env;
+	xasprintf (&term_env, "TERM=%s", term ?: "dumb");
+	const char *const env[] =
+		{ ehome, euser, epath, term_env, "SHELL=/bin/sh", 0 };
 
 	if (uid < MIN_CHANGE_UID || uid == getuid ())
 		error (EXIT_FAILURE, 0, "chrootuid: invalid uid: %u", uid);
@@ -138,6 +141,7 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 		return handle_parent (pid, master, out[0]);
 	} else
 	{
+		block_signal_handler (SIGCHLD, SIG_UNBLOCK);
 		if (close (out[0]) || close (master) < 0)
 			error (EXIT_FAILURE, errno, "close");
 		return handle_child (uid, gid, (char *const *) env, slave,

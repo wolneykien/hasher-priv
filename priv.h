@@ -68,6 +68,7 @@ void    nullify_stdin (void);
 int     init_tty (void);
 void    restore_tty (void);
 void    connect_fds (int pty_fd, int pipe_fd);
+int     tty_copy_winsize (int master_fd, int slave_fd);
 task_t  parse_cmdline (int ac, const char *av[]);
 void    init_caller_data (void);
 void    parse_env (void);
@@ -100,6 +101,8 @@ extern const char **chroot_argv;
 
 extern const char *mountpoint;
 extern const char *allowed_mountpoints;
+
+extern const char *term;
 
 extern int allow_tty_devices, use_pty;
 

@@ -37,6 +37,7 @@
 const char *chroot_prefix;
 const char *allowed_mountpoints;
 const char *change_user1, *change_user2;
+const char *term;
 uid_t   change_uid1, change_uid2;
 gid_t   change_gid1, change_gid2;
 mode_t  change_umask = 022;
@@ -507,4 +508,7 @@ parse_env (void)
 
 	if ((e = getenv ("use_pty")))
 		use_pty = str2bool ("use_pty", e, "environment");
+
+	if (use_pty && (e = getenv ("TERM")) && *e)
+		term = xstrdup (e);
 }
