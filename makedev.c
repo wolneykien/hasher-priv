@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The makedev action for the hasher-priv program.
 
@@ -32,10 +32,15 @@
 #include "priv.h"
 
 static void
-xmknod (const char *name, mode_t mode, dev_t major, dev_t minor)
+xmknod (const char *name, const char *devpath, mode_t mode, dev_t major, dev_t minor)
 {
-	if (mknod (name, mode, makedev (major, minor)) < 0)
-		error (EXIT_FAILURE, errno, "mknod: %s", name);
+	if (link (devpath, name) == 0)
+		return;
+
+	if (mknod (name, mode, makedev (major, minor)) == 0)
+		return;
+
+	error (EXIT_FAILURE, errno, "mknod: %s", name);
 }
 
 int
@@ -47,10 +52,10 @@ do_makedev (void)
 	chdiruid ("dev");
 
 	m = umask (0);
-	xmknod ("null", S_IFCHR | 0666, 1, 3);
-	xmknod ("zero", S_IFCHR | 0666, 1, 5);
-	xmknod ("urandom", S_IFCHR | 0644, 1, 9);
-	xmknod ("random", S_IFCHR | 0644, 1, 9);	/* fake random. */
+	xmknod ("null", "/dev/null", S_IFCHR | 0666, 1, 3);
+	xmknod ("zero", "/dev/zero", S_IFCHR | 0666, 1, 5);
+	xmknod ("urandom", "/dev/urandom", S_IFCHR | 0644, 1, 9);
+	xmknod ("random", "/dev/urandom", S_IFCHR | 0644, 1, 9);	/* pseudo random. */
 	umask (m);
 
 	return 0;
@@ -69,8 +74,8 @@ do_maketty (void)
 	chdiruid ("dev");
 
 	m = umask (0);
-	xmknod ("tty", S_IFCHR | 0666, 5, 0);
-	xmknod ("ptmx", S_IFCHR | 0666, 5, 2);
+	xmknod ("tty", "/dev/tty", S_IFCHR | 0666, 5, 0);
+	xmknod ("ptmx", "/dev/ptmx", S_IFCHR | 0666, 5, 2);
 	umask (m);
 
 	return 0;
