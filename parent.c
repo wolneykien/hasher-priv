@@ -146,7 +146,6 @@ wait_child (void)
 	for (i = 0; i < 10; ++i)
 		if (child_pid)
 			usleep (100000);
-	forget_child ();
 }
 
 static void __attribute__ ((__noreturn__))
@@ -194,10 +193,11 @@ work_limits_ok (unsigned long bytes_read, unsigned long bytes_written)
 }
 
 int
-handle_parent (pid_t child, int master)
+handle_parent (pid_t child, int pty_fd, int pipe_fd)
 {
+	int     in_fd = use_pty ? pty_fd : pipe_fd;
 	unsigned long total_bytes_read = 0, total_bytes_written = 0;
-	ssize_t use_stdin, read_avail = 0;
+	ssize_t use_stdin = use_pty, read_avail = 0;
 	char    read_buf[BUFSIZ], write_buf[BUFSIZ];
 
 	if (setgid (caller_gid) < 0)
@@ -214,10 +214,14 @@ handle_parent (pid_t child, int master)
 		error (EXIT_FAILURE, errno, "signal");
 
 	block_signal_handler (SIGCHLD, SIG_UNBLOCK);
+	signal (SIGPIPE, SIG_IGN);
 
-	unblock_fd (master);
+	unblock_fd (in_fd);
+	if (in_fd != pipe_fd)
+		close (pipe_fd);
 
-	use_stdin = init_tty ();
+	/* redirect standard descriptors, init tty if necessary */
+	init_tty ();
 
 	while (work_limits_ok (total_bytes_read, total_bytes_written))
 	{
@@ -226,7 +230,7 @@ handle_parent (pid_t child, int master)
 
 		FD_ZERO (&read_fds);
 		FD_ZERO (&write_fds);
-		FD_SET (master, &read_fds);
+		FD_SET (in_fd, &read_fds);
 
 		/* select only if child is running */
 		if (child_pid)
@@ -235,13 +239,13 @@ handle_parent (pid_t child, int master)
 			int     rc;
 
 			if (read_avail)
-				FD_SET (master, &write_fds);
+				FD_SET (in_fd, &write_fds);
 			else if (use_stdin)
 				FD_SET (STDIN_FILENO, &read_fds);
 			tmout.tv_sec = wlimit.time_idle;
 			tmout.tv_usec = 0;
 
-			rc = select_retry (master + 1, &read_fds, &write_fds,
+			rc = select_retry (in_fd + 1, &read_fds, &write_fds,
 					   0, wlimit.time_idle ? &tmout : 0);
 			if (!rc)
 				limit_exceeded
@@ -251,10 +255,10 @@ handle_parent (pid_t child, int master)
 				break;
 		}
 
-		if (FD_ISSET (master, &read_fds))
+		if (FD_ISSET (in_fd, &read_fds))
 		{
 			/* handle child output */
-			n = read_retry (master, write_buf, sizeof write_buf);
+			n = read_retry (in_fd, write_buf, sizeof write_buf);
 			if (n <= 0)
 				break;
 
@@ -266,11 +270,11 @@ handle_parent (pid_t child, int master)
 		if (!child_pid)
 			continue;
 
-		if (FD_ISSET (master, &write_fds))
+		if (FD_ISSET (in_fd, &write_fds))
 		{
 			/* handle child input */
 			errno = 0;
-			n = write_loop (master, read_buf, read_avail);
+			n = write_loop (in_fd, read_buf, read_avail);
 			if (n < read_avail)
 			{
 				if (errno != EAGAIN)
@@ -301,6 +305,9 @@ handle_parent (pid_t child, int master)
 	}
 
 	wait_child ();
+	close (pty_fd);
+	dfl_signal_handler (SIGCHLD);
+	forget_child ();
 
 	return child_rc;
 }

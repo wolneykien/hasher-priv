@@ -67,14 +67,14 @@ void    sanitize_fds (void);
 void    nullify_stdin (void);
 int     init_tty (void);
 void    restore_tty (void);
-void    connect_tty (int fd);
+void    connect_tty (int pty_fd, int pipe_fd);
 task_t  parse_cmdline (int ac, const char *av[]);
 void    init_caller_data (void);
 void    parse_env (void);
 void    configure (void);
 void    chdiruid (const char *path);
 void    purge_ipc (uid_t uid);
-int     handle_parent (pid_t pid, int master);
+int     handle_parent (pid_t pid, int pty_fd, int pipe_fd);
 void    block_signal_handler (int no, int what);
 void    dfl_signal_handler (int no);
 void    safe_chdir (const char *name, VALIDATE_FPTR validator);
@@ -101,7 +101,7 @@ extern const char **chroot_argv;
 extern const char *mountpoint;
 extern const char *allowed_mountpoints;
 
-extern int allow_tty_devices, enable_tty_stdin;
+extern int allow_tty_devices, use_pty;
 
 extern const char *chroot_prefix;
 extern const char *caller_user, *caller_home;

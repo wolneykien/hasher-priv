@@ -59,7 +59,7 @@ required by hasher utilities.
 * Tue Jul 13 2004 Dmitry V. Levin <ldv@altlinux.org> 0.9.9-alt1
 - maketty: new mode, controlled by allow_ttydev config option.
 - chrootuid: use pty for communicating with child.
-- New environment option: enable_tty_stdin.
+- New environment option: use_pty.
 
 * Fri Jul 09 2004 Dmitry V. Levin <ldv@altlinux.org> 0.9-alt1
 - Implemented mount/umount modes, controlled by

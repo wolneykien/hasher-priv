@@ -64,7 +64,7 @@ set_rlimits (void)
 }
 
 static int
-handle_child (uid_t uid, gid_t gid, char *const *env, int slave)
+handle_child (uid_t uid, gid_t gid, char *const *env, int pty_fd, int pipe_fd)
 {
 	if (setgid (gid) < 0)
 		error (EXIT_FAILURE, errno, "setgid");
@@ -74,7 +74,7 @@ handle_child (uid_t uid, gid_t gid, char *const *env, int slave)
 
 	/* Process is no longer privileged at this point. */
 
-	connect_tty (slave);
+	connect_tty (pty_fd, pipe_fd);
 
 	dfl_signal_handler (SIGHUP);
 	dfl_signal_handler (SIGPIPE);
@@ -98,6 +98,7 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	const char *const env[] =
 		{ ehome, euser, epath, "SHELL=/bin/sh", "TERM=dumb", 0 };
 	int     master = -1, slave = -1;
+	int     out[2];
 	pid_t   pid;
 
 	if (uid < MIN_CHANGE_UID || uid == getuid ())
@@ -110,6 +111,9 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 
 	/* Check and sanitize file descriptors again. */
 	sanitize_fds ();
+
+	if (pipe (out) < 0)
+		error (EXIT_FAILURE, errno, "pipe");
 
 	if (openpty (&master, &slave, 0, 0, 0) < 0)
 		error (EXIT_FAILURE, errno, "openpty");
@@ -129,14 +133,15 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 
 	if (pid)
 	{
-		if (close (slave) < 0)
+		if (close (out[1]) || close (slave))
 			error (EXIT_FAILURE, errno, "close");
-		return handle_parent (pid, master);
+		return handle_parent (pid, master, out[0]);
 	} else
 	{
-		if (close (master) < 0)
+		if (close (out[0]) || close (master) < 0)
 			error (EXIT_FAILURE, errno, "close");
-		return handle_child (uid, gid, (char *const *) env, slave);
+		return handle_child (uid, gid, (char *const *) env, slave,
+				     out[1]);
 	}
 }
 

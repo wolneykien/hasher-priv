@@ -49,7 +49,7 @@ init_tty (void)
 	if (tcgetattr (STDIN_FILENO, &tty_orig))
 		return 0;	/* not a tty */
 
-	if (enable_tty_stdin)
+	if (use_pty)
 	{
 		struct termios tty_changed = tty_orig;
 
@@ -74,32 +74,28 @@ init_tty (void)
 }
 
 void
-connect_tty (int fd)
+connect_tty (int pty_fd, int pipe_fd)
 {
-	int     stdin_isatty = isatty (STDIN_FILENO);
-	struct termios tty;
+	int     fd = use_pty ? pty_fd : pipe_fd;
 
 	if (setsid () < 0)
 		error (EXIT_FAILURE, errno, "setsid");
 
-	if (ioctl (fd, TIOCSCTTY, 0) < 0)
+	if (ioctl (pty_fd, TIOCSCTTY, 0) < 0)
 		error (EXIT_FAILURE, errno, "ioctl TIOCSCTTY");
 
-	if (stdin_isatty)
+	if (use_pty)
 		dup2 (fd, STDIN_FILENO);
 	dup2 (fd, STDOUT_FILENO);
 	dup2 (fd, STDERR_FILENO);
-	if (fd > STDERR_FILENO)
-		close (fd);
 
-	if (stdin_isatty && !enable_tty_stdin)
+	if (pty_fd > STDERR_FILENO)
+		close (pty_fd);
+	if (pipe_fd > STDERR_FILENO)
+		close (pipe_fd);
+
+	/* redirect stdin to /dev/null if and only if
+	   tty stdin is not enabled and stdin is a tty */
+	if (!use_pty && isatty (STDIN_FILENO))
 		nullify_stdin ();
-
-	if (enable_tty_stdin || tcgetattr (STDOUT_FILENO, &tty))
-		return;		/* either untouched tty or not a tty */
-
-	tty.c_oflag &= ~OPOST;
-	if (tcsetattr (STDOUT_FILENO, TCSAFLUSH, &tty))
-		error (EXIT_FAILURE, errno, "tcsetattr");
-
 }

@@ -41,7 +41,7 @@ uid_t   change_uid1, change_uid2;
 gid_t   change_gid1, change_gid2;
 mode_t  change_umask = 022;
 int     change_nice = 10;
-int     allow_tty_devices, enable_tty_stdin;
+int     allow_tty_devices, use_pty;
 change_rlimit_t change_rlimit[] = {
 
 /* Per-process CPU limit, in seconds.  */
@@ -505,6 +505,6 @@ parse_env (void)
 		modify_wlim (&wlimit.bytes_written, e, "wlimit_bytes_written",
 			     "environment");
 
-	if ((e = getenv ("enable_tty_stdin")))
-		enable_tty_stdin = str2bool ("enable_tty", e, "environment");
+	if ((e = getenv ("use_pty")))
+		use_pty = str2bool ("use_pty", e, "environment");
 }
