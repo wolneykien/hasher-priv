@@ -20,6 +20,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
+/* Code in this file may be executed with root privileges. */
+
 #include <errno.h>
 #include <error.h>
 #include <stdio.h>
@@ -34,7 +36,6 @@
 #include "priv.h"
 #include "xmalloc.h"
 
-/* This function may be executed with root privileges. */
 static void
 set_rlimits (void)
 {
@@ -65,29 +66,6 @@ set_rlimits (void)
 	}
 }
 
-/* This function may be executed with root privileges. */
-static int
-handle_child (char *const *env, int pty_fd, int pipe_fd)
-{
-	connect_fds (pty_fd, pipe_fd);
-
-	dfl_signal_handler (SIGHUP);
-	dfl_signal_handler (SIGPIPE);
-	dfl_signal_handler (SIGTERM);
-
-	if (nice (change_nice) < 0)
-		error (EXIT_FAILURE, errno, "nice");
-
-	umask (change_umask);
-
-	block_signal_handler (SIGCHLD, SIG_UNBLOCK);
-
-	execve (chroot_argv[0], (char *const *) chroot_argv, env);
-	error (EXIT_FAILURE, errno, "chrootuid: execve: %s", chroot_argv[0]);
-	return EXIT_FAILURE;
-}
-
-/* This function may be executed with root privileges. */
 static int
 chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	   const char *euser, const char *epath)
@@ -161,7 +139,6 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	}
 }
 
-/* This function may be executed with root privileges. */
 int
 do_chrootuid1 (void)
 {

@@ -44,8 +44,8 @@ CPPFLAGS = -std=gnu99 -D_GNU_SOURCE $(CHDIRUID_FLAGS) -D_FILE_OFFSET_BITS=64 -DP
 CFLAGS = -pipe -Wall -Werror -W -O2
 LDLIBS = -lutil
 
-SRC = caller.c chdir.c chdiruid.c chrootuid.c cmdline.c config.c fds.c \
-	getugid.c ipc.c killuid.c main.c makedev.c mount.c parent.c \
+SRC = caller.c chdir.c chdiruid.c child.c chrootuid.c cmdline.c config.c \
+	fds.c getugid.c ipc.c killuid.c main.c makedev.c mount.c parent.c \
 	signal.c tty.c umount.c xmalloc.c
 OBJ = $(SRC:.c=.o)
 DEP = $(SRC:.c=.d)

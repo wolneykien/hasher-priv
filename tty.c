@@ -20,6 +20,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
+/* Code in this file may be executed with caller privileges. */
+
 #include <errno.h>
 #include <error.h>
 #include <stdlib.h>
@@ -32,7 +34,6 @@
 static int tty_is_saved;
 static struct termios tty_orig;
 
-/* This function may be executed with caller privileges. */
 void
 restore_tty (void)
 {
@@ -44,7 +45,6 @@ restore_tty (void)
 	}
 }
 
-/* This function may be executed with caller privileges. */
 int
 init_tty (void)
 {
@@ -75,7 +75,6 @@ init_tty (void)
 	}
 }
 
-/* This function may be executed with caller privileges. */
 int
 tty_copy_winsize (int master_fd, int slave_fd)
 {
@@ -85,32 +84,4 @@ tty_copy_winsize (int master_fd, int slave_fd)
 	if ((rc = ioctl (master_fd, TIOCGWINSZ, &ws)) < 0)
 		return rc;
 	return ioctl (slave_fd, TIOCSWINSZ, &ws);
-}
-
-/* This function may be executed with child privileges. */
-void
-connect_fds (int pty_fd, int pipe_fd)
-{
-	int     fd = use_pty ? pty_fd : pipe_fd;
-
-	if (setsid () < 0)
-		error (EXIT_FAILURE, errno, "setsid");
-
-	if (ioctl (pty_fd, TIOCSCTTY, 0) < 0)
-		error (EXIT_FAILURE, errno, "ioctl TIOCSCTTY");
-
-	if (use_pty)
-		dup2 (fd, STDIN_FILENO);
-	dup2 (fd, STDOUT_FILENO);
-	dup2 (fd, STDERR_FILENO);
-
-	if (pty_fd > STDERR_FILENO)
-		close (pty_fd);
-	if (pipe_fd > STDERR_FILENO)
-		close (pipe_fd);
-
-	/* redirect stdin to /dev/null if and only if
-	   use_pty is not set and stdin is a tty */
-	if (!use_pty && isatty (STDIN_FILENO))
-		nullify_stdin ();
 }
