@@ -1,7 +1,7 @@
 # $Id$
 
 Name: hasher-priv
-Version: 1.0.2
+Version: 1.0.3
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -10,14 +10,19 @@ Group: Development/Other
 
 Source: %name-%version.tar.bz2
 
+%define _libexecdir %_prefix/libexec
+%define helperdir %_libexecdir/%name
+%define configdir %_sysconfdir/%name
+
+Provides: helperdir
 PreReq: coreutils, shadow-utils, glibc-utils
 Obsoletes: pkg-build-priv
 
+# due to libexec hell.
+Conflicts: hasher < 0:1.0.9-alt1
+
 # Automatically added by buildreq on Fri May 02 2003
 BuildRequires: help2man
-
-%define helperdir %_libexecdir/%name
-%define configdir %_sysconfdir/%name
 
 %description
 This package provides helpers for executing privileged operations
@@ -56,6 +61,13 @@ fi
 %doc DESIGN
 
 %changelog
+* Mon Jan 03 2005 Dmitry V. Levin <ldv@altlinux.org> 1.0.3-alt1
+- Changed helper directory to %helperdir.
+- Updated documentation:
+  + hasher-priv.conf(5): s/lim_/limit_/ (fixes #5805);
+  + hasher-priv(8): fix NAME section, document TERM variable;
+  + hasher-useradd(8): fix NAME section.
+
 * Thu Nov 18 2004 Dmitry V. Levin <ldv@altlinux.org> 1.0.2-alt1
 - Changed privileged helper to suid program,
   to get rid of sudo dependence.
