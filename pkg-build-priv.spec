@@ -1,7 +1,7 @@
 # $Id$
 
 Name: pkg-build-priv
-Version: 0.1.4
+Version: 0.1.5
 Release: alt1
 
 Summary: A privileged helper for the pkg-build project
@@ -47,6 +47,9 @@ required by pkg-build utilities.
 %doc DESIGN
 
 %changelog
+* Mon May 05 2003 Dmitry V. Levin <ldv@altlinux.org> 0.1.5-alt1
+- chrootuid.c: set nice to 10.
+
 * Thu May 01 2003 Dmitry V. Levin <ldv@altlinux.org> 0.1.4-alt1
 - chrootuid.c: pass user-dependent HOME to spawned process,
   not just "HOME=/" as before.
