@@ -78,5 +78,5 @@ int
 do_chrootuid2 (void)
 {
 	return chrootuid (change_user2, change_uid2, change_gid2,
-			  "PATH=/bin:/usr/bin");
+			  "PATH=/bin:/usr/bin:/usr/X11R6/bin");
 }
