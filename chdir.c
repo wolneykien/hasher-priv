@@ -94,6 +94,11 @@ stat_rootok_validator (struct stat *st, const char *name)
 void
 stat_perms_validator (struct stat *st, const char *name)
 {
+	if (st->st_uid && st->st_uid != caller_uid)
+		error (EXIT_FAILURE, 0,
+		       "%s: expected owner 0 or %u, found owner %u",
+		       name, caller_uid, st->st_uid);
+
 	if (st->st_mode & (S_IWGRP | S_IWOTH))
 		error (EXIT_FAILURE, 0, "%s: bad perms: %o", name,
 		       st->st_mode & 07777);
