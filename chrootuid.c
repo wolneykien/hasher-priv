@@ -33,9 +33,9 @@
 static void
 set_rlimits (void)
 {
-	change_limit_t *p;
+	change_rlimit_t *p;
 
-	for (p = change_limit; p->name; ++p)
+	for (p = change_rlimit; p->name; ++p)
 	{
 		struct rlimit rlim;
 

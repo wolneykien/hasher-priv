@@ -41,7 +41,7 @@ uid_t   change_uid1, change_uid2;
 gid_t   change_gid1, change_gid2;
 mode_t  change_umask = 022;
 int     change_nice = 10;
-change_limit_t change_limit[] = {
+change_rlimit_t change_rlimit[] = {
 
 /* Per-process CPU limit, in seconds.  */
 	{"cpu", RLIMIT_CPU, 0, 0},
@@ -82,19 +82,19 @@ change_limit_t change_limit[] = {
 
 static void
 	__attribute__ ((__noreturn__))
-bad_option_name (const char *name, const char *filename)
+bad_option_name (const char *optname, const char *filename)
 {
 	error (EXIT_FAILURE, 0, "%s: unrecognized option: %s", filename,
-	       name);
+	       optname);
 	exit (EXIT_FAILURE);
 }
 
 static void
 	__attribute__ ((__noreturn__))
-bad_option_value (const char *name, const char *filename)
+bad_option_value (const char *optname, const char *filename)
 {
 	error (EXIT_FAILURE, 0, "%s: invalid value for \"%s\" option",
-	       filename, name);
+	       filename, optname);
 	exit (EXIT_FAILURE);
 }
 
@@ -153,9 +153,9 @@ static void
 set_rlim (const char *name, const char *value, int hard,
 	  const char *optname, const char *filename)
 {
-	change_limit_t *p;
+	change_rlimit_t *p;
 
-	for (p = change_limit; p->name; ++p)
+	for (p = change_rlimit; p->name; ++p)
 		if (!strcasecmp (name, p->name))
 		{
 			rlim_t **limit = hard ? &(p->hard) : &(p->soft);
