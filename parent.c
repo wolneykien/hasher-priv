@@ -20,6 +20,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
+/* Code in this file may be executed with caller privileges. */
+
 #include <errno.h>
 #include <error.h>
 #include <stdio.h>
@@ -207,12 +209,6 @@ handle_parent (pid_t child, int pty_fd, int pipe_fd)
 	unsigned long total_bytes_read = 0, total_bytes_written = 0;
 	ssize_t use_stdin = use_pty, read_avail = 0;
 	char    read_buf[BUFSIZ], write_buf[BUFSIZ];
-
-	if (setgid (caller_gid) < 0)
-		error (EXIT_FAILURE, errno, "setgid");
-
-	if (setuid (caller_uid) < 0)
-		error (EXIT_FAILURE, errno, "setuid");
 
 	/* Process is no longer privileged at this point. */
 

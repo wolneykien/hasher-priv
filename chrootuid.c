@@ -34,6 +34,7 @@
 #include "priv.h"
 #include "xmalloc.h"
 
+/* This function may be executed with root privileges. */
 static void
 set_rlimits (void)
 {
@@ -64,17 +65,10 @@ set_rlimits (void)
 	}
 }
 
+/* This function may be executed with root privileges. */
 static int
-handle_child (uid_t uid, gid_t gid, char *const *env, int pty_fd, int pipe_fd)
+handle_child (char *const *env, int pty_fd, int pipe_fd)
 {
-	if (setgid (gid) < 0)
-		error (EXIT_FAILURE, errno, "setgid");
-
-	if (setuid (uid) < 0)
-		error (EXIT_FAILURE, errno, "setuid");
-
-	/* Process is no longer privileged at this point. */
-
 	connect_fds (pty_fd, pipe_fd);
 
 	dfl_signal_handler (SIGHUP);
@@ -84,14 +78,16 @@ handle_child (uid_t uid, gid_t gid, char *const *env, int pty_fd, int pipe_fd)
 	if (nice (change_nice) < 0)
 		error (EXIT_FAILURE, errno, "nice");
 
-	/* This system call always succeeds. */
 	umask (change_umask);
+
+	block_signal_handler (SIGCHLD, SIG_UNBLOCK);
 
 	execve (chroot_argv[0], (char *const *) chroot_argv, env);
 	error (EXIT_FAILURE, errno, "chrootuid: execve: %s", chroot_argv[0]);
 	return EXIT_FAILURE;
 }
 
+/* This function may be executed with root privileges. */
 static int
 chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	   const char *euser, const char *epath)
@@ -136,19 +132,36 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 
 	if (pid)
 	{
+		if (setgid (caller_gid) < 0)
+			error (EXIT_FAILURE, errno, "setgid");
+
+		if (setuid (caller_uid) < 0)
+			error (EXIT_FAILURE, errno, "setuid");
+
+		/* Process is no longer privileged at this point. */
+
 		if (close (out[1]) || close (slave))
 			error (EXIT_FAILURE, errno, "close");
+
 		return handle_parent (pid, master, out[0]);
 	} else
 	{
-		block_signal_handler (SIGCHLD, SIG_UNBLOCK);
+		if (setgid (gid) < 0)
+			error (EXIT_FAILURE, errno, "setgid");
+
+		if (setuid (uid) < 0)
+			error (EXIT_FAILURE, errno, "setuid");
+
+		/* Process is no longer privileged at this point. */
+
 		if (close (out[0]) || close (master) < 0)
 			error (EXIT_FAILURE, errno, "close");
-		return handle_child (uid, gid, (char *const *) env, slave,
-				     out[1]);
+
+		return handle_child ((char *const *) env, slave, out[1]);
 	}
 }
 
+/* This function may be executed with root privileges. */
 int
 do_chrootuid1 (void)
 {
@@ -157,6 +170,7 @@ do_chrootuid1 (void)
 			  "PATH=/sbin:/usr/sbin:/bin:/usr/bin");
 }
 
+/* This function may be executed with root privileges. */
 int
 do_chrootuid2 (void)
 {

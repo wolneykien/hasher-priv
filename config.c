@@ -20,6 +20,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
+/* Code in this file may be executed with root privileges. */
+
 #include <errno.h>
 #include <error.h>
 #include <ctype.h>
@@ -84,8 +86,7 @@ change_rlimit_t change_rlimit[] = {
 
 work_limit_t wlimit;
 
-static void
-	__attribute__ ((__noreturn__))
+static void __attribute__ ((__noreturn__))
 bad_option_name (const char *optname, const char *filename)
 {
 	error (EXIT_FAILURE, 0, "%s: unrecognized option: %s", filename,
@@ -93,8 +94,7 @@ bad_option_name (const char *optname, const char *filename)
 	exit (EXIT_FAILURE);
 }
 
-static void
-	__attribute__ ((__noreturn__))
+static void __attribute__ ((__noreturn__))
 bad_option_value (const char *optname, const char *value, const char *filename)
 {
 	error (EXIT_FAILURE, 0, "%s: invalid value for \"%s\" option: %s",
@@ -102,7 +102,7 @@ bad_option_value (const char *optname, const char *value, const char *filename)
 	exit (EXIT_FAILURE);
 }
 
-static  mode_t
+static mode_t
 str2umask (const char *name, const char *value, const char *filename)
 {
 	char   *p = 0;
@@ -134,7 +134,7 @@ str2nice (const char *name, const char *value, const char *filename)
 	return n;
 }
 
-static  rlim_t
+static rlim_t
 str2rlim (const char *name, const char *value, const char *filename)
 {
 	char   *p = 0;

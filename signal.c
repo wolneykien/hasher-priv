@@ -29,6 +29,7 @@
 
 #include "priv.h"
 
+/* This function may be executed with root privileges. */
 void
 block_signal_handler (int no, int what)
 {
@@ -40,6 +41,7 @@ block_signal_handler (int no, int what)
 		error (EXIT_FAILURE, errno, "sigprocmask");
 }
 
+/* This function may be executed with caller or child privileges. */
 void
 dfl_signal_handler (int no)
 {

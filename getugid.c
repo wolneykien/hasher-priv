@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2003  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
 
   The getugid actions for the hasher-priv program.
 
@@ -19,6 +19,8 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
+
+/* Code in this file may be executed with root privileges. */
 
 #include <stdio.h>
 

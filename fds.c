@@ -1,9 +1,11 @@
 
 /*
   $Id$
-  Copyright (C) 2003  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
 
   The file descriptor sanitizer for the hasher-priv program.
+
+  This code is executed with root privileges.
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -30,12 +32,13 @@
 
 #include "priv.h"
 
+/* This function may be executed with root privileges. */
 void
 sanitize_fds (void)
 {
 	int     fd, max_fd;
 
-	/* Just in case. */
+	/* Set safe umask, just in case. */
 	umask (077);
 
 	/* Check for stdin, stdout and stderr: they should present. */
@@ -54,11 +57,12 @@ sanitize_fds (void)
 
 	/* Close all the rest. */
 	for (; fd < max_fd; ++fd)
-		close (fd);
+		(void) close (fd);
 
 	errno = 0;
 }
 
+/* This function may be executed with caller or child privileges. */
 void
 nullify_stdin (void)
 {

@@ -32,6 +32,7 @@
 static int tty_is_saved;
 static struct termios tty_orig;
 
+/* This function may be executed with caller privileges. */
 void
 restore_tty (void)
 {
@@ -43,6 +44,7 @@ restore_tty (void)
 	}
 }
 
+/* This function may be executed with caller privileges. */
 int
 init_tty (void)
 {
@@ -73,6 +75,19 @@ init_tty (void)
 	}
 }
 
+/* This function may be executed with caller privileges. */
+int
+tty_copy_winsize (int master_fd, int slave_fd)
+{
+	int     rc;
+	struct winsize ws;
+
+	if ((rc = ioctl (master_fd, TIOCGWINSZ, &ws)) < 0)
+		return rc;
+	return ioctl (slave_fd, TIOCSWINSZ, &ws);
+}
+
+/* This function may be executed with child privileges. */
 void
 connect_fds (int pty_fd, int pipe_fd)
 {
@@ -98,15 +113,4 @@ connect_fds (int pty_fd, int pipe_fd)
 	   use_pty is not set and stdin is a tty */
 	if (!use_pty && isatty (STDIN_FILENO))
 		nullify_stdin ();
-}
-
-int
-tty_copy_winsize (int master_fd, int slave_fd)
-{
-	int     rc;
-	struct winsize ws;
-
-	if ((rc = ioctl (master_fd, TIOCGWINSZ, &ws)) < 0)
-		return rc;
-	return ioctl (slave_fd, TIOCSWINSZ, &ws);
 }

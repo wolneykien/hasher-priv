@@ -20,6 +20,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
+/* Code in this file may be executed with root privileges. */
+
 #include <errno.h>
 #include <error.h>
 #include <stdio.h>
@@ -29,7 +31,8 @@
 
 #include "priv.h"
 
-static void __attribute__ ((__noreturn__)) usage (int rc)
+static void __attribute__ ((__noreturn__))
+usage (int rc)
 {
 	fprintf ((rc == EXIT_SUCCESS) ? stdout : stderr,
 		 "Privileged helper for the hasher project.\n"
@@ -66,7 +69,8 @@ static void __attribute__ ((__noreturn__)) usage (int rc)
 	exit (rc);
 }
 
-static void __attribute__ ((__noreturn__)) print_version (void)
+static void __attribute__ ((__noreturn__))
+print_version (void)
 {
 	printf ("hasher-priv version %s\n"
 		"\nCopyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>\n"
