@@ -117,7 +117,10 @@ fi
 	Fatal "error creating satellite user $user2"
 
 # Add caller to pkg-build group and first satellite group.
-glist="$((id -Gn "$caller" |tr ' ' '\n' && id -gn "$user1" && echo pkg-build) |sort -u |xargs echo |tr ' ' ,)"
+glist="$((id -Gn "$caller" |tr ' ' '\n' && id -gn "$user1" && id -gn "$user2" && echo pkg-build) |
+	sort -u |
+	xargs echo |
+	tr ' ' ,)"
 /usr/sbin/usermod -G "$glist" "$caller" ||
 	Fatal "error updating groups for user $caller"
 
