@@ -59,9 +59,9 @@ static void __attribute__ ((__noreturn__)) usage (int rc)
 		 "makedev <chroot path>:\n"
 		 "       make devices in given chroot;\n"
 		 "mount <chroot path> <fs type>:\n"
-		 "       mount filesystem of given type;\n"
+		 "       mount file system of given type;\n"
 		 "umount <chroot path>:\n"
-		 "       umount all filesystems.\n", __progname);
+		 "       umount all file systems.\n", __progname);
 	exit (rc);
 }
 
