@@ -116,8 +116,8 @@ fi
 /usr/sbin/useradd -M -c "hasher satellite for $caller" -d /dev/null -s /dev/null "$user2" ||
 	Fatal "error creating satellite user $user2"
 
-# Add caller to pkg-build group and first satellite group.
-glist="$((id -Gn "$caller" |tr ' ' '\n' && id -gn "$user1" && id -gn "$user2" && echo pkg-build) |
+# Add caller to hashman group and first satellite group.
+glist="$((id -Gn "$caller" |tr ' ' '\n' && id -gn "$user1" && id -gn "$user2" && echo hashman) |
 	sort -u |
 	xargs echo |
 	tr ' ' ,)"

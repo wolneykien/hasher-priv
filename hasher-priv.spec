@@ -10,7 +10,8 @@ Group: Development/Other
 
 Source: %name-%version.tar.bz2
 
-PreReq: shadow-utils, sudo
+PreReq: coreutils, shadow-utils, glibc-utils, sudo
+Obsoletes: pkg-build-priv
 
 # Automatically added by buildreq on Fri May 02 2003
 BuildRequires: help2man
@@ -33,24 +34,32 @@ required by hasher utilities.
 %__install -pD -m400 %name.sudoers $RPM_BUILD_ROOT%_sysconfdir/sudo.d/%name
 
 %pre
-/usr/sbin/groupadd -r -f pkg-build
+! getent group pkg-build >/dev/null ||
+	groupmod -n hashman pkg-build
+/usr/sbin/groupadd -r -f hashman
+[ -d %configdir -o ! -d %_sysconfdir/pkg-build-priv ] ||
+	%__mv %_sysconfdir/pkg-build-priv %configdir
 
 %files
 %_sbindir/hasher-useradd
 %_mandir/man?/*
 # config
 %attr(400,root,root) %config(noreplace) %_sysconfdir/sudo.d/%name
-%attr(710,root,pkg-build) %dir %configdir
-%attr(710,root,pkg-build) %dir %configdir/user.d
-%attr(640,root,pkg-build) %config(noreplace) %configdir/system
+%attr(710,root,hashman) %dir %configdir
+%attr(710,root,hashman) %dir %configdir/user.d
+%attr(640,root,hashman) %config(noreplace) %configdir/system
 # helpers
-%attr(750,root,pkg-build) %dir %helperdir
-%attr(2710,root,pkg-build) %helperdir/hasher-priv
+%attr(750,root,hashman) %dir %helperdir
+%attr(2710,root,hashman) %helperdir/hasher-priv
 %attr(755,root,root) %helperdir/*.sh
 
 %doc DESIGN
 
 %changelog
+* Wed Jul 02 2003 Dmitry V. Levin <ldv@altlinux.org> 0.3-alt1
+- Renamed project to hasher-priv.
+- Renamed pkg-build group to hashman.
+
 * Thu Jun 26 2003 Dmitry V. Levin <ldv@altlinux.org> 0.2.1-alt1
 - pkg-build-priv:
   + fixed typo in usage text;
