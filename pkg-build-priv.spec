@@ -1,7 +1,7 @@
 # $Id$
 
 Name: pkg-build-priv
-Version: 0.1.5
+Version: 0.1.6
 Release: alt1
 
 Summary: A privileged helper for the pkg-build project
@@ -11,6 +11,9 @@ Group: Development/Other
 Source: %name-%version.tar.bz2
 
 PreReq: shadow-utils, sudo
+
+# Automatically added by buildreq on Fri May 02 2003
+BuildRequires: help2man
 
 %define helperdir %_libexecdir/pkg-build-priv
 %define configdir %_sysconfdir/pkg-build-priv
@@ -34,6 +37,7 @@ required by pkg-build utilities.
 
 %files
 %_sbindir/pkg-build-useradd
+%_mandir/man?/*
 # config
 %attr(400,root,root) %config(noreplace) %_sysconfdir/sudo.d/%name
 %attr(700,root,root) %dir %configdir
@@ -47,6 +51,11 @@ required by pkg-build utilities.
 %doc DESIGN
 
 %changelog
+* Tue May 06 2003 Dmitry V. Levin <ldv@altlinux.org> 0.1.6-alt1
+- pkg-build-priv:
+  + added --version option;
+  + added help2man-generated manpage.
+
 * Mon May 05 2003 Dmitry V. Levin <ldv@altlinux.org> 0.1.5-alt1
 - chrootuid.c: set nice to 10.
 
