@@ -1,7 +1,7 @@
 # $Id$
 
 Name: pkg-build-priv
-Version: 0.1
+Version: 0.1.1
 Release: alt1
 
 Summary: A privileged helper for the pkg-build project
@@ -47,6 +47,9 @@ required by pkg-build utilities.
 %doc DESIGN
 
 %changelog
+* Wed Apr 09 2003 Dmitry V. Levin <ldv@altlinux.org> 0.1.1-alt1
+- chdiruid.c: check for group-writable directory without sticky bit.
+
 * Sun Apr 06 2003 Dmitry V. Levin <ldv@altlinux.org> 0.1-alt1
 - Added %_sbindir/pkg-build-useradd.
 - Added DESIGN file.
