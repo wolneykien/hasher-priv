@@ -80,6 +80,8 @@ change_rlimit_t change_rlimit[] = {
 	{0, 0, 0, 0}
 };
 
+work_limit_t wlimit;
+
 static void
 	__attribute__ ((__noreturn__))
 bad_option_name (const char *optname, const char *filename)
@@ -186,10 +188,45 @@ parse_rlim (const char *name, const char *value, const char *optname,
 		bad_option_name (optname, filename);
 }
 
+static unsigned
+str2wlim (const char *name, const char *value, const char *filename)
+{
+	char   *p = 0;
+	unsigned long n;
+
+	if (!*value)
+		bad_option_value (name, filename);
+
+	n = strtoul (value, &p, 10);
+	if (!p || *p || n > INT_MAX)
+		bad_option_value (name, filename);
+
+	return n;
+}
+
+static void
+parse_wlim (const char *name, const char *value,
+	    const char *optname, const char *filename)
+{
+	unsigned *pval = 0;
+
+	if (!strcasecmp ("time_elapsed", name))
+		pval = &wlimit.time_elapsed;
+	else if (!strcasecmp ("time_idle", name))
+		pval = &wlimit.time_idle;
+	else if (!strcasecmp ("bytes_written", name))
+		pval = &wlimit.bytes_written;
+	else
+		bad_option_name (optname, filename);
+
+	*pval = str2wlim (optname, value, filename);
+}
+
 static void
 set_config (const char *name, const char *value, const char *filename)
 {
 	const char rlim_prefix[] = "rlimit_";
+	const char wlim_prefix[] = "wlimit_";
 
 	if (!strcasecmp ("user1", name))
 		change_user1 = xstrdup (value);
@@ -203,6 +240,9 @@ set_config (const char *name, const char *value, const char *filename)
 		change_nice = str2nice (name, value, filename);
 	else if (!strncasecmp (rlim_prefix, name, sizeof (rlim_prefix) - 1))
 		parse_rlim (name + sizeof (rlim_prefix) - 1, value, name,
+			    filename);
+	else if (!strncasecmp (wlim_prefix, name, sizeof (wlim_prefix) - 1))
+		parse_wlim (name + sizeof (wlim_prefix) - 1, value, name,
 			    filename);
 	else
 		bad_option_name (name, filename);

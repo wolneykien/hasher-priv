@@ -55,6 +55,13 @@ typedef struct
 	rlim_t *hard, *soft;
 } change_rlimit_t;
 
+typedef struct
+{
+	unsigned time_elapsed;
+	unsigned time_idle;
+	unsigned bytes_written;
+} work_limit_t;
+
 void    sanitize_fds (void);
 task_t  parse_cmdline (int ac, const char *av[]);
 void    init_caller_data (void);
@@ -87,5 +94,6 @@ extern gid_t change_gid1, change_gid2;
 extern mode_t change_umask;
 extern int change_nice;
 extern change_rlimit_t change_rlimit[];
+extern work_limit_t wlimit;
 
 #endif /* PKG_BUILD_PRIV_H */

@@ -43,6 +43,7 @@ Here is a hasher-priv (*uid=root,egid=hashman,gid!=egid) control flow:
       umask
       nice
       rlimit_(hard|soft)_*
+      wlimit_(time_elapsed|time_idle|bytes_written)
   + safe chdir to "user.d"
   + safe load caller_user file
     + change_user1 and change_user2 should be initialized here
@@ -69,8 +70,16 @@ Here is a hasher-priv (*uid=root,egid=hashman,gid!=egid) control flow:
     + check for valid uid specified
     + safe chdir to chroot_path
     + sanitize file descriptors again
+    + create pipe
     + chroot to "."
     + clear supplementary group access list
-    + setgid/setuid to specified user
-    + set rlimits, nice and umask
-    + execute specified program
+    + set rlimits
+    + fork
+      + in child:
+        + setgid/setuid to specified user
+        + set nice and umask
+	+ redirect stdout/stderr to pipe
+        + execute specified program
+      + in parent:
+        + setgid/setuid to caller user
+        + handle child output
