@@ -20,20 +20,24 @@
 #
 
 PROJECT = pkg-build-priv
+VERSION = $(shell grep ^Version: pkg-build-priv.spec |head -1 |awk '{print $$2}')
 SCRIPTS = getugid1.sh chrootuid1.sh getugid2.sh chrootuid2.sh makedev.sh
+MAN8PAGES = $(PROJECT).8
 SUDOERS = $(PROJECT).sudoers
-TARGETS = $(PROJECT) $(SCRIPTS) $(SUDOERS)
+TARGETS = $(PROJECT) $(SCRIPTS) $(SUDOERS) $(MAN8PAGES)
 
 sysconfdir = /etc
 libexecdir = /usr/lib
 sbindir = /usr/sbin
+mandir = /usr/share/man
 configdir = $(sysconfdir)/$(PROJECT)
 helperdir = $(libexecdir)/$(PROJECT)
 DESTDIR =
 
 MKDIR_P = mkdir -p
 INSTALL = install
-CPPFLAGS = $(RPM_OPT_FLAGS) -Wall -D_GNU_SOURCE -DENABLE_SETFSUGID
+HELP2MAN = help2man
+CPPFLAGS = $(RPM_OPT_FLAGS) -Wall -D_GNU_SOURCE -DENABLE_SETFSUGID -DPROJECT_VERSION=\"$(VERSION)\"
 
 SRC = main.c caller.c chdiruid.c cmdline.c config.c fds.c getugid.c killuid.c chrootuid.c makedev.c xmalloc.c
 OBJ = $(SRC:.c=.o)
@@ -54,6 +58,8 @@ install: all
 	$(INSTALL) -p -m755 $(SCRIPTS) $(DESTDIR)$(helperdir)/
 	$(MKDIR_P) -m755 $(DESTDIR)$(sbindir)
 	$(INSTALL) -p -m755 pkg-build-useradd $(DESTDIR)$(sbindir)/
+	$(MKDIR_P) -m755 $(DESTDIR)$(mandir)/man8
+	$(INSTALL) -p -m644 $(MAN8PAGES) $(DESTDIR)$(mandir)/man8/
 
 clean:
 	$(RM) $(TARGETS) $(DEP) $(OBJ) core *~
@@ -61,11 +67,14 @@ clean:
 indent:
 	indent *.h *.c
 
-%.sh:	%.sh.in
+%.sh: %.sh.in
 	sed -e 's|@helper@|$(helperdir)/$(PROJECT)|g' < $< > $@
 
-%.sudoers:	%.sudoers.in
+%.sudoers: %.sudoers.in
 	sed -e 's|@helper@|$(helperdir)/$(PROJECT)|g' < $< > $@
+
+$(PROJECT).8: $(PROJECT)
+	$(HELP2MAN) ./$< > $@
 
 # We need dependencies only if goal isn't "indent" or "clean".
 ifneq ($(MAKECMDGOALS),indent)
