@@ -22,14 +22,23 @@
 
 #include <errno.h>
 #include <error.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "priv.h"
+
+static void
+my_error_print_progname (void)
+{
+	fprintf (stderr, "%s: ", program_invocation_short_name);
+}
 
 int
 main (int ac, const char *av[])
 {
 	task_t  task;
+
+	error_print_progname = my_error_print_progname;
 
 	/* First, check and sanitize file descriptors. */
 	sanitize_fds ();
