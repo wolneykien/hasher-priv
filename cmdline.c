@@ -125,6 +125,9 @@ parse_cmdline (int argc, const char *argv[])
 		++av;
 	}
 
+	if (ac < 1)
+		usage (EXIT_FAILURE);
+
 	if (!strcmp ("getugid1", av[0]))
 	{
 		if (ac != 1)
@@ -141,7 +144,8 @@ parse_cmdline (int argc, const char *argv[])
 			usage (EXIT_FAILURE);
 		chroot_path = av[1];
 		if (*chroot_path != '/')
-			error (EXIT_FAILURE, 0, "absolute pathname required");
+			error (EXIT_FAILURE, 0,
+			       "%s: absolute pathname required", av[0]);
 		chroot_argv = av + 2;
 		return TASK_CHROOTUID1;
 	} else if (!strcmp ("getugid2", av[0]))
@@ -160,7 +164,8 @@ parse_cmdline (int argc, const char *argv[])
 			usage (EXIT_FAILURE);
 		chroot_path = av[1];
 		if (*chroot_path != '/')
-			error (EXIT_FAILURE, 0, "absolute pathname required");
+			error (EXIT_FAILURE, 0,
+			       "%s: absolute pathname required", av[0]);
 		chroot_argv = av + 2;
 		return TASK_CHROOTUID2;
 	} else if (!strcmp ("makedev", av[0]))
