@@ -32,7 +32,7 @@
 static void __attribute__ ((__noreturn__)) usage (int rc)
 {
 	fprintf ((rc == EXIT_SUCCESS) ? stdout : stderr,
-		 "Privileged hasher helper.\n"
+		 "Privileged helper for the hasher project.\n"
 		 "\nUsage: %s [options] <args>\n"
 		 "\nValid options are:\n"
 		 "  -<number>:\n"

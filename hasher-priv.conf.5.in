@@ -19,12 +19,12 @@
 .\" 
 .TH "HASHER-PRIV configuration" "5" "July 2004" "hasher-priv version @VERSION@" "ALT Linux"
 .SH NAME
-/etc/hasher\-priv/ \- configuration for hasher\-priv
+/etc/hasher\-priv/ \- configuration for the hasher\-priv program
 .SH DESCRIPTION
-/etc/hasher\-priv/ may be used to control various aspects of
+/etc/hasher\-priv/ is used to control various aspects of
 .BR hasher\-priv (8)
 behaviour.
-.SH CONFIG FILES
+.PP
 .BR hasher\-priv (8)
 first loads systemwide config file
 .IR /etc/hasher\-priv/system ,
