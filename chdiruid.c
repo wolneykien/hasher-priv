@@ -69,7 +69,7 @@ ch_uid (uid_t uid, uid_t * save)
 {
 	if (save)
 		*save = geteuid ();
-	if (setreuid (-1, uid) < 0)
+	if (setresuid (-1, uid, 0) < 0)
 		error (EXIT_FAILURE, errno, "change uid: %u", uid);
 }
 
@@ -78,7 +78,7 @@ ch_gid (gid_t gid, gid_t * save)
 {
 	if (save)
 		*save = getegid ();
-	if (setregid (-1, gid) < 0)
+	if (setresgid (-1, gid, 0) < 0)
 		error (EXIT_FAILURE, errno, "change gid: %u", gid);
 }
 
