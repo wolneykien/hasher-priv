@@ -163,6 +163,7 @@ set_rlim (const char *name, const char *value, int hard,
 			free (limit);
 			limit = xmalloc (sizeof (*limit));
 			*limit = str2rlim (optname, value, filename);
+			return;
 		}
 
 	bad_option_name (optname, filename);
