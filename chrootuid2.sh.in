@@ -1,7 +1,7 @@
 #!/bin/sh -e
 #
 # $Id$
-# Copyright (C) 2003  Dmitry V. Levin <ldv@altlinux.org>
+# Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
 # 
 # The chrootuid2 helper for the hasher-priv project
 #
@@ -26,6 +26,11 @@ if [ -n "$1" -a -z "${1##-*}" ]; then
 	shift
 fi
 
+chroot_prefix=
+if [ -n "$1" ]; then
+	chroot_prefix="$1"
+fi
+
 killuid()
 {
 	sudo @helper@ $n killuid2
@@ -35,6 +40,8 @@ exit_handler()
 {
 	local rc=$?
 	trap - EXIT
+	[ -z "$chroot_prefix" -o -z "$mount_fstypes" ] ||
+		sudo @helper@ $n umount "$chroot_prefix" ||:
 	killuid
 	exit $rc
 }
@@ -42,5 +49,11 @@ exit_handler()
 killuid
 
 trap exit_handler EXIT HUP INT QUIT PIPE TERM
+
+if [ -n "$chroot_prefix" -a -n "$mount_fstypes" ]; then
+	for fs in $mount_fstypes; do
+		sudo @helper@ $n mount "$chroot_prefix" "$fs"
+	done
+fi
 
 sudo @helper@ $n chrootuid2 "$@"
