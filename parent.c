@@ -221,8 +221,11 @@ handle_parent (pid_t child, int pty_fd, int pipe_fd)
 	signal (SIGPIPE, SIG_IGN);
 
 	unblock_fd (in_fd);
-	if (in_fd != pipe_fd)
-		close (pipe_fd);
+	if (use_pty)
+	{
+		(void) close (pipe_fd);
+		pipe_fd = -1;
+	}
 
 	/* redirect standard descriptors, init tty if necessary */
 	if (init_tty () && tty_copy_winsize (STDIN_FILENO, pty_fd) == 0)
@@ -316,7 +319,8 @@ handle_parent (pid_t child, int pty_fd, int pipe_fd)
 	}
 
 	wait_child ();
-	close (pty_fd);
+	if (use_pty)
+		(void) close (pty_fd);
 	dfl_signal_handler (SIGCHLD);
 	forget_child ();
 
