@@ -21,7 +21,6 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
       makedev <chroot path>
       mount <chroot path> <fs type>
       umount <chroot path>
-+ read work limit hints from environment variables
 + initialize data related to caller
   + caller_uid initialized here from getuid()
     + caller_uid must be valid uid
@@ -33,6 +32,7 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
     + must be true: caller_gid == pw->pw_gid
   + caller_home initialized here
     + caller_user's home directory must exist
++ read work limit hints from environment variables
 + drop all environment variables
 + load configuration
   + safe chdir to /etc/hasher-priv
