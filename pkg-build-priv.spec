@@ -1,7 +1,7 @@
 # $Id$
 
 Name: pkg-build-priv
-Version: 0.0.3
+Version: 0.0.4
 Release: alt1
 
 Summary: A privileged helper for the pkg-build project
@@ -44,6 +44,12 @@ required by pkg-build utilities.
 %attr(755,root,root) %helperdir/*.sh
 
 %changelog
+* Fri Apr 04 2003 Dmitry V. Levin <ldv@altlinux.org> 0.0.4-alt1
+- priv.h:
+  + lowered minimal uid/gid from 100 to 34.
+- chrootuid.c:
+  + fixed typo.
+
 * Thu Apr 03 2003 Dmitry V. Levin <ldv@altlinux.org> 0.0.3-alt1
 - chrootuid.c: set umask (022) unconditionally before exec.
 
