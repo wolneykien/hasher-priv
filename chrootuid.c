@@ -74,7 +74,7 @@ handle_child (uid_t uid, gid_t gid, char *const *env, int pty_fd, int pipe_fd)
 
 	/* Process is no longer privileged at this point. */
 
-	connect_tty (pty_fd, pipe_fd);
+	connect_fds (pty_fd, pipe_fd);
 
 	dfl_signal_handler (SIGHUP);
 	dfl_signal_handler (SIGPIPE);

@@ -74,7 +74,7 @@ init_tty (void)
 }
 
 void
-connect_tty (int pty_fd, int pipe_fd)
+connect_fds (int pty_fd, int pipe_fd)
 {
 	int     fd = use_pty ? pty_fd : pipe_fd;
 
