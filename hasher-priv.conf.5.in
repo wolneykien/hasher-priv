@@ -1,5 +1,5 @@
 .\" $Id$
-.\" Copyright (C) 2004  Dmitry V. Levin <ldv@altlinux.org>
+.\" Copyright (C) 2004, 2005  Dmitry V. Levin <ldv@altlinux.org>
 .\" 
 .\" Documentation for the hasher-priv configuration.
 .\"
@@ -17,7 +17,7 @@
 .\" along with this program; if not, write to the Free Software
 .\" Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 .\" 
-.TH "HASHER-PRIV configuration" "5" "July 2004" "hasher-priv version @VERSION@" "ALT Linux"
+.TH "HASHER-PRIV configuration" "3" "January 2005" "hasher-priv version @VERSION@" "ALT Linux"
 .SH NAME
 /etc/hasher\-priv/ \- configuration for the hasher\-priv program
 .SH DESCRIPTION
