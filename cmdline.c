@@ -33,7 +33,9 @@ static void __attribute__ ((__noreturn__)) usage (int rc)
 {
 	fprintf (stderr,
 		 "%s: privileged pkg-build helper.\n"
-		 "Usage: %s [options] <args>\n"
+		 "\nThis program is free software, covered by the GNU General Public License;\n"
+		 "pkg-build-priv comes with ABSOLUTELY NO WARRANTY, see license for details.\n"
+		 "\nUsage: %s [options] <args>\n"
 		 "\nValid options are:\n"
 		 "<number>: subconfig identifier;\n"
 		 "-h or --help: print this help text and exit.\n"
@@ -51,7 +53,8 @@ static void __attribute__ ((__noreturn__)) usage (int rc)
 		 "chrootuid2 <chroot path> <program> [program args]:\n"
 		 "       execute program in given chroot with credentials of user2;\n"
 		 "makedev <chroot path>:\n"
-		 "       make devices in given chroot.\n",
+		 "       make devices in given chroot.\n"
+		 ,
 		 __progname, __progname);
 	exit (rc);
 }
