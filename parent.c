@@ -151,6 +151,17 @@ forget_child (void)
 	child_pid = 0;
 }
 
+static void
+wait_child (void)
+{
+	unsigned i;
+
+	for (i = 0; i < 10; ++i)
+		if (child_pid)
+			usleep (100000);
+	forget_child ();
+}
+
 static void __attribute__ ((__noreturn__))
 limit_exceeded (const char *fmt, unsigned limit)
 {
@@ -332,7 +343,7 @@ handle_parent (pid_t child, int master)
 		}
 	}
 
-	forget_child ();
+	wait_child ();
 
 	return child_rc;
 }
