@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2003  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
 
   The chdir-with-verfification module for the hasher-priv program.
 
@@ -125,11 +125,17 @@ chdiruid (const char *path, chdiruid_t type)
 	if (!(cwd = get_current_dir_name ()))
 		error (EXIT_FAILURE, errno, "getcwd");
 
-	if ((type == CHDIRUID_ABSOLUTE) && chroot_prefix && *chroot_prefix
-	    && is_not_prefix (strcmp (chroot_prefix,
-				      "~") ? chroot_prefix : caller_home,
-			      cwd))
-		error (EXIT_FAILURE, 0, "%s: prefix mismatch", cwd);
+	if ((type == CHDIRUID_ABSOLUTE) && chroot_prefix && *chroot_prefix)
+	{
+		const char *prefix =
+			strcmp (chroot_prefix,
+				"~") ? chroot_prefix : caller_home;
+
+		if (is_not_prefix (prefix, cwd))
+			error (EXIT_FAILURE, 0,
+			       "%s: prefix mismatch, working directory should start with %s",
+			       cwd, prefix);
+	}
 
 	if (stat (".", &st) < 0)
 		error (EXIT_FAILURE, errno, "stat: %s", cwd);
