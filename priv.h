@@ -63,9 +63,10 @@ int     do_chrootuid2 (void);
 
 extern const char *__progname;
 
-extern const char *chroot_path, *chroot_prefix;
+extern const char *chroot_path;
 extern const char **chroot_argv;
 
+extern const char *chroot_prefix;
 extern const char *caller_user, *caller_home;
 extern uid_t caller_uid;
 extern gid_t caller_gid;

@@ -34,6 +34,12 @@
 #include "priv.h"
 #include "xmalloc.h"
 
+const char *chroot_prefix;
+const char *change_user1, *change_user2;
+uid_t   change_uid1, change_uid2;
+gid_t   change_gid1, change_gid2;
+
+
 static void
 set_config (const char *name, const char *value, const char *filename)
 {
@@ -211,10 +217,6 @@ check_user (const char *user_name, uid_t * user_uid, gid_t * user_gid,
 		       "config: %s: %s: gid coincides with caller", name,
 		       user_name);
 }
-
-const char *change_user1, *change_user2;
-uid_t   change_uid1, change_uid2;
-gid_t   change_gid1, change_gid2;
 
 void
 configure (void)

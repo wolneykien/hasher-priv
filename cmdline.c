@@ -59,7 +59,7 @@ static void __attribute__ ((__noreturn__)) usage (int rc)
 	exit (rc);
 }
 
-const char *chroot_path, *chroot_prefix;
+const char *chroot_path;
 const char **chroot_argv;
 unsigned caller_num;
 
