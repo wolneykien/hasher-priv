@@ -3,7 +3,7 @@
   $Id$
   Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
 
-  The chdir-with-verfification module for the hasher-priv program.
+  The switch-user-and-chdir-with-validation module for the hasher-priv program.
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -98,15 +98,14 @@ is_not_prefix (const char *prefix, const char *sample)
  * Change the current work directory to the given path.
  */
 void
-chdiruid (const char *path, chdiruid_t type)
+chdiruid (const char *path)
 {
 	uid_t   saved_uid = -1;
 	gid_t   saved_gid = -1;
 	char   *cwd;
-	struct stat st;
 
-	if (!path || ((type == CHDIRUID_ABSOLUTE) && (*path != '/')))
-		error (EXIT_FAILURE, 0, "chdiruid: invalid path");
+	if (!path)
+		error (EXIT_FAILURE, 0, "chdiruid: invalid chroot path");
 
 	/* Set credentials. */
 #ifdef ENABLE_SUPPLEMENTARY_GROUPS
@@ -117,35 +116,16 @@ chdiruid (const char *path, chdiruid_t type)
 	ch_uid (caller_uid, &saved_uid);
 
 	/* Change and verify directory. */
-	if (chdir (path) < 0)
-		error (EXIT_FAILURE, errno, "chdir: %s", path);
+	safe_chdir (path, stat_userok_validator);
 
 	if (!(cwd = getcwd (0, 0)))
 		error (EXIT_FAILURE, errno, "getcwd");
 
-	if ((type == CHDIRUID_ABSOLUTE) && chroot_prefix && *chroot_prefix
-	    && is_not_prefix (chroot_prefix, cwd))
+	if ((chroot_prefix && *chroot_prefix
+	     && is_not_prefix (chroot_prefix, cwd)))
 		error (EXIT_FAILURE, 0,
 		       "%s: prefix mismatch, working directory should start with %s",
 		       cwd, chroot_prefix);
-
-	if (stat (".", &st) < 0)
-		error (EXIT_FAILURE, errno, "stat: %s", cwd);
-
-	if (st.st_uid != caller_uid)
-		error (EXIT_FAILURE, 0,
-		       "%s: expected owner %u, found owner %u", cwd,
-		       caller_uid, st.st_uid);
-
-	if (st.st_gid != change_gid1)
-		error (EXIT_FAILURE, 0,
-		       "%s: expected group %u, found group %u", cwd,
-		       change_gid1, st.st_gid);
-
-	if ((st.st_mode & S_IWOTH)
-	    || ((st.st_mode & S_IWGRP) && !(st.st_mode & S_ISVTX)))
-		error (EXIT_FAILURE, 0, "%s: bad perms: %o", cwd,
-		       st.st_mode & 07777);
 
 	free (cwd);
 

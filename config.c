@@ -36,6 +36,7 @@
 #include "xmalloc.h"
 
 const char *chroot_prefix;
+const char *allowed_fstypes;
 const char *change_user1, *change_user2;
 uid_t   change_uid1, change_uid2;
 gid_t   change_gid1, change_gid2;
@@ -233,6 +234,29 @@ parse_wlim (const char *name, const char *value,
 }
 
 static void
+parse_fstypes (const char *value)
+{
+	char   *fstypes = xstrdup (value);
+	char   *fs;
+
+	for (fs = fstypes; *fs; ++fs)
+		*fs = tolower (*fs);
+	allowed_fstypes = xstrdup (fstypes);
+
+	for (fs = fstypes ? strtok (fstypes, " \t,") : 0; fs;
+	     fs = strtok (0, " \t,"))
+	{
+		if (strcmp (fs, "proc")
+		    && strcmp (fs, "devpts") && strcmp (fs, "sysfs"))
+			error (EXIT_FAILURE, 0,
+			       "config: %s: file system type not supported",
+			       fs);
+	}
+
+	free (fstypes);
+}
+
+static void
 set_config (const char *name, const char *value, const char *filename)
 {
 	const char rlim_prefix[] = "rlimit_";
@@ -260,6 +284,8 @@ set_config (const char *name, const char *value, const char *filename)
 		change_umask = str2umask (name, value, filename);
 	else if (!strcasecmp ("nice", name))
 		change_nice = str2nice (name, value, filename);
+	else if (!strcasecmp ("allowed_fstypes", name))
+		parse_fstypes (value);
 	else if (!strncasecmp (rlim_prefix, name, sizeof (rlim_prefix) - 1))
 		parse_rlim (name + sizeof (rlim_prefix) - 1, value, name,
 			    filename);
@@ -326,18 +352,6 @@ read_config (int fd, const char *name)
 }
 
 static void
-check_stat (struct stat *st, const char *name)
-{
-	if (st->st_uid)
-		error (EXIT_FAILURE, 0, "%s: bad owner: %u", name,
-		       st->st_uid);
-
-	if (st->st_mode & (S_IWGRP | S_IWOTH))
-		error (EXIT_FAILURE, 0, "%s: bad perms: %o", name,
-		       st->st_mode & 07777);
-}
-
-static void
 load_config (const char *name)
 {
 	struct stat st;
@@ -349,7 +363,7 @@ load_config (const char *name)
 	if (fstat (fd, &st) < 0)
 		error (EXIT_FAILURE, errno, "fstat: %s", name);
 
-	check_stat (&st, name);
+	stat_rootok_validator (&st, name);
 
 	if (!S_ISREG (st.st_mode))
 		error (EXIT_FAILURE, 0, "%s: not a regular file", name);
@@ -362,37 +376,6 @@ load_config (const char *name)
 
 	if (close (fd) < 0)
 		error (EXIT_FAILURE, errno, "close: %s", name);
-}
-
-/*
- * Change the current working directory.
- * Check ownership, permissions and don't follow symlinks.
- */
-static void
-xchdir (const char *name)
-{
-	struct stat st, st2;
-
-	if (lstat (name, &st) < 0)
-		error (EXIT_FAILURE, errno, "lstat: %s", name);
-
-	check_stat (&st, name);
-
-	if (!S_ISDIR (st.st_mode))
-		error (EXIT_FAILURE, ENOTDIR, "%s", name);
-
-	if (chdir (name) < 0)
-		error (EXIT_FAILURE, errno, "chdir: %s", name);
-
-	if (lstat (".", &st2) < 0)
-		error (EXIT_FAILURE, errno, "lstat: %s", name);
-
-	if (st.st_dev != st2.st_dev ||
-	    st.st_ino != st2.st_ino ||
-	    st.st_mode != st2.st_mode ||
-	    st.st_uid != st2.st_uid ||
-	    st.st_gid != st2.st_gid || st.st_rdev != st2.st_rdev)
-		error (EXIT_FAILURE, 0, "%s: changed during execution", name);
 }
 
 static void
@@ -443,13 +426,13 @@ check_user (const char *user_name, uid_t * user_uid, gid_t * user_gid,
 void
 configure (void)
 {
-	xchdir ("/");
-	xchdir ("etc");
-	xchdir ("hasher-priv");
+	safe_chdir ("/", stat_rootok_validator);
+	safe_chdir ("etc", stat_rootok_validator);
+	safe_chdir ("hasher-priv", stat_rootok_validator);
 
 	load_config ("system");
 
-	xchdir ("user.d");
+	safe_chdir ("user.d", stat_rootok_validator);
 
 	load_config (caller_user);
 

@@ -25,6 +25,7 @@
 
 #include <sys/types.h>
 #include <sys/resource.h>
+#include <sys/stat.h>
 
 #define	MIN_CHANGE_UID	34
 #define	MIN_CHANGE_GID	34
@@ -39,14 +40,10 @@ typedef enum
 	TASK_GETUGID2,
 	TASK_KILLUID2,
 	TASK_CHROOTUID2,
-	TASK_MAKEDEV
+	TASK_MAKEDEV,
+	TASK_MOUNT,
+	TASK_UMOUNT
 } task_t;
-
-typedef enum
-{
-	CHDIRUID_RELATIVE = 0,
-	CHDIRUID_ABSOLUTE = 1
-} chdiruid_t;
 
 typedef struct
 {
@@ -62,26 +59,37 @@ typedef struct
 	unsigned bytes_written;
 } work_limit_t;
 
+typedef void VALIDATE_FPTR (struct stat *, const char *);
+
 void    sanitize_fds (void);
 task_t  parse_cmdline (int ac, const char *av[]);
 void    init_caller_data (void);
 void    parse_env (void);
 void    configure (void);
-void    chdiruid (const char *path, chdiruid_t type);
+void    chdiruid (const char *path);
 void    purge_ipc (uid_t uid);
+void    safe_chdir (const char *name, VALIDATE_FPTR validator);
+void    stat_userok_validator (struct stat *st, const char *name);
+void    stat_rootok_validator (struct stat *st, const char *name);
+void    stat_perms_validator (struct stat *st, const char *name);
 
 int     do_getugid1 (void);
 int     do_killuid1 (void);
 int     do_chrootuid1 (void);
-int     do_makedev (void);
 int     do_getugid2 (void);
 int     do_killuid2 (void);
 int     do_chrootuid2 (void);
+int     do_makedev (void);
+int     do_mount (void);
+int     do_umount (void);
 
 extern const char *__progname;
 
 extern const char *chroot_path;
 extern const char **chroot_argv;
+
+extern const char *mount_fstype;
+extern const char *allowed_fstypes;
 
 extern const char *chroot_prefix;
 extern const char *caller_user, *caller_home;

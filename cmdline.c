@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2003  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
 
   Command line parser for the hasher-priv program.
 
@@ -57,7 +57,11 @@ static void __attribute__ ((__noreturn__)) usage (int rc)
 		 "chrootuid2 <chroot path> <program> [program args]:\n"
 		 "       execute program in given chroot with credentials of user2;\n"
 		 "makedev <chroot path>:\n"
-		 "       make devices in given chroot.\n", __progname);
+		 "       make devices in given chroot;\n"
+		 "mount <chroot path> <fs type>:\n"
+		 "       mount filesystem of given type;\n"
+		 "umount <chroot path>:\n"
+		 "       umount all filesystems.\n", __progname);
 	exit (rc);
 }
 
@@ -68,6 +72,7 @@ static void __attribute__ ((__noreturn__)) print_version (void)
 }
 
 const char *chroot_path;
+const char *mount_fstype;
 const char **chroot_argv;
 unsigned caller_num;
 
@@ -158,6 +163,19 @@ parse_cmdline (int argc, const char *argv[])
 			usage (EXIT_FAILURE);
 		chroot_path = av[1];
 		return TASK_MAKEDEV;
+	} else if (!strcmp ("mount", av[0]))
+	{
+		if (ac != 3)
+			usage (EXIT_FAILURE);
+		chroot_path = av[1];
+		mount_fstype = av[2];
+		return TASK_MOUNT;
+	} else if (!strcmp ("umount", av[0]))
+	{
+		if (ac != 2)
+			usage (EXIT_FAILURE);
+		chroot_path = av[1];
+		return TASK_UMOUNT;
 	} else
 		usage (EXIT_FAILURE);
 }

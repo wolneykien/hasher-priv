@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2003  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
 
   The makedev action for the hasher-priv program.
 
@@ -42,8 +42,8 @@ do_makedev (void)
 {
 	mode_t  m;
 
-	chdiruid (chroot_path, CHDIRUID_ABSOLUTE);
-	chdiruid ("dev", CHDIRUID_RELATIVE);
+	chdiruid (chroot_path);
+	chdiruid ("dev");
 
 	m = umask (0);
 	xmknod ("null", S_IFCHR | 0666, 1, 3);

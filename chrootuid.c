@@ -331,7 +331,7 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	if (uid < MIN_CHANGE_UID || uid == getuid ())
 		error (EXIT_FAILURE, 0, "chrootuid: invalid uid: %u", uid);
 
-	chdiruid (chroot_path, CHDIRUID_ABSOLUTE);
+	chdiruid (chroot_path);
 
 	endpwent ();
 	endgrent ();

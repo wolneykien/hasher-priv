@@ -49,6 +49,10 @@ main (int ac, const char *av[])
 	/* Third, initialize data related to caller. */
 	init_caller_data ();
 
+	if (chroot_path && *chroot_path != '/')
+		error (EXIT_FAILURE, 0, "%s: invalid chroot path",
+		       chroot_path);
+
 	/* 4th, parse environment for config options. */
 	parse_env ();
 
@@ -68,14 +72,18 @@ main (int ac, const char *av[])
 			return do_killuid1 ();
 		case TASK_CHROOTUID1:
 			return do_chrootuid1 ();
-		case TASK_MAKEDEV:
-			return do_makedev ();
 		case TASK_GETUGID2:
 			return do_getugid2 ();
 		case TASK_KILLUID2:
 			return do_killuid2 ();
 		case TASK_CHROOTUID2:
 			return do_chrootuid2 ();
+		case TASK_MAKEDEV:
+			return do_makedev ();
+		case TASK_MOUNT:
+			return do_mount ();
+		case TASK_UMOUNT:
+			return do_umount ();
 		default:
 			error (EXIT_FAILURE, 0, "unknown task %d", task);
 	}
