@@ -22,7 +22,7 @@
 PROJECT = hasher-priv
 VERSION = $(shell grep ^Version: hasher-priv.spec |head -1 |awk '{print $$2}')
 SCRIPTS = getugid1.sh chrootuid1.sh getugid2.sh chrootuid2.sh makedev.sh
-MAN8PAGES = $(PROJECT).8
+MAN8PAGES = $(PROJECT).8 hasher-useradd.8
 SUDOERS = $(PROJECT).sudoers
 TARGETS = $(PROJECT) $(SCRIPTS) $(SUDOERS) $(MAN8PAGES)
 

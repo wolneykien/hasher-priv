@@ -50,7 +50,7 @@ EOF
 
 print_version()
 {
-	local revision=`printf %s "$Revision$" |sed -ne 's/^\$Revision: \+\([^ ]\+\).*/\1/p'` ||:
+	local revision=`printf %s '$Revision$' |sed -ne 's/^\$Revision: \+\([^ ]\+\).*/\1/p'` ||:
 	cat <<EOF
 hasher-useradd version $revision
 Written by Dmitry V. Levin <ldv@altlinux.org>
