@@ -44,19 +44,23 @@ connect_fds (int pty_fd, int pipe_fd)
 		error (EXIT_FAILURE, errno, "ioctl TIOCSCTTY");
 
 	if (use_pty)
-		dup2 (fd, STDIN_FILENO);
-	dup2 (fd, STDOUT_FILENO);
-	dup2 (fd, STDERR_FILENO);
+	{
+		if (dup2 (pty_fd, STDIN_FILENO) < 0)
+			error (EXIT_FAILURE, errno, "dup2");
+	} else
+	{
+		/* redirect stdin to /dev/null if and only if
+		   use_pty is not set and stdin is a tty */
+		if (isatty (STDIN_FILENO))
+			nullify_stdin ();
+	}
+	if (dup2 (fd, STDOUT_FILENO) < 0 || dup2 (fd, STDERR_FILENO) < 0)
+		error (EXIT_FAILURE, errno, "dup2");
 
 	if (pty_fd > STDERR_FILENO)
 		close (pty_fd);
 	if (pipe_fd > STDERR_FILENO)
 		close (pipe_fd);
-
-	/* redirect stdin to /dev/null if and only if
-	   use_pty is not set and stdin is a tty */
-	if (!use_pty && isatty (STDIN_FILENO))
-		nullify_stdin ();
 }
 
 int
