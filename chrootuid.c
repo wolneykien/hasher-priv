@@ -212,6 +212,7 @@ work_limits_ok (unsigned long bytes_written)
 	    && bytes_written >= (unsigned long) wlimit.bytes_written)
 	{
 		kill_and_forget ();
+		fputc('\n', stderr);
 		error (128 + SIGTERM, 0,
 		       "bytes written limit (%u bytes) exceeded",
 		       wlimit.bytes_written);
@@ -231,6 +232,7 @@ work_limits_ok (unsigned long bytes_written)
 			    time_now)
 			{
 				kill_and_forget ();
+				fputc('\n', stderr);
 				error (128 + SIGTERM, 0,
 				       "time elapsed limit (%u seconds) exceeded",
 				       wlimit.time_elapsed);
@@ -285,6 +287,7 @@ parent (int *out)
 			if (!rc)
 			{
 				kill_and_forget ();
+				fputc('\n', stderr);
 				error (128 + SIGTERM, 0,
 				       "idle time limit (%u seconds) exceeded",
 				       wlimit.time_idle);
