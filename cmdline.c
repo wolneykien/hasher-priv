@@ -33,7 +33,7 @@ static void __attribute__ ((__noreturn__)) usage (int rc)
 {
 	fprintf ((rc == EXIT_SUCCESS) ? stdout : stderr,
 		 "Usage: %s [options] <args>\n"
-		 "privileged pkg-build helper.\n"
+		 "Privileged pkg-build helper.\n"
 		 "\nThis program is free software, covered by the GNU General Public License;\n"
 		 "pkg-build-priv comes with ABSOLUTELY NO WARRANTY, see license for details.\n"
 		 "\nValid options are:\n\n"
