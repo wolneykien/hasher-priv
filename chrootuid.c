@@ -101,7 +101,7 @@ block_signal_handler (int no, int what)
 static void
 dfl_signal_handler (int no)
 {
-	if (signal (no, SIG_DFL) < 0)
+	if (signal (no, SIG_DFL) == SIG_ERR)
 		error (EXIT_FAILURE, errno, "signal");
 
 	block_signal_handler (no, SIG_UNBLOCK);
@@ -160,7 +160,7 @@ forget_and_unblock (void)
 }
 
 static void
-sigchld_handler (int signo)
+sigchld_handler ( __attribute__ ((unused)) int signo)
 {
 	int     status;
 
@@ -260,7 +260,7 @@ parent (int *out)
 
 	in = out[0];
 
-	if (signal (SIGCHLD, sigchld_handler) < 0)
+	if (signal (SIGCHLD, sigchld_handler) == SIG_ERR)
 		error (EXIT_FAILURE, errno, "signal");
 
 	block_signal_handler (SIGCHLD, SIG_UNBLOCK);
@@ -318,7 +318,7 @@ parent (int *out)
 }
 
 static int
-chrootuid (const char *name, uid_t uid, gid_t gid, const char *ehome,
+chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	   const char *euser, const char *epath)
 {
 	const char *const env[] =
@@ -359,7 +359,7 @@ chrootuid (const char *name, uid_t uid, gid_t gid, const char *ehome,
 int
 do_chrootuid1 (void)
 {
-	return chrootuid (change_user1, change_uid1, change_gid1,
+	return chrootuid (change_uid1, change_gid1,
 			  "HOME=/root", "USER=root",
 			  "PATH=/sbin:/usr/sbin:/bin:/usr/bin");
 }
@@ -367,7 +367,7 @@ do_chrootuid1 (void)
 int
 do_chrootuid2 (void)
 {
-	return chrootuid (change_user2, change_uid2, change_gid2,
+	return chrootuid (change_uid2, change_gid2,
 			  "HOME=/usr/src", "USER=builder",
 			  "PATH=/bin:/usr/bin:/usr/X11R6/bin");
 }

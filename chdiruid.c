@@ -50,7 +50,7 @@ ch_uid (uid_t uid, uid_t * save)
 
 	if (save)
 		*save = tmp;
-	if (setfsuid (uid) != uid)
+	if ((uid_t) setfsuid (uid) != uid)
 		error (EXIT_FAILURE, errno, "change uid: %u", uid);
 }
 
@@ -61,7 +61,7 @@ ch_gid (gid_t gid, gid_t * save)
 
 	if (save)
 		*save = tmp;
-	if (setfsgid (gid) != gid)
+	if ((gid_t) setfsgid (gid) != gid)
 		error (EXIT_FAILURE, errno, "change gid: %u", gid);
 }
 
