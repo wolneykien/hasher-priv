@@ -58,6 +58,11 @@ will be redirected to controlling pseudoterminal created by
 By default, stdin remains unchanged unless it references to terminal
 device, and stdout with stderr are redirected to pipe created by
 .BR hasher\-priv.
+.TP
+.B TERM
+This variable will be passed to child process if
+.B use_pty
+is set to true.
 
 [SECURITY]
 Following operation modes are not security sensitive:
