@@ -1,7 +1,7 @@
 # $Id$
 
 Name: hasher-priv
-Version: 1.0.3
+Version: 1.0.4
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -61,6 +61,13 @@ fi
 %doc DESIGN
 
 %changelog
+* Sun Mar 13 2005 Dmitry V. Levin <ldv@altlinux.org> 1.0.4-alt1
+- When making device files inside chroot,
+  first try to hardlink existing device files,
+  second try to create them using mknod(2).
+  This approach simplifies usage in restricted environments
+  where mknod(2) is not allowed even for superuser.
+
 * Mon Jan 03 2005 Dmitry V. Levin <ldv@altlinux.org> 1.0.3-alt1
 - Changed helper directory to %helperdir.
 - Updated documentation:
