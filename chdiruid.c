@@ -38,7 +38,7 @@
 /*
  * Two setfsuid() in a row - stupid, but
  * how the hell am I supposed to check
- * whether setfsuid() succeeded?
+ * whether setfsuid() succeeded or not?
  */
 static void
 ch_uid (uid_t uid, uid_t * save)
@@ -84,6 +84,10 @@ ch_gid (gid_t gid, gid_t * save)
 
 #endif /* ENABLE_SETFSUGID */
 
+/*
+ * Check whether the file path PREFIX is prefix of the file path SAMPLE.
+ * Return zero if prefix check succeeded, and non-zero otherwise.
+ */
 static int
 is_not_prefix (const char *prefix, const char *sample)
 {
@@ -95,6 +99,8 @@ is_not_prefix (const char *prefix, const char *sample)
 
 /*
  * Change the current work directory to the given path.
+ * Temporary change credentials to caller_user during this operation.
+ * If chroot_prefix is set, ensure that it is prefix of the given path.
  */
 void
 chdiruid (const char *path)
@@ -120,6 +126,7 @@ chdiruid (const char *path)
 	if (!(cwd = getcwd (0, 0)))
 		error (EXIT_FAILURE, errno, "getcwd");
 
+	/* Check for chroot_prefix. */
 	if ((chroot_prefix && *chroot_prefix
 	     && is_not_prefix (chroot_prefix, cwd)))
 		error (EXIT_FAILURE, 0,
