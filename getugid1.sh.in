@@ -22,7 +22,7 @@
 
 export CALLER_NUM=
 if [ -z "${1##-*}" ]; then
-	CALLER_NUM="$1"
+	CALLER_NUM="${1#-}"
 	shift
 fi
 
