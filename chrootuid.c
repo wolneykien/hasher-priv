@@ -28,8 +28,10 @@
 #include <fcntl.h>
 #include <time.h>
 #include <sys/wait.h>
+#include <sys/ioctl.h>
 #include <pwd.h>
 #include <grp.h>
+#include <pty.h>
 
 #include "priv.h"
 
@@ -63,8 +65,31 @@ set_rlimits (void)
 	}
 }
 
+static void
+connect_tty (int fd)
+{
+	int     stdin_isatty = isatty (STDIN_FILENO);
+
+	if (setsid () < 0)
+		error (EXIT_FAILURE, errno, "setsid");
+
+	if (ioctl (fd, TIOCSCTTY, 0) < 0)
+		error (EXIT_FAILURE, errno, "ioctl TIOCSCTTY");
+
+	if (stdin_isatty)
+		dup2 (fd, STDIN_FILENO);
+	dup2 (fd, STDOUT_FILENO);
+	dup2 (fd, STDERR_FILENO);
+	if (fd > STDERR_FILENO)
+		close (fd);
+
+	if (stdin_isatty && !enable_tty_stdin)
+		nullify_stdin ();
+
+}
+
 static int
-handle_child (uid_t uid, gid_t gid, char *const *env, int *out)
+handle_child (uid_t uid, gid_t gid, char *const *env, int slave)
 {
 	if (setgid (gid) < 0)
 		error (EXIT_FAILURE, errno, "setgid");
@@ -74,21 +99,17 @@ handle_child (uid_t uid, gid_t gid, char *const *env, int *out)
 
 	/* Process is no longer privileged at this point. */
 
+	connect_tty (slave);
+
+	dfl_signal_handler (SIGHUP);
+	dfl_signal_handler (SIGPIPE);
+	dfl_signal_handler (SIGTERM);
+
 	if (nice (change_nice) < 0)
 		error (EXIT_FAILURE, errno, "nice");
 
 	/* This system call always succeeds. */
 	umask (change_umask);
-
-	dfl_signal_handler (SIGPIPE);
-	dfl_signal_handler (SIGTERM);
-
-	if (dup2 (out[1], STDOUT_FILENO) != STDOUT_FILENO ||
-	    dup2 (out[1], STDERR_FILENO) != STDERR_FILENO)
-		error (EXIT_FAILURE, errno, "dup2");
-
-	if (close (out[0]) < 0 || close (out[1]) < 0)
-		error (EXIT_FAILURE, errno, "close");
 
 	execve (chroot_argv[0], (char *const *) chroot_argv, env);
 	error (EXIT_FAILURE, errno, "chrootuid: execve: %s", chroot_argv[0]);
@@ -100,8 +121,8 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	   const char *euser, const char *epath)
 {
 	const char *const env[] =
-		{ ehome, euser, epath, "SHELL=/bin/sh", "TERM=dumb", 0 };
-	int     out[2];
+		{ ehome, euser, epath, "SHELL=/bin/sh", "TERM=linux", 0 };
+	int     master = -1, slave = -1;
 	pid_t   pid;
 
 	if (uid < MIN_CHANGE_UID || uid == getuid ())
@@ -115,8 +136,8 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	/* Check and sanitize file descriptors again. */
 	sanitize_fds ();
 
-	if (pipe (out) < 0)
-		error (EXIT_FAILURE, errno, "pipe");
+	if (openpty (&master, &slave, 0, 0, 0) < 0)
+		error (EXIT_FAILURE, errno, "openpty");
 
 	if (chroot (".") < 0)
 		error (EXIT_FAILURE, errno, "chroot: %s", chroot_path);
@@ -131,8 +152,17 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	if ((pid = fork ()) < 0)
 		error (EXIT_FAILURE, errno, "fork");
 
-	return pid ? handle_parent (pid, out) :
-		handle_child (uid, gid, (char *const *) env, out);
+	if (pid)
+	{
+		if (close (slave) < 0)
+			error (EXIT_FAILURE, errno, "close");
+		return handle_parent (pid, master);
+	} else
+	{
+		if (close (master) < 0)
+			error (EXIT_FAILURE, errno, "close");
+		return handle_child (uid, gid, (char *const *) env, slave);
+	}
 }
 
 int

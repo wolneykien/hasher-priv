@@ -5,7 +5,6 @@ Here is a hasher-priv (*uid=root,egid=hashman,gid!=egid) control flow:
   + set safe umask
   + ensure 0,1,2 are valid file descriptors
   + close all the rest
-  + reopen stdin with /dev/null if stdin is a tty
 + parse command line arguments
   + check for non-zero argument list
   + parse -h, --help and -number options
@@ -45,6 +44,7 @@ Here is a hasher-priv (*uid=root,egid=hashman,gid!=egid) control flow:
       prefix
       umask
       nice
+      allow_ttydev
       allowed_mountpoints
       rlimit_(hard|soft)_*
       wlimit_(time_elapsed|time_idle|bytes_written)
@@ -70,23 +70,30 @@ Here is a hasher-priv (*uid=root,egid=hashman,gid!=egid) control flow:
     + check for valid uid specified
     + safe chdir to chroot_path
     + sanitize file descriptors again
-    + create pipe
+    + create pty
     + chroot to "."
     + clear supplementary group access list
     + set rlimits
     + fork
       + in child:
-        + setgid/setuid to specified user
+	+ setgid/setuid to specified user
+        + setsid
+	+ change controlling terminal to pty
+	+ redirect stdin either to null or to pty
+	+ redirect stdout and stderr to pty
         + set nice and umask
-	+ redirect stdout/stderr to pipe
         + execute specified program
       + in parent:
         + setgid/setuid to caller user
-        + handle child output
+        + handle child input/output
   + makedev
     + safe chdir to chroot_path
     + safe chdir to dev
-    + create fixed set of devices
+    + create devices: null, zero, random, urandom
+  + maketty
+    + safe chdir to chroot_path
+    + safe chdir to dev
+    + create devices: tty, ptmx
   + mount
     + safe chdir to chroot_path
     + safe chdir to appropriate mount point

@@ -48,8 +48,27 @@ do_makedev (void)
 	xmknod ("null", S_IFCHR | 0666, 1, 3);
 	xmknod ("zero", S_IFCHR | 0666, 1, 5);
 	xmknod ("urandom", S_IFCHR | 0644, 1, 9);
-	/* I don't want to provide real random. */
-	xmknod ("random", S_IFCHR | 0644, 1, 9);
+	xmknod ("random", S_IFCHR | 0644, 1, 9);	/* fake random. */
+	umask (m);
+
+	return 0;
+}
+
+int
+do_maketty (void)
+{
+	mode_t  m;
+
+	if (!allow_tty_devices)
+		error (EXIT_FAILURE, 0,
+		       "maketty: creating tty devices not allowed");
+
+	chdiruid (chroot_path);
+	chdiruid ("dev");
+
+	m = umask (0);
+	xmknod ("tty", S_IFCHR | 0666, 5, 0);
+	xmknod ("ptmx", S_IFCHR | 0666, 5, 2);
 	umask (m);
 
 	return 0;

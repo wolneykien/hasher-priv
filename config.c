@@ -41,6 +41,7 @@ uid_t   change_uid1, change_uid2;
 gid_t   change_gid1, change_gid2;
 mode_t  change_umask = 022;
 int     change_nice = 10;
+int     allow_tty_devices, enable_tty_stdin;
 change_rlimit_t change_rlimit[] = {
 
 /* Per-process CPU limit, in seconds.  */
@@ -233,7 +234,7 @@ parse_wlim (const char *name, const char *value,
 }
 
 static void
-parse_mountpoints (const char *value)
+parse_mountpoints (const char *value, const char *filename)
 {
 	char   *targets = xstrdup (value);
 	char   *target;
@@ -248,11 +249,27 @@ parse_mountpoints (const char *value)
 		if (strcmp (target, "/proc")
 		    && strcmp (target, "/dev/pts") && strcmp (target, "/sys"))
 			error (EXIT_FAILURE, 0,
-			       "config: %s: mount point not supported",
-			       target);
+			       "%s: mount point \"%s\" not supported",
+			       filename, target);
 	}
 
 	free (targets);
+}
+
+static int
+str2bool (const char *name, const char *value, const char *filename)
+{
+	if (value[0] == '\0' || !strcasecmp (value, "no")
+	    || !strcasecmp (value, "false") || !strcasecmp (value, "0"))
+		return 0;
+	if (!strcasecmp (value, "yes") || !strcasecmp (value, "true")
+	    || !strcasecmp (value, "1"))
+		return 1;
+
+	error (EXIT_FAILURE, 0,
+	       "%s: invalid value \"%s\" for \"%s\" option", filename,
+	       value, name);
+	return 0;
 }
 
 static void
@@ -284,7 +301,9 @@ set_config (const char *name, const char *value, const char *filename)
 	else if (!strcasecmp ("nice", name))
 		change_nice = str2nice (name, value, filename);
 	else if (!strcasecmp ("allowed_mountpoints", name))
-		parse_mountpoints (value);
+		parse_mountpoints (value, filename);
+	else if (!strcasecmp ("allow_ttydev", name))
+		allow_tty_devices = str2bool (name, value, filename);
 	else if (!strncasecmp (rlim_prefix, name, sizeof (rlim_prefix) - 1))
 		parse_rlim (name + sizeof (rlim_prefix) - 1, value, name,
 			    filename);
@@ -485,4 +504,7 @@ parse_env (void)
 	if ((e = getenv ("wlimit_bytes_written")) && *e)
 		modify_wlim (&wlimit.bytes_written, e, "wlimit_bytes_written",
 			     "environment");
+
+	if ((e = getenv ("enable_tty_stdin")))
+		enable_tty_stdin = str2bool ("enable_tty", e, "environment");
 }

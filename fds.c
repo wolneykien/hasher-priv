@@ -22,8 +22,8 @@
 
 #include <errno.h>
 #include <error.h>
-#include <paths.h>
 #include <fcntl.h>
+#include <paths.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <linux/limits.h>
@@ -56,21 +56,21 @@ sanitize_fds (void)
 	for (; fd < max_fd; ++fd)
 		close (fd);
 
-	/* If stdin is a tty, reopen it with /dev/null. */
-	if (isatty (STDIN_FILENO))
-	{
-		fd = open (_PATH_DEVNULL, O_RDONLY);
-		if (fd < 0)
-			error (EXIT_FAILURE, errno, "open: %s",
-			       _PATH_DEVNULL);
-		if (fd != STDIN_FILENO)
-		{
-			if (dup2 (fd, STDIN_FILENO) != STDIN_FILENO)
-				error (EXIT_FAILURE, errno, "dup2");
-			if (fd > STDERR_FILENO && close (fd) < 0)
-				error (EXIT_FAILURE, errno, "close");
-		}
-	}
-
 	errno = 0;
+}
+
+void
+nullify_stdin (void)
+{
+	int     fd = open (_PATH_DEVNULL, O_RDONLY);
+
+	if (fd < 0)
+		error (EXIT_FAILURE, errno, "open: %s", _PATH_DEVNULL);
+	if (fd != STDIN_FILENO)
+	{
+		if (dup2 (fd, STDIN_FILENO) != STDIN_FILENO)
+			error (EXIT_FAILURE, errno, "dup2");
+		if (close (fd) < 0)
+			error (EXIT_FAILURE, errno, "close");
+	}
 }

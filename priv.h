@@ -41,6 +41,7 @@ typedef enum
 	TASK_KILLUID2,
 	TASK_CHROOTUID2,
 	TASK_MAKEDEV,
+	TASK_MAKETTY,
 	TASK_MOUNT,
 	TASK_UMOUNT
 } task_t;
@@ -56,19 +57,21 @@ typedef struct
 {
 	unsigned time_elapsed;
 	unsigned time_idle;
+	unsigned bytes_read;
 	unsigned bytes_written;
 } work_limit_t;
 
 typedef void VALIDATE_FPTR (struct stat *, const char *);
 
 void    sanitize_fds (void);
+void    nullify_stdin (void);
 task_t  parse_cmdline (int ac, const char *av[]);
 void    init_caller_data (void);
 void    parse_env (void);
 void    configure (void);
 void    chdiruid (const char *path);
 void    purge_ipc (uid_t uid);
-int     handle_parent (pid_t pid, int *out);
+int     handle_parent (pid_t pid, int master);
 void    block_signal_handler (int no, int what);
 void    dfl_signal_handler (int no);
 void    safe_chdir (const char *name, VALIDATE_FPTR validator);
@@ -83,6 +86,7 @@ int     do_getugid2 (void);
 int     do_killuid2 (void);
 int     do_chrootuid2 (void);
 int     do_makedev (void);
+int     do_maketty (void);
 int     do_mount (void);
 int     do_umount (void);
 
@@ -93,6 +97,8 @@ extern const char **chroot_argv;
 
 extern const char *mountpoint;
 extern const char *allowed_mountpoints;
+
+extern int allow_tty_devices, enable_tty_stdin;
 
 extern const char *chroot_prefix;
 extern const char *caller_user, *caller_home;

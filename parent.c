@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <error.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -30,8 +31,29 @@
 #include <sys/wait.h>
 #include <pwd.h>
 #include <grp.h>
+#include <termios.h>
 
 #include "priv.h"
+
+static  ssize_t
+read_retry (int fd, void *buf, size_t count)
+{
+	return TEMP_FAILURE_RETRY (read (fd, buf, count));
+}
+
+static  ssize_t
+write_retry (int fd, const void *buf, size_t count)
+{
+	return TEMP_FAILURE_RETRY (write (fd, buf, count));
+}
+
+static int
+select_retry (int n, fd_set * readfds, fd_set * writefds, fd_set * exceptfds,
+	      struct timeval *timeout)
+{
+	return TEMP_FAILURE_RETRY
+		(select (n, readfds, writefds, exceptfds, timeout));
+}
 
 static int
 write_loop (int fd, const char *buffer, size_t count)
@@ -40,14 +62,10 @@ write_loop (int fd, const char *buffer, size_t count)
 
 	while (count > 0)
 	{
-		ssize_t block = write (fd, &buffer[offset], count);
+		ssize_t block = write_retry (fd, &buffer[offset], count);
 
 		if (block < 0)
-		{
-			if (errno == EINTR)
-				continue;
 			return block;
-		}
 		if (!block)
 			break;
 		offset += block;
@@ -56,23 +74,33 @@ write_loop (int fd, const char *buffer, size_t count)
 	return offset;
 }
 
-static volatile pid_t child_pid;
 static int child_rc;
-static int in_fd = -1;
+static int tty_is_saved;
+static struct termios tty_orig;
+static volatile pid_t child_pid;
 
 static void
-forget_and_unblock (void)
+restore_tty (void)
+{
+	if (tty_is_saved)
+	{
+		/* restore only once */
+		tty_is_saved = 0;
+		tcsetattr (STDIN_FILENO, TCSAFLUSH, &tty_orig);
+	}
+}
+
+static void
+unblock_fd (int fd)
 {
 	int     flags;
 
-	child_pid = 0;
-
-	if ((flags = fcntl (in_fd, F_GETFL, 0)) < 0)
+	if ((flags = fcntl (fd, F_GETFL, 0)) < 0)
 		error (EXIT_FAILURE, errno, "fcntl F_GETFL");
 
 	flags |= O_NONBLOCK;
 
-	if (fcntl (in_fd, F_SETFL, flags) < 0)
+	if (fcntl (fd, F_SETFL, flags) < 0)
 		error (EXIT_FAILURE, errno, "fcntl F_SETFL");
 }
 
@@ -80,15 +108,19 @@ static void
 sigchld_handler (int __attribute__ ((unused)) signo)
 {
 	int     status;
+	pid_t   child = child_pid;
 
-	if (!child_pid)
+	/* handle only one child */
+	child_pid = 0;
+
+	if (!child)
 		return;
 
 	signal (SIGCHLD, SIG_DFL);
-	if (waitpid (child_pid, &status, 0) != child_pid)
+	if (waitpid (child, &status, 0) != child)
 		error (EXIT_FAILURE, errno, "waitpid");
 
-	forget_and_unblock ();
+	child = 0;
 
 	if (WIFEXITED (status))
 	{
@@ -104,68 +136,101 @@ sigchld_handler (int __attribute__ ((unused)) signo)
 		return;
 	} else
 	{
-		/* quite strange */
+		/* quite strange condition */
 		child_rc = 255;
 	}
 }
 
 static void
-kill_and_forget (void)
+forget_child (void)
 {
-	pid_t   child = child_pid;
-
-	forget_and_unblock ();
-
-	if (child)
-	{
-		kill (child, SIGTERM);
+	if (child_pid)
 		child_rc = 128 + SIGTERM;
-	}
+
+	/* no need to kill due to EPERM */
+	child_pid = 0;
+}
+
+static void __attribute__ ((__noreturn__))
+limit_exceeded (const char *fmt, unsigned limit)
+{
+	forget_child ();
+	restore_tty ();
+	fputc ('\n', stderr);
+	error (128 + SIGTERM, 0, fmt, limit);
+	exit (128 + SIGTERM);
 }
 
 static int
-work_limits_ok (unsigned long bytes_written)
+work_limits_ok (unsigned long bytes_read, unsigned long bytes_written)
 {
+	if (wlimit.bytes_read
+	    && bytes_read >= (unsigned long) wlimit.bytes_read)
+		limit_exceeded ("bytes read limit (%u bytes) exceeded",
+				wlimit.bytes_read);
+
 	if (wlimit.bytes_written
 	    && bytes_written >= (unsigned long) wlimit.bytes_written)
-	{
-		kill_and_forget ();
-		fputc ('\n', stderr);
-		error (128 + SIGTERM, 0,
-		       "bytes written limit (%u bytes) exceeded",
-		       wlimit.bytes_written);
-	}
+		limit_exceeded ("bytes written limit (%u bytes) exceeded",
+				wlimit.bytes_written);
+
 	if (wlimit.time_elapsed)
 	{
-		static time_t time_start;
+		static time_t t_start;
 
-		if (!time_start)
-			time (&time_start);
+		if (!t_start)
+			time (&t_start);
 		else
 		{
-			time_t  time_now;
+			time_t  t_now;
 
-			time (&time_now);
-			if (time_start + (time_t) wlimit.time_elapsed <=
-			    time_now)
-			{
-				kill_and_forget ();
-				fputc ('\n', stderr);
-				error (128 + SIGTERM, 0,
-				       "time elapsed limit (%u seconds) exceeded",
-				       wlimit.time_elapsed);
-			}
+			time (&t_now);
+			if (t_start + (time_t) wlimit.time_elapsed <= t_now)
+				limit_exceeded
+					("time elapsed limit (%u seconds) exceeded",
+					 wlimit.time_elapsed);
 		}
 	}
 
 	return 1;
 }
 
-int
-handle_parent (pid_t child, int *out)
+static int
+init_tty (void)
 {
-	unsigned long bytes_read = 0;
-	unsigned i;
+	if (tcgetattr (STDIN_FILENO, &tty_orig))
+		return 0;	/* not a tty */
+
+	if (enable_tty_stdin)
+	{
+		struct termios tty_changed = tty_orig;
+
+		tty_is_saved = 1;
+		if (atexit (restore_tty))
+			error (EXIT_FAILURE, errno, "atexit");
+
+		cfmakeraw (&tty_changed);
+		tty_changed.c_iflag |= IXON;
+		tty_changed.c_cc[VMIN] = 1;
+		tty_changed.c_cc[VTIME] = 0;
+
+		if (tcsetattr (STDIN_FILENO, TCSAFLUSH, &tty_changed))
+			error (EXIT_FAILURE, errno, "tcsetattr");
+
+		return 1;
+	} else
+	{
+		nullify_stdin ();
+		return 0;
+	}
+}
+
+int
+handle_parent (pid_t child, int master)
+{
+	unsigned long total_bytes_read = 0, total_bytes_written = 0;
+	ssize_t use_stdin, read_avail = 0;
+	char    read_buf[BUFSIZ], write_buf[BUFSIZ];
 
 	if (setgid (caller_gid) < 0)
 		error (EXIT_FAILURE, errno, "setgid");
@@ -175,11 +240,6 @@ handle_parent (pid_t child, int *out)
 
 	/* Process is no longer privileged at this point. */
 
-	if (close (out[1]) < 0)
-		error (EXIT_FAILURE, errno, "close");
-
-	in_fd = out[0];
-
 	child_pid = child;
 
 	if (signal (SIGCHLD, sigchld_handler) == SIG_ERR)
@@ -187,55 +247,92 @@ handle_parent (pid_t child, int *out)
 
 	block_signal_handler (SIGCHLD, SIG_UNBLOCK);
 
-	while (work_limits_ok (bytes_read))
-	{
-		char    buffer[BUFSIZ];
-		ssize_t n;
+	unblock_fd (master);
 
-		if (child_pid && wlimit.time_idle)
+	use_stdin = init_tty ();
+
+	while (work_limits_ok (total_bytes_read, total_bytes_written))
+	{
+		ssize_t n;
+		fd_set  read_fds, write_fds;
+
+		FD_ZERO (&read_fds);
+		FD_ZERO (&write_fds);
+		FD_SET (master, &read_fds);
+
+		/* select only if child is running */
+		if (child_pid)
 		{
-			fd_set  set;
-			struct timeval timeout;
+			struct timeval tmout;
 			int     rc;
 
-			FD_ZERO (&set);
-			FD_SET (in_fd, &set);
-			timeout.tv_sec = wlimit.time_idle;
-			timeout.tv_usec = 0;
+			if (read_avail)
+				FD_SET (master, &write_fds);
+			else if (use_stdin)
+				FD_SET (STDIN_FILENO, &read_fds);
+			tmout.tv_sec = wlimit.time_idle;
+			tmout.tv_usec = 0;
 
-			rc = select (in_fd + 1, &set, 0, 0, &timeout);
+			rc = select_retry (master + 1, &read_fds, &write_fds,
+					   0, wlimit.time_idle ? &tmout : 0);
 			if (!rc)
-			{
-				kill_and_forget ();
-				fputc ('\n', stderr);
-				error (128 + SIGTERM, 0,
-				       "idle time limit (%u seconds) exceeded",
-				       wlimit.time_idle);
-			} else if (rc < 0 && errno == EINTR)
-				continue;
-		}
-		if ((n = read (in_fd, buffer, sizeof buffer)) < 0)
-		{
-			if (errno == EINTR)
-				continue;
-			if (errno == EAGAIN)
+				limit_exceeded
+					("idle time limit (%u seconds) exceeded",
+					 wlimit.time_idle);
+			else if (rc < 0)
 				break;
-			error (EXIT_FAILURE, errno, "read");
 		}
-		if (!n)
-			break;
 
-		bytes_read += n;
-		if (write_loop (STDOUT_FILENO, buffer, n) != n)
-			error (EXIT_FAILURE, errno, "write");
+		if (FD_ISSET (master, &read_fds))
+		{
+			/* handle child output */
+			n = read_retry (master, write_buf, sizeof write_buf);
+			if (n <= 0)
+				break;
+
+			if (write_loop (STDOUT_FILENO, write_buf, n) != n)
+				error (EXIT_FAILURE, errno, "write");
+			total_bytes_written += n;
+		}
+
+		if (!child_pid)
+			continue;
+
+		if (FD_ISSET (master, &write_fds))
+		{
+			/* handle child input */
+			errno = 0;
+			n = write_loop (master, read_buf, read_avail);
+			if (n < read_avail)
+			{
+				if (errno != EAGAIN)
+					break;
+				memmove (read_buf, read_buf + n,
+					 read_avail - n);
+				total_bytes_read += n;
+				read_avail -= n;
+			} else
+			{
+				total_bytes_read += read_avail;
+				read_avail = 0;
+			}
+		} else if (FD_ISSET (STDIN_FILENO, &read_fds))
+		{
+			/* handle tty input */
+			n = read_retry (STDIN_FILENO, read_buf,
+					sizeof read_buf);
+			if (n > 0)
+				read_avail = n;
+			else if (n == 0)
+			{
+				read_buf[0] = 4;
+				read_avail = 1;
+			} else
+				use_stdin = 0;
+		}
 	}
 
-	for (i = 0; i < 10; ++i)
-		if (child_pid)
-			usleep (100000);
-
-	if (child_pid)
-		kill_and_forget ();
+	forget_child ();
 
 	return child_rc;
 }

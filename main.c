@@ -80,6 +80,8 @@ main (int ac, const char *av[])
 			return do_chrootuid2 ();
 		case TASK_MAKEDEV:
 			return do_makedev ();
+		case TASK_MAKETTY:
+			return do_maketty ();
 		case TASK_MOUNT:
 			return do_mount ();
 		case TASK_UMOUNT:

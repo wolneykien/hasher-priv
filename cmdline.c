@@ -55,7 +55,9 @@ static void __attribute__ ((__noreturn__)) usage (int rc)
 		 "chrootuid2 <chroot path> <program> [program args]:\n"
 		 "       execute program in given chroot with credentials of user2;\n"
 		 "makedev <chroot path>:\n"
-		 "       make devices in given chroot;\n"
+		 "       make essential devices in given chroot;\n"
+		 "maketty <chroot path>:\n"
+		 "       make tty devices in given chroot;\n"
 		 "mount <chroot path> <mount point>:\n"
 		 "       mount appropriate file system to the given mount point;\n"
 		 "umount <chroot path>:\n"
@@ -167,6 +169,12 @@ parse_cmdline (int argc, const char *argv[])
 			usage (EXIT_FAILURE);
 		chroot_path = av[1];
 		return TASK_MAKEDEV;
+	} else if (!strcmp ("maketty", av[0]))
+	{
+		if (ac != 2)
+			usage (EXIT_FAILURE);
+		chroot_path = av[1];
+		return TASK_MAKETTY;
 	} else if (!strcmp ("mount", av[0]))
 	{
 		if (ac != 3)
