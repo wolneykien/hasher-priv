@@ -1,6 +1,6 @@
 $Id$
 
-Here is a pkg-build-priv control flow:
+Here is a pkg-build-priv (*uid=root,egid=pkg-build,gid!=egid) control flow:
 + sanitize file descriptors
   + set safe umask
   + ensure 0,1,2 are valid file descriptors
@@ -36,7 +36,13 @@ Here is a pkg-build-priv control flow:
   + safe chdir to /etc/pkg-build-priv
   + safe load "system" file
     + config format is sequence of name=value lines
-    + valid names are: user1, user2, prefix
+    + valid names are:
+      user1
+      user2
+      prefix
+      umask
+      nice
+      rlimit_(hard|soft)_*
   + safe chdir to "user.d"
   + safe load caller_user file
     + change_user1 and change_user2 should be initialized here
@@ -51,13 +57,13 @@ Here is a pkg-build-priv control flow:
   + getugid2: print change_uid2:change_gid2 pair
   + killuid1/killuid2
     + check for valid uid specified
-    + drop dumpable flag
+    + drop dumpable flag (just in case - not required)
     + setuid to specified uid
     + kill (-1, SIGKILL)
   + makedev
     + safe chdir to chroot_path
     + safe chdir to dev
-    + create devices
+    + create fixed set of devices
   + chrootuid1/chrootuid2
     + check for valid uid specified
     + safe chdir to chroot_path
@@ -65,5 +71,5 @@ Here is a pkg-build-priv control flow:
     + chroot to "."
     + clear supplementary group access list
     + setgid/setuid to specified user
-    + set default umask
+    + set rlimits, nice and umask
     + execute specified program
