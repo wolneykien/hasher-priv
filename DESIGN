@@ -1,0 +1,69 @@
+$Id$
+
+Here is a pkg-build-priv control flow:
++ sanitize file descriptors
+  + set safe umask
+  + ensure 0,1,2 are valid file descriptors
+  + close all the rest
+  + reopen stdin with /dev/null if stdin is a tty
++ parse command line arguments
+  + check for non-zero argument list
+  + parse -h, --help and -number options
+    + caller_num initialized here
+  + parse arguments, abort if wrong
+    + chroot_path and chroot_argv are initialized here
+    + valid arguments are:
+      getugid1
+      killuid1
+      chrootuid1 <chroot path> <program> [program args]
+      getugid2
+      killuid2
+      chrootuid2 <chroot path> <program> [program args]
+      makedev <chroot path>
++ initialize data related to caller
+  + caller_user initialized here from SUDO_USER
+    + caller_user must be existing user with valid home directory
+    + must be true: caller_user == caller_user->pw_name
+  + caller_uid initialized here from SUDO_UID
+    + caller_uid must be valid uid
+    + must be true: caller_uid == caller_user->pw_uid
+  + caller_gid initialized here from SUDO_GID
+    + caller_gid must be valid gid
+    + must be true: caller_gid == caller_user->pw_gid
+  + caller_home initialized here
++ drop all environment variables
++ load configuration
+  + safe chdir to /etc/pkg-build-priv
+  + safe load "system" file
+    + config format is sequence of name=value lines
+    + valid names are: user1, user2, prefix
+  + safe chdir to "user.d"
+  + safe load caller_user file
+    + change_user1 and change_user2 should be initialized here
+  + if caller_num is defined
+    + discard change_user1 and change_user2
+    + safe load caller_user:caller_num file
+      + change_user1 and change_user2 should be initialized here
+  + change_uid1 and change_gid1 initialized from change_user1
+  + change_uid2 and change_gid2 initialized from change_user2
++ execute choosen task
+  + getugid1: print change_uid1:change_gid1 pair
+  + getugid2: print change_uid2:change_gid2 pair
+  + killuid1/killuid2
+    + check for valid uid specified
+    + drop dumpable flag
+    + setuid to specified uid
+    + kill (-1, SIGKILL)
+  + makedev
+    + safe chdir to chroot_path
+    + safe chdir to dev
+    + create devices
+  + chrootuid1/chrootuid2
+    + check for valid uid specified
+    + safe chdir to chroot_path
+    + sanitize file descriptors again
+    + chroot to "."
+    + clear supplementary group access list
+    + setgid/setuid to specified user
+    + set default umask
+    + execute specified program
