@@ -29,6 +29,24 @@
 
 #include "priv.h"
 
+/* This function may be executed with root privileges. */
+static const char *
+is_changed (struct stat *st1, struct stat *st2)
+{
+	if (st1->st_dev != st2->st_dev)
+		return "device number";
+	if (st1->st_ino != st2->st_ino)
+		return "inode number";
+	if (st1->st_rdev != st2->st_rdev)
+		return "device type";
+	if (st1->st_mode != st2->st_mode)
+		return "protection";
+	if (st1->st_uid != st2->st_uid || st1->st_gid != st2->st_gid)
+		return "ownership";
+
+	return 0;
+}
+
 /*
  * Change the current working directory
  * using lstat+validate+chdir+lstat+compare technique.
@@ -38,6 +56,7 @@ void
 safe_chdir (const char *name, VALIDATE_FPTR validator)
 {
 	struct stat st1, st2;
+	const char *what;
 
 	if (lstat (name, &st1) < 0)
 		error (EXIT_FAILURE, errno, "lstat: %s", name);
@@ -53,10 +72,9 @@ safe_chdir (const char *name, VALIDATE_FPTR validator)
 	if (lstat (".", &st2) < 0)
 		error (EXIT_FAILURE, errno, "lstat: %s", name);
 
-	if (st1.st_dev != st2.st_dev || st1.st_ino != st2.st_ino ||
-	    st1.st_rdev != st2.st_rdev || st1.st_mode != st2.st_mode ||
-	    st1.st_uid != st2.st_uid || st1.st_gid != st2.st_gid)
-		error (EXIT_FAILURE, 0, "%s: changed during execution", name);
+	if ((what = is_changed (&st1, &st2)))
+		error (EXIT_FAILURE, 0, "%s: %s changed during execution",
+		       name, what);
 }
 
 /*
