@@ -125,17 +125,11 @@ chdiruid (const char *path, chdiruid_t type)
 	if (!(cwd = get_current_dir_name ()))
 		error (EXIT_FAILURE, errno, "getcwd");
 
-	if ((type == CHDIRUID_ABSOLUTE) && chroot_prefix && *chroot_prefix)
-	{
-		const char *prefix =
-			strcmp (chroot_prefix,
-				"~") ? chroot_prefix : caller_home;
-
-		if (is_not_prefix (prefix, cwd))
-			error (EXIT_FAILURE, 0,
-			       "%s: prefix mismatch, working directory should start with %s",
-			       cwd, prefix);
-	}
+	if ((type == CHDIRUID_ABSOLUTE) && chroot_prefix && *chroot_prefix
+	    && is_not_prefix (chroot_prefix, cwd))
+		error (EXIT_FAILURE, 0,
+		       "%s: prefix mismatch, working directory should start with %s",
+		       cwd, chroot_prefix);
 
 	if (stat (".", &st) < 0)
 		error (EXIT_FAILURE, errno, "stat: %s", cwd);

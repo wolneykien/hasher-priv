@@ -234,9 +234,11 @@ set_config (const char *name, const char *value, const char *filename)
 		change_user2 = xstrdup (value);
 	else if (!strcasecmp ("prefix", name))
 	{
+		const char *prefix =
+			strcmp (value, "~") ? value : caller_home;
 		int     n;
 
-		chroot_prefix = xstrdup (value);
+		chroot_prefix = xstrdup (prefix);
 		for (n = strlen (chroot_prefix) - 1; n > 0; --n)
 		{
 			if (chroot_prefix[n] == '/')
