@@ -135,10 +135,10 @@ chdiruid (const char *path, chdiruid_t type)
 		error (EXIT_FAILURE, errno, "stat: %s", cwd);
 
 	if (st.st_uid != caller_uid)
-		error (EXIT_FAILURE, 0, "%s: bad owner: %u", cwd, st.st_uid);
+		error (EXIT_FAILURE, 0, "%s: expected owner %u, found owner %u", cwd, caller_uid, st.st_uid);
 
 	if (st.st_gid != change_gid1)
-		error (EXIT_FAILURE, 0, "%s: bad group: %u", cwd, st.st_gid);
+		error (EXIT_FAILURE, 0, "%s: expected group %u, found group %u", cwd, change_gid1, st.st_gid);
 
 	if ((st.st_mode & S_IWOTH)
 	    || ((st.st_mode & S_IWGRP) && !(st.st_mode & S_ISVTX)))
