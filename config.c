@@ -3,7 +3,7 @@
   $Id$
   Copyright (C) 2003  Dmitry V. Levin <ldv@altlinux.org>
 
-  Configuration support module for the pkg-build-priv program.
+  Configuration support module for the hasher-priv program.
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -377,7 +377,7 @@ configure (void)
 {
 	xchdir ("/");
 	xchdir ("etc");
-	xchdir ("pkg-build-priv");
+	xchdir ("hasher-priv");
 
 	load_config ("system");
 

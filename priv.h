@@ -3,7 +3,7 @@
   $Id$
   Copyright (C) 2003  Dmitry V. Levin <ldv@altlinux.org>
 
-  Main include header for the pkg-build-priv project.
+  Main include header for the hasher-priv project.
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by

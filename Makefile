@@ -2,7 +2,7 @@
 # $Id$
 # Copyright (C) 2003  Dmitry V. Levin <ldv@altlinux.org>
 # 
-# Makefile for the pkg-build-priv project.
+# Makefile for the hasher-priv project.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,8 +19,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #
 
-PROJECT = pkg-build-priv
-VERSION = $(shell grep ^Version: pkg-build-priv.spec |head -1 |awk '{print $$2}')
+PROJECT = hasher-priv
+VERSION = $(shell grep ^Version: hasher-priv.spec |head -1 |awk '{print $$2}')
 SCRIPTS = getugid1.sh chrootuid1.sh getugid2.sh chrootuid2.sh makedev.sh
 MAN8PAGES = $(PROJECT).8
 SUDOERS = $(PROJECT).sudoers
@@ -58,7 +58,7 @@ install: all
 	$(INSTALL) -p -m700 $(PROJECT) $(DESTDIR)$(helperdir)/
 	$(INSTALL) -p -m755 $(SCRIPTS) $(DESTDIR)$(helperdir)/
 	$(MKDIR_P) -m755 $(DESTDIR)$(sbindir)
-	$(INSTALL) -p -m755 pkg-build-useradd $(DESTDIR)$(sbindir)/
+	$(INSTALL) -p -m755 hasher-useradd $(DESTDIR)$(sbindir)/
 	$(MKDIR_P) -m755 $(DESTDIR)$(man8dir)
 	$(INSTALL) -p -m644 $(MAN8PAGES) $(DESTDIR)$(man8dir)/
 

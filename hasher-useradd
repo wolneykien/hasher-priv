@@ -3,7 +3,7 @@
 # $Id$
 # Copyright (C) 2003  Dmitry V. Levin <ldv@altlinux.org>
 # 
-# The chrootuid1 helper for the pkg-build-priv project
+# The chrootuid1 helper for the hasher-priv project
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,11 +31,11 @@ Fatal()
 Usage()
 {
 	cat >&2 <<EOF
-pkg-build-useradd - adds pkg-build satellite users for already existing user,
-                    and creates pkg-build-priv config file.
+hasher-useradd - adds hasher satellite users for already existing user,
+                 and creates hasher-priv config file.
 
 This program is free software, covered by the GNU General Public License.
-pkg-build-useradd comes with ABSOLUTELY NO WARRANTY, see license for details.
+hasher-useradd comes with ABSOLUTELY NO WARRANTY, see license for details.
 
 Usage: $PROG [options] <user>
 
@@ -97,7 +97,7 @@ id "$caller" >/dev/null
 ! id "$user2" >/dev/null 2>&1 ||
 	Fatal "error creating satellite users: $user2 already exists"
 
-cd /etc/pkg-build-priv/user.d
+cd /etc/hasher-priv/user.d
 
 if [ -z "$number" ]; then
 	config="$caller"
@@ -109,11 +109,11 @@ fi
 	Fatal "config file '$config' for user '$caller' already exists"
 
 # First satellite.
-/usr/sbin/useradd -M -c "pkg-build satellite for $caller" -d /dev/null -s /dev/null "$user1" ||
+/usr/sbin/useradd -M -c "hasher satellite for $caller" -d /dev/null -s /dev/null "$user1" ||
 	Fatal "error creating satellite user $user1"
 
 # Second satellite.
-/usr/sbin/useradd -M -c "pkg-build satellite for $caller" -d /dev/null -s /dev/null "$user2" ||
+/usr/sbin/useradd -M -c "hasher satellite for $caller" -d /dev/null -s /dev/null "$user2" ||
 	Fatal "error creating satellite user $user2"
 
 # Add caller to pkg-build group and first satellite group.

@@ -1,10 +1,10 @@
 # $Id$
 
-Name: pkg-build-priv
-Version: 0.2.1
+Name: hasher-priv
+Version: 0.3
 Release: alt1
 
-Summary: A privileged helper for the pkg-build project
+Summary: A privileged helper for the hasher project
 License: GPL
 Group: Development/Other
 
@@ -15,12 +15,12 @@ PreReq: shadow-utils, sudo
 # Automatically added by buildreq on Fri May 02 2003
 BuildRequires: help2man
 
-%define helperdir %_libexecdir/pkg-build-priv
-%define configdir %_sysconfdir/pkg-build-priv
+%define helperdir %_libexecdir/hasher-priv
+%define configdir %_sysconfdir/hasher-priv
 
 %description
 This package provides helpers for executing privileged operations
-required by pkg-build utilities.
+required by hasher utilities.
 
 %prep
 %setup -q
@@ -36,7 +36,7 @@ required by pkg-build utilities.
 /usr/sbin/groupadd -r -f pkg-build
 
 %files
-%_sbindir/pkg-build-useradd
+%_sbindir/hasher-useradd
 %_mandir/man?/*
 # config
 %attr(400,root,root) %config(noreplace) %_sysconfdir/sudo.d/%name
@@ -45,7 +45,7 @@ required by pkg-build utilities.
 %attr(640,root,pkg-build) %config(noreplace) %configdir/system
 # helpers
 %attr(750,root,pkg-build) %dir %helperdir
-%attr(2710,root,pkg-build) %helperdir/pkg-build-priv
+%attr(2710,root,pkg-build) %helperdir/hasher-priv
 %attr(755,root,root) %helperdir/*.sh
 
 %doc DESIGN

@@ -1,6 +1,6 @@
 $Id$
 
-Here is a pkg-build-priv (*uid=root,egid=pkg-build,gid!=egid) control flow:
+Here is a hasher-priv (*uid=root,egid=pkg-build,gid!=egid) control flow:
 + sanitize file descriptors
   + set safe umask
   + ensure 0,1,2 are valid file descriptors
@@ -33,7 +33,7 @@ Here is a pkg-build-priv (*uid=root,egid=pkg-build,gid!=egid) control flow:
   + caller_home initialized here
 + drop all environment variables
 + load configuration
-  + safe chdir to /etc/pkg-build-priv
+  + safe chdir to /etc/hasher-priv
   + safe load "system" file
     + config format is sequence of name=value lines
     + valid names are:

@@ -3,7 +3,7 @@
   $Id$
   Copyright (C) 2003  Dmitry V. Levin <ldv@altlinux.org>
 
-  Command line parser for the pkg-build-priv program.
+  Command line parser for the hasher-priv program.
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -33,9 +33,9 @@ static void __attribute__ ((__noreturn__)) usage (int rc)
 {
 	fprintf ((rc == EXIT_SUCCESS) ? stdout : stderr,
 		 "Usage: %s [options] <args>\n"
-		 "Privileged pkg-build helper.\n"
+		 "Privileged hasher helper.\n"
 		 "\nThis program is free software, covered by the GNU General Public License;\n"
-		 "pkg-build-priv comes with ABSOLUTELY NO WARRANTY, see license for details.\n"
+		 "hasher-priv comes with ABSOLUTELY NO WARRANTY, see license for details.\n"
 		 "\nValid options are:\n\n"
 		 "-<number>:\n"
 		 "       subconfig identifier;\n"
@@ -63,7 +63,7 @@ static void __attribute__ ((__noreturn__)) usage (int rc)
 
 static void __attribute__ ((__noreturn__)) print_version (void)
 {
-	printf ("pkg-build-priv version %s\n", PROJECT_VERSION);
+	printf ("hasher-priv version %s\n", PROJECT_VERSION);
 	exit (EXIT_SUCCESS);
 }
 

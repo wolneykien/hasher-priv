@@ -3,7 +3,7 @@
   $Id$
   Copyright (C) 2003  Dmitry V. Levin <ldv@altlinux.org>
 
-  The chrootuid actions for the pkg-build-priv program.
+  The chrootuid actions for the hasher-priv program.
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
