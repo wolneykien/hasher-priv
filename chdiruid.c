@@ -87,6 +87,15 @@ ch_gid (gid_t gid, gid_t * save)
 
 #endif /* ENABLE_SETFSUGID */
 
+static int
+is_not_prefix (const char *prefix, const char *sample)
+{
+	unsigned len = strlen (prefix);
+
+	return strncmp (sample, prefix, len)
+		|| ((sample[len] != '\0') && (sample[len] != '/'));
+}
+
 /*
  * Change the current work directory to the given path.
  */
@@ -116,14 +125,11 @@ chdiruid (const char *path, chdiruid_t type)
 	if (!(cwd = get_current_dir_name ()))
 		error (EXIT_FAILURE, errno, "getcwd");
 
-	if ((type == CHDIRUID_ABSOLUTE) && chroot_prefix && *chroot_prefix)
-	{
-		unsigned len = strlen (chroot_prefix);
-
-		if (strncmp (cwd, chroot_prefix, len)
-		    || ((cwd[len] != '\0') && (cwd[len] != '/')))
-			error (EXIT_FAILURE, 0, "%s: prefix mismatch", cwd);
-	}
+	if ((type == CHDIRUID_ABSOLUTE) && chroot_prefix && *chroot_prefix
+	    && is_not_prefix (strcmp (chroot_prefix,
+				      "~") ? chroot_prefix : caller_home,
+			      cwd))
+		error (EXIT_FAILURE, 0, "%s: prefix mismatch", cwd);
 
 	if (stat (".", &st) < 0)
 		error (EXIT_FAILURE, errno, "stat: %s", cwd);

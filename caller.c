@@ -31,7 +31,7 @@
 #include "priv.h"
 #include "xmalloc.h"
 
-const char *caller_user, *change_user1, *change_user2;
+const char *caller_user, *caller_home, *change_user1, *change_user2;
 uid_t   caller_uid, change_uid1, change_uid2;
 gid_t   caller_gid, change_gid1, change_gid2;
 
@@ -83,5 +83,12 @@ init_caller_data (void)
 
 	if (caller_gid != pw->pw_gid)
 		error (EXIT_FAILURE, 0, "caller %s: gid mismatch",
+		       caller_user);
+
+	if (pw->pw_dir && *pw->pw_dir)
+		caller_home = canonicalize_file_name (pw->pw_dir);
+
+	if (!caller_home || !*caller_home)
+		error (EXIT_FAILURE, 0, "caller %s: invalid home",
 		       caller_user);
 }

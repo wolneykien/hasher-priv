@@ -46,9 +46,8 @@ $(PROJECT): $(OBJ)
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 install: all
-	$(MKDIR_P) -m700 $(DESTDIR)$(configdir)
 	$(MKDIR_P) -m700 $(DESTDIR)$(configdir)/user.d
-	$(INSTALL) -p -m600 /dev/null $(DESTDIR)$(configdir)/system
+	echo 'prefix=~' > $(DESTDIR)$(configdir)/system
 	$(MKDIR_P) -m750 $(DESTDIR)$(helperdir)
 	$(INSTALL) -p -m700 $(PROJECT) $(DESTDIR)$(helperdir)/
 	$(INSTALL) -p -m755 $(SCRIPTS) $(DESTDIR)$(helperdir)/

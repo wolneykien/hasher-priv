@@ -65,7 +65,7 @@ extern const char *__progname;
 
 extern const char *chroot_path, *chroot_prefix;
 extern const char **chroot_argv;
-extern const char *caller_user, *change_user1, *change_user2;
+extern const char *caller_user, *caller_home, *change_user1, *change_user2;
 extern uid_t caller_uid, change_uid1, change_uid2;
 extern gid_t caller_gid, change_gid1, change_gid2;
 
