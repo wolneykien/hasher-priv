@@ -31,9 +31,10 @@
 #include "priv.h"
 #include "xmalloc.h"
 
-const char *caller_user, *caller_home, *change_user1, *change_user2;
-uid_t   caller_uid, change_uid1, change_uid2;
-gid_t   caller_gid, change_gid1, change_gid2;
+const char *caller_user, *caller_home;
+uid_t caller_uid;
+gid_t caller_gid;
+unsigned caller_num;
 
 static const char *
 xgetenv (const char *name)
@@ -52,10 +53,21 @@ xatoul (const char *str, const char *name)
 	char   *p = 0;
 	unsigned long n = strtoul (str, &p, 10);
 
-	if (!p || *p || !n || n >= UINT_MAX)
+	if (!p || *p || !n || n > INT_MAX)
 		error (EXIT_FAILURE, 0, "invalid variable: %s", name);
 
 	return n;
+}
+
+static unsigned
+get_caller_num (const char *name)
+{
+	const char *value = getenv (name);
+
+	if (!value || !*value)
+		return 0;
+
+	return xatoul (value, name);
 }
 
 void
@@ -66,6 +78,7 @@ init_caller_data (void)
 	caller_user = xstrdup (xgetenv ("SUDO_USER"));
 	caller_uid = xatoul (xgetenv ("SUDO_UID"), "SUDO_UID");
 	caller_gid = xatoul (xgetenv ("SUDO_GID"), "SUDO_GID");
+	caller_num = get_caller_num ("CALLER_NUM");
 
 	pw = getpwnam (caller_user);
 

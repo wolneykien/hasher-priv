@@ -20,6 +20,12 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #
 
+export CALLER_NUM=
+if [ -z "${1##-*}" ]; then
+	CALLER_NUM="$1"
+	shift
+fi
+
 sudo @helper@ chrootuid2 "$@"
 rc=$?
 sudo @helper@ killuid2 &&
