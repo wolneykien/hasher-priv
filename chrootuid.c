@@ -31,10 +31,11 @@
 #include "priv.h"
 
 static int
-chrootuid (const char *name, uid_t uid, gid_t gid, const char *epath)
+chrootuid (const char *name, uid_t uid, gid_t gid, const char *ehome,
+	   const char *epath)
 {
 	const char *const env[] =
-		{ "HOME=/", epath, "SHELL=/bin/sh", "TERM=dumb", 0 };
+		{ ehome, epath, "SHELL=/bin/sh", "TERM=dumb", 0 };
 
 	if (uid < MIN_CHANGE_UID || uid == getuid ())
 		error (EXIT_FAILURE, 0, "chrootuid: invalid uid: %u", uid);
@@ -71,6 +72,7 @@ int
 do_chrootuid1 (void)
 {
 	return chrootuid (change_user1, change_uid1, change_gid1,
+			  "HOME=/root",
 			  "PATH=/sbin:/usr/sbin:/bin:/usr/bin");
 }
 
@@ -78,5 +80,6 @@ int
 do_chrootuid2 (void)
 {
 	return chrootuid (change_user2, change_uid2, change_gid2,
+			  "HOME=/usr/src",
 			  "PATH=/bin:/usr/bin:/usr/X11R6/bin");
 }
