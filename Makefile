@@ -37,7 +37,7 @@ DESTDIR =
 
 MKDIR_P = mkdir -p
 INSTALL = install
-HELP2MAN = help2man -N -s8
+HELP2MAN8 = help2man -N -s8
 CPPFLAGS = -D_GNU_SOURCE -DENABLE_SETFSUGID -DENABLE_SUPPLEMENTARY_GROUPS -D_FILE_OFFSET_BITS=64 -DPROJECT_VERSION=\"$(VERSION)\"
 CFLAGS = -pipe -Wall -Werror -W -O2
 
@@ -75,8 +75,8 @@ indent:
 %.sudoers: %.sudoers.in
 	sed -e 's|@helper@|$(helperdir)/$(PROJECT)|g' < $< > $@
 
-$(PROJECT).8: $(PROJECT)
-	$(HELP2MAN) ./$< > $@
+%.8: % %.8.inc
+	$(HELP2MAN8) -i $@.inc ./$< >$@
 
 # We need dependencies only if goal isn't "indent" or "clean".
 ifneq ($(MAKECMDGOALS),indent)
