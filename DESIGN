@@ -66,10 +66,6 @@ Here is a hasher-priv (*uid=root,egid=hashman,gid!=egid) control flow:
     + setuid to specified uid
     + kill (-1, SIGKILL)
     + purge all SYSV IPC objects
-  + makedev
-    + safe chdir to chroot_path
-    + safe chdir to dev
-    + create fixed set of devices
   + chrootuid1/chrootuid2
     + check for valid uid specified
     + safe chdir to chroot_path
@@ -87,3 +83,16 @@ Here is a hasher-priv (*uid=root,egid=hashman,gid!=egid) control flow:
       + in parent:
         + setgid/setuid to caller user
         + handle child output
+  + makedev
+    + safe chdir to chroot_path
+    + safe chdir to dev
+    + create fixed set of devices
+  + mount
+    + safe chdir to chroot_path
+    + safe chdir to appropriate mount point
+    + mount given file system
+  + umount
+    + for each of supported file system types
+      + safe chdir to chroot_path
+      + safe chdir to appropriate mount point
+      + lazy unmount current work directory
