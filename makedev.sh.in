@@ -20,4 +20,10 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #
 
-exec sudo @helper@ makedev "$@"
+n=
+if [ -n "$1" -a -z "${1##-*}" ]; then
+	n="${1#-}"
+	shift
+fi
+
+exec sudo @helper@ $n makedev "$@"
