@@ -70,7 +70,7 @@ Here is a hasher-priv (*uid=root,egid=hashman,gid!=egid) control flow:
     + check for valid uid specified
     + safe chdir to chroot_path
     + sanitize file descriptors again
-    + create pty
+    + create pipe and pty pair
     + chroot to "."
     + clear supplementary group access list
     + set rlimits
@@ -79,8 +79,8 @@ Here is a hasher-priv (*uid=root,egid=hashman,gid!=egid) control flow:
 	+ setgid/setuid to specified user
         + setsid
 	+ change controlling terminal to pty
-	+ redirect stdin either to null or to pty
-	+ redirect stdout and stderr to pty
+	+ redirect stdin if required, either to null or to pty
+	+ redirect stdout and stderr either to pipe or to pty
         + set nice and umask
         + execute specified program
       + in parent:
