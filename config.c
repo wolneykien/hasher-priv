@@ -138,7 +138,7 @@ static  rlim_t
 str2rlim (const char *name, const char *value, const char *filename)
 {
 	char   *p = 0;
-	unsigned long n;
+	unsigned long long n;
 
 	if (!*value)
 		bad_option_value (name, value, filename);
@@ -147,8 +147,8 @@ str2rlim (const char *name, const char *value, const char *filename)
 		return RLIM_INFINITY;
 
 	errno = 0;
-	n = strtoul (value, &p, 10);
-	if (!p || *p || (n == ULONG_MAX && errno == ERANGE))
+	n = strtoull (value, &p, 10);
+	if (!p || *p || n > ULONG_MAX || (n == ULLONG_MAX && errno == ERANGE))
 		bad_option_value (name, value, filename);
 
 	return n;
