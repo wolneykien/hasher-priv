@@ -1,7 +1,7 @@
 # $Id$
 
 Name: hasher-priv
-Version: 0.4
+Version: 0.5
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -56,6 +56,9 @@ required by hasher utilities.
 %doc DESIGN
 
 %changelog
+* Sun Sep 21 2003 Dmitry V. Levin <ldv@altlinux.org> 0.5-alt1
+- chrootuid{1,2}: call killuid on signal arrival.
+
 * Sun Sep 07 2003 Dmitry V. Levin <ldv@altlinux.org> 0.4-alt1
 - killuid: purge all SYSV IPC objects.
 
