@@ -49,6 +49,7 @@ required by pkg-build utilities.
 %changelog
 * Sat Apr 12 2003 Dmitry V. Levin <ldv@altlinux.org> 0.1.2-alt1
 - killuid.c: fixed build and work on linux kernel 2.2.x
+- chrootuid.c: added /usr/X11R6/bin to the PATH of second user
 - Install helper setgid pkg-build to ensure dumpable flag is unset.
 
 * Wed Apr 09 2003 Dmitry V. Levin <ldv@altlinux.org> 0.1.1-alt1
