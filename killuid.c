@@ -30,13 +30,19 @@
 
 #include "priv.h"
 
+#ifndef	PR_SET_DUMPABLE
+#define	PR_SET_DUMPABLE 4
+#endif
+
+extern int __libc_enable_secure;
+
 static int
 killuid (uid_t uid)
 {
 	if (uid < MIN_CHANGE_UID || uid == getuid ())
 		error (EXIT_FAILURE, 0, "killuid: invalid uid: %u", uid);
 
-	if (prctl (PR_SET_DUMPABLE, 0))
+	if (prctl (PR_SET_DUMPABLE, 0) && !__libc_enable_secure)
 		error (EXIT_FAILURE, errno, "killuid: prctl PR_SET_DUMPABLE");
 
 	if (setuid (uid) < 0)
