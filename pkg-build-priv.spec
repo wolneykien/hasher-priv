@@ -10,8 +10,7 @@ Group: Development/Other
 
 Source: %name-%version.tar.bz2
 
-PreReq: shadow-utils
-Requires: sudo
+PreReq: shadow-utils, sudo
 
 %define helperdir %_libexecdir/pkg-build-priv
 %define configdir %_sysconfdir/pkg-build-priv
@@ -28,12 +27,14 @@ required by pkg-build utilities.
 
 %install
 %makeinstall
+%__install -pD -m400 %name.sudoers $RPM_BUILD_ROOT%_sysconfdir/sudo.d/%name
 
 %pre
 /usr/sbin/groupadd -r -f pkg-build
 
 %files
 # config
+%attr(400,root,root) %config(noreplace) %_sysconfdir/sudo.d/%name
 %attr(700,root,root) %dir %configdir
 %attr(700,root,root) %dir %configdir/user.d
 %attr(600,root,root) %config(noreplace) %configdir/system

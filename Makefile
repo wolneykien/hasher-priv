@@ -21,7 +21,8 @@
 
 PROJECT = pkg-build-priv
 SCRIPTS = getugid1.sh chrootuid1.sh getugid2.sh chrootuid2.sh makedev.sh
-TARGETS = $(PROJECT) $(SCRIPTS)
+SUDOERS = $(PROJECT).sudoers
+TARGETS = $(PROJECT) $(SCRIPTS) $(SUDOERS)
 
 sysconfdir = /etc
 libexecdir = /usr/lib
@@ -59,6 +60,9 @@ indent:
 	indent *.h *.c
 
 %.sh:	%.sh.in
+	sed -e 's|@helper@|$(helperdir)/$(PROJECT)|g' < $< > $@
+
+%.sudoers:	%.sudoers.in
 	sed -e 's|@helper@|$(helperdir)/$(PROJECT)|g' < $< > $@
 
 # We need dependencies only if goal isn't "indent" or "clean".
