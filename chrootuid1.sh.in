@@ -20,8 +20,14 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #
 
-sudo @helper@ chrootuid1 "$@"
+n=
+if [ -n "$1" -a -z "${1##-*}" ]; then
+	n="${1#-}"
+	shift
+fi
+
+sudo @helper@ $n chrootuid1 "$@"
 rc=$?
-sudo @helper@ killuid1 &&
+sudo @helper@ $n killuid1 &&
 	exit $rc ||
 	exit 1
