@@ -95,10 +95,10 @@ bad_option_name (const char *optname, const char *filename)
 
 static void
 	__attribute__ ((__noreturn__))
-bad_option_value (const char *optname, const char *filename)
+bad_option_value (const char *optname, const char *value, const char *filename)
 {
-	error (EXIT_FAILURE, 0, "%s: invalid value for \"%s\" option",
-	       filename, optname);
+	error (EXIT_FAILURE, 0, "%s: invalid value for \"%s\" option: %s",
+	       filename, optname, value);
 	exit (EXIT_FAILURE);
 }
 
@@ -109,11 +109,11 @@ str2umask (const char *name, const char *value, const char *filename)
 	unsigned long n;
 
 	if (!*value)
-		bad_option_value (name, filename);
+		bad_option_value (name, value, filename);
 
 	n = strtoul (value, &p, 8);
 	if (!p || *p || n > 0777)
-		bad_option_value (name, filename);
+		bad_option_value (name, value, filename);
 
 	return n;
 }
@@ -125,11 +125,11 @@ str2nice (const char *name, const char *value, const char *filename)
 	unsigned long n;
 
 	if (!*value)
-		bad_option_value (name, filename);
+		bad_option_value (name, value, filename);
 
 	n = strtoul (value, &p, 10);
 	if (!p || *p || n > 19)
-		bad_option_value (name, filename);
+		bad_option_value (name, value, filename);
 
 	return n;
 }
@@ -141,14 +141,15 @@ str2rlim (const char *name, const char *value, const char *filename)
 	unsigned long n;
 
 	if (!*value)
-		bad_option_value (name, filename);
+		bad_option_value (name, value, filename);
 
 	if (!strcasecmp (value, "inf"))
 		return RLIM_INFINITY;
 
+	errno = 0;
 	n = strtoul (value, &p, 10);
-	if (!p || *p || n > INT_MAX)
-		bad_option_value (name, filename);
+	if (!p || *p || (n == ULONG_MAX && errno == ERANGE))
+		bad_option_value (name, value, filename);
 
 	return n;
 }
@@ -197,11 +198,11 @@ str2wlim (const char *name, const char *value, const char *filename)
 	unsigned long n;
 
 	if (!*value)
-		bad_option_value (name, filename);
+		bad_option_value (name, value, filename);
 
 	n = strtoul (value, &p, 10);
 	if (!p || *p || n > INT_MAX)
-		bad_option_value (name, filename);
+		bad_option_value (name, value, filename);
 
 	return n;
 }
