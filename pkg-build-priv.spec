@@ -1,7 +1,7 @@
 # $Id$
 
 Name: pkg-build-priv
-Version: 0.1.1
+Version: 0.1.2
 Release: alt1
 
 Summary: A privileged helper for the pkg-build project
@@ -41,12 +41,16 @@ required by pkg-build utilities.
 %attr(600,root,root) %config(noreplace) %configdir/system
 # helpers
 %attr(750,root,pkg-build) %dir %helperdir
-%attr(700,root,root) %helperdir/pkg-build-priv
+%attr(2710,root,pkg-build) %helperdir/pkg-build-priv
 %attr(755,root,root) %helperdir/*.sh
 
 %doc DESIGN
 
 %changelog
+* Sat Apr 12 2003 Dmitry V. Levin <ldv@altlinux.org> 0.1.2-alt1
+- killuid.c: fixed build and work on linux kernel 2.2.x
+- Install helper setgid pkg-build to ensure dumpable flag is unset.
+
 * Wed Apr 09 2003 Dmitry V. Levin <ldv@altlinux.org> 0.1.1-alt1
 - chdiruid.c: check for group-writable directory without sticky bit.
 
