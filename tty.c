@@ -95,7 +95,7 @@ connect_tty (int pty_fd, int pipe_fd)
 		close (pipe_fd);
 
 	/* redirect stdin to /dev/null if and only if
-	   tty stdin is not enabled and stdin is a tty */
+	   use_pty is not set and stdin is a tty */
 	if (!use_pty && isatty (STDIN_FILENO))
 		nullify_stdin ();
 }
