@@ -40,8 +40,11 @@ INSTALL = install
 HELP2MAN8 = help2man -N -s8
 CPPFLAGS = -D_GNU_SOURCE -DENABLE_SETFSUGID -DENABLE_SUPPLEMENTARY_GROUPS -D_FILE_OFFSET_BITS=64 -DPROJECT_VERSION=\"$(VERSION)\"
 CFLAGS = -pipe -Wall -Werror -W -O2
+LDLIBS = -lutil
 
-SRC = caller.c chdir.c chdiruid.c chrootuid.c cmdline.c config.c fds.c getugid.c ipc.c killuid.c main.c makedev.c mount.c parent.c signal.c umount.c xmalloc.c
+SRC = caller.c chdir.c chdiruid.c chrootuid.c cmdline.c config.c fds.c \
+	getugid.c ipc.c killuid.c main.c makedev.c mount.c parent.c \
+	signal.c umount.c xmalloc.c
 OBJ = $(SRC:.c=.o)
 DEP = $(SRC:.c=.d)
 
