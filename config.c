@@ -205,10 +205,19 @@ str2wlim (const char *name, const char *value, const char *filename)
 }
 
 static void
+modify_wlim (unsigned *pval, const char *value,
+	    const char *optname, const char *filename)
+{
+	unsigned val = str2wlim (optname, value, filename);
+	if (*pval == 0 || (val > 0 && val < *pval))
+		*pval = val;
+}
+
+static void
 parse_wlim (const char *name, const char *value,
 	    const char *optname, const char *filename)
 {
-	unsigned *pval = 0;
+	unsigned *pval;
 
 	if (!strcasecmp ("time_elapsed", name))
 		pval = &wlimit.time_elapsed;
@@ -219,7 +228,7 @@ parse_wlim (const char *name, const char *value,
 	else
 		bad_option_name (optname, filename);
 
-	*pval = str2wlim (optname, value, filename);
+	modify_wlim (pval, value, optname, filename);
 }
 
 static void
@@ -469,4 +478,19 @@ configure (void)
 	if (change_gid1 == change_gid2)
 		error (EXIT_FAILURE, 0,
 		       "config: gid of user1 coincides with gid of user2");
+}
+
+void
+parse_env (void)
+{
+	const char *e;
+
+	if ((e = getenv ("wlimit_time_elapsed")) && *e)
+		modify_wlim (&wlimit.time_elapsed, e, "wlimit_time_elapsed", "environment");
+
+	if ((e = getenv ("wlimit_time_idle")) && *e)
+		modify_wlim (&wlimit.time_idle, e, "wlimit_time_idle", "environment");
+
+	if ((e = getenv ("wlimit_bytes_written")) && *e)
+		modify_wlim (&wlimit.bytes_written, e, "wlimit_bytes_written", "environment");
 }

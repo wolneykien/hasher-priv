@@ -40,6 +40,9 @@ main (int ac, const char *av[])
 	/* Third, initialize data related to caller. */
 	init_caller_data ();
 
+	/* 4th, parse environment for config options. */
+	parse_env ();
+
 	/* We don't need environment variables any longer. */
 	if (clearenv () != 0)
 		error (EXIT_FAILURE, errno, "clearenv");

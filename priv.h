@@ -65,6 +65,7 @@ typedef struct
 void    sanitize_fds (void);
 task_t  parse_cmdline (int ac, const char *av[]);
 void    init_caller_data (void);
+void    parse_env (void);
 void    configure (void);
 void    chdiruid (const char *path, chdiruid_t type);
 void    purge_ipc (uid_t uid);

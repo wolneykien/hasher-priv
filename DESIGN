@@ -20,6 +20,7 @@ Here is a hasher-priv (*uid=root,egid=hashman,gid!=egid) control flow:
       killuid2
       chrootuid2 <chroot path> <program> [program args]
       makedev <chroot path>
++ read work limit hints from environment variables
 + initialize data related to caller
   + caller_user initialized here from SUDO_USER
     + caller_user must be existing user with valid home directory
