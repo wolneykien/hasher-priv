@@ -249,8 +249,8 @@ handle_parent (pid_t child, int pty_fd, int pipe_fd)
 
 			if (sigwinch_arrived)
 			{
-				--sigwinch_arrived;
-				tty_copy_winsize (STDIN_FILENO, pty_fd);
+				sigwinch_arrived = 0;
+				(void) tty_copy_winsize (STDIN_FILENO, pty_fd);
 			}
 
 			if (read_avail)

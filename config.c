@@ -472,8 +472,7 @@ configure (void)
 		free (fname);
 	}
 
-	if (chdir ("/") < 0)
-		error (EXIT_FAILURE, errno, "chdir");
+	safe_chdir ("/", stat_rootok_validator);
 
 	check_user (change_user1, &change_uid1, &change_gid1, "user1");
 	check_user (change_user2, &change_uid2, &change_gid2, "user2");
