@@ -57,8 +57,7 @@ static void __attribute__ ((__noreturn__)) usage (int rc)
 		 "chrootuid2 <chroot path> <program> [program args]:\n"
 		 "       execute program in given chroot with credentials of user2;\n"
 		 "makedev <chroot path>:\n"
-		 "       make devices in given chroot.\n",
-		 __progname);
+		 "       make devices in given chroot.\n", __progname);
 	exit (rc);
 }
 

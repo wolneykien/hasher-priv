@@ -24,6 +24,7 @@
 #define PKG_BUILD_PRIV_H
 
 #include <sys/types.h>
+#include <sys/resource.h>
 
 #define	MIN_CHANGE_UID	34
 #define	MIN_CHANGE_GID	34
@@ -46,6 +47,13 @@ typedef enum
 	CHDIRUID_RELATIVE = 0,
 	CHDIRUID_ABSOLUTE = 1
 } chdiruid_t;
+
+typedef struct
+{
+	const char *name;
+	int     resource;
+	rlim_t *hard, *soft;
+} change_limit_t;
 
 void    sanitize_fds (void);
 task_t  parse_cmdline (int ac, const char *av[]);
@@ -75,5 +83,8 @@ extern unsigned caller_num;
 extern const char *change_user1, *change_user2;
 extern uid_t change_uid1, change_uid2;
 extern gid_t change_gid1, change_gid2;
+extern mode_t change_umask;
+extern int change_nice;
+extern change_limit_t change_limit[];
 
 #endif /* PKG_BUILD_PRIV_H */

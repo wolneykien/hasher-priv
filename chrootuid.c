@@ -30,6 +30,32 @@
 
 #include "priv.h"
 
+static void
+set_rlimits (void)
+{
+	change_limit_t *p;
+
+	for (p = change_limit; p->name; ++p)
+	{
+		struct rlimit rlim;
+
+		if (!p->hard && !p->soft)
+			continue;
+
+		if (getrlimit (p->resource, &rlim) < 0)
+			error (EXIT_FAILURE, errno, "getrlimit: %s", p->name);
+
+		if (p->hard)
+			rlim.rlim_max = *(p->hard);
+
+		if (p->soft)
+			rlim.rlim_cur = *(p->soft);
+
+		if (setrlimit (p->resource, &rlim) < 0)
+			error (EXIT_FAILURE, errno, "setrlimit: %s", p->name);
+	}
+}
+
 static int
 chrootuid (const char *name, uid_t uid, gid_t gid, const char *ehome,
 	   const char *epath)
@@ -52,16 +78,23 @@ chrootuid (const char *name, uid_t uid, gid_t gid, const char *ehome,
 		error (EXIT_FAILURE, errno, "chroot: %s", chroot_path);
 
 	if (setgroups (0, 0) < 0)
-		error (EXIT_FAILURE, errno, "chrootuid: setgroups");
+		error (EXIT_FAILURE, errno, "setgroups");
 
 	if (setgid (gid) < 0)
-		error (EXIT_FAILURE, errno, "chrootuid: setgid");
+		error (EXIT_FAILURE, errno, "setgid");
 
 	if (setuid (uid) < 0)
-		error (EXIT_FAILURE, errno, "chrootuid: setuid");
+		error (EXIT_FAILURE, errno, "setuid");
 
-	umask (022);
-	nice (10);
+	/* Process is no longer privileged at this point. */
+
+	set_rlimits ();
+
+	if (nice (change_nice) < 0)
+		error (EXIT_FAILURE, errno, "nice");
+
+	/* This system call always succeeds. */
+	umask (change_umask);
 
 	execve (chroot_argv[0], (char *const *) chroot_argv,
 		(char *const *) env);
@@ -73,8 +106,7 @@ int
 do_chrootuid1 (void)
 {
 	return chrootuid (change_user1, change_uid1, change_gid1,
-			  "HOME=/root",
-			  "PATH=/sbin:/usr/sbin:/bin:/usr/bin");
+			  "HOME=/root", "PATH=/sbin:/usr/sbin:/bin:/usr/bin");
 }
 
 int

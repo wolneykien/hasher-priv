@@ -28,6 +28,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <limits.h>
 #include <sys/stat.h>
 #include <pwd.h>
 
@@ -38,19 +39,172 @@ const char *chroot_prefix;
 const char *change_user1, *change_user2;
 uid_t   change_uid1, change_uid2;
 gid_t   change_gid1, change_gid2;
+mode_t  change_umask = 022;
+int     change_nice = 10;
+change_limit_t change_limit[] = {
+
+/* Per-process CPU limit, in seconds.  */
+	{"cpu", RLIMIT_CPU, 0, 0},
+
+/* Largest file that can be created, in bytes.  */
+	{"fsize", RLIMIT_FSIZE, 0, 0},
+
+/* Maximum size of data segment, in bytes.  */
+	{"data", RLIMIT_DATA, 0, 0},
+
+/* Maximum size of stack segment, in bytes.  */
+	{"stack", RLIMIT_STACK, 0, 0},
+
+/* Largest core file that can be created, in bytes.  */
+	{"core", RLIMIT_CORE, 0, 0},
+
+/* Largest resident set size, in bytes.  */
+	{"rss", RLIMIT_RSS, 0, 0},
+
+/* Number of processes.  */
+	{"nproc", RLIMIT_NPROC, 0, 0},
+
+/* Number of open files.  */
+	{"nofile", RLIMIT_NOFILE, 0, 0},
+
+/* Locked-in-memory address space.  */
+	{"memlock", RLIMIT_MEMLOCK, 0, 0},
+
+/* Address space limit.  */
+	{"as", RLIMIT_AS, 0, 0},
+
+/* Maximum number of file locks.  */
+	{"locks", RLIMIT_LOCKS, 0, 0},
+
+/* End of limits.  */
+	{0, 0, 0, 0}
+};
+
+static void
+	__attribute__ ((__noreturn__))
+bad_option_name (const char *name, const char *filename)
+{
+	error (EXIT_FAILURE, 0, "%s: unrecognized option: %s", filename,
+	       name);
+	exit (EXIT_FAILURE);
+}
+
+static void
+	__attribute__ ((__noreturn__))
+bad_option_value (const char *name, const char *filename)
+{
+	error (EXIT_FAILURE, 0, "%s: invalid value for \"%s\" option",
+	       filename, name);
+	exit (EXIT_FAILURE);
+}
+
+static  mode_t
+str2umask (const char *name, const char *value, const char *filename)
+{
+	char   *p = 0;
+	unsigned long n;
+
+	if (!*value)
+		bad_option_value (name, filename);
+
+	n = strtoul (value, &p, 8);
+	if (!p || *p || n > 0777)
+		bad_option_value (name, filename);
+
+	return n;
+}
+
+static unsigned
+str2nice (const char *name, const char *value, const char *filename)
+{
+	char   *p = 0;
+	unsigned long n;
+
+	if (!*value)
+		bad_option_value (name, filename);
+
+	n = strtoul (value, &p, 10);
+	if (!p || *p || n > 19)
+		bad_option_value (name, filename);
+
+	return n;
+}
+
+static  rlim_t
+str2rlim (const char *name, const char *value, const char *filename)
+{
+	char   *p = 0;
+	unsigned long n;
+
+	if (!*value)
+		bad_option_value (name, filename);
+
+	if (!strcasecmp (value, "inf"))
+		return RLIM_INFINITY;
+
+	n = strtoul (value, &p, 10);
+	if (!p || *p || n > INT_MAX)
+		bad_option_value (name, filename);
+
+	return n;
+}
+
+static void
+set_rlim (const char *name, const char *value, int hard,
+	  const char *optname, const char *filename)
+{
+	change_limit_t *p;
+
+	for (p = change_limit; p->name; ++p)
+		if (!strcasecmp (name, p->name))
+		{
+			rlim_t *limit = hard ? p->hard : p->soft;
+
+			free (limit);
+			limit = xmalloc (sizeof (*limit));
+			*limit = str2rlim (optname, value, filename);
+		}
+
+	bad_option_name (optname, filename);
+}
+
+static void
+parse_rlim (const char *name, const char *value, const char *optname,
+	    const char *filename)
+{
+	const char hard_prefix[] = "hard_";
+	const char soft_prefix[] = "soft_";
+
+	if (!strncasecmp (hard_prefix, name, sizeof (hard_prefix) - 1))
+		set_rlim (name + sizeof (hard_prefix) - 1, value, 1,
+			  optname, filename);
+	else if (!strncasecmp (soft_prefix, name, sizeof (soft_prefix) - 1))
+		set_rlim (name + sizeof (soft_prefix) - 1, value, 0,
+			  optname, filename);
+	else
+		bad_option_name (optname, filename);
+}
 
 static void
 set_config (const char *name, const char *value, const char *filename)
 {
+	const char rlim_prefix[] = "rlimit_";
+
 	if (!strcasecmp ("user1", name))
 		change_user1 = xstrdup (value);
 	else if (!strcasecmp ("user2", name))
 		change_user2 = xstrdup (value);
 	else if (!strcasecmp ("prefix", name))
 		chroot_prefix = xstrdup (value);
+	else if (!strcasecmp ("umask", name))
+		change_umask = str2umask (name, value, filename);
+	else if (!strcasecmp ("nice", name))
+		change_nice = str2nice (name, value, filename);
+	else if (!strncasecmp (rlim_prefix, name, sizeof (rlim_prefix) - 1))
+		parse_rlim (name + sizeof (rlim_prefix) - 1, value, name,
+			    filename);
 	else
-		error (EXIT_FAILURE, 0, "%s: unrecognized name: %s",
-		       filename, name);
+		bad_option_name (name, filename);
 }
 
 static void
