@@ -18,7 +18,7 @@
 .\" Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 [NAME]
-\fBhasher-useradd\fR \- create hasher satellite users
+\fBhasher\-useradd\fR \- create hasher satellite users
 
 [SEE ALSO]
 .BR hsh (1),
