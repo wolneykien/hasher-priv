@@ -58,6 +58,8 @@ chrootuid (const char *name, uid_t uid, gid_t gid, const char *epath)
 	if (setuid (gid) < 0)
 		error (EXIT_FAILURE, errno, "chrootuid: setuid");
 
+	umask (022);
+
 	execve (chroot_argv[0], (char *const *) chroot_argv,
 		(char *const *) env);
 	error (EXIT_FAILURE, errno, "chrootuid: execve: %s", chroot_argv[0]);
