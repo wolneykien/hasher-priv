@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2002  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2002, 2004  Dmitry V. Levin <ldv@altlinux.org>
 
   Dynamic memory allocation with error checking.
 
@@ -19,10 +19,6 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
-
-#ifndef _GNU_SOURCE
-# define _GNU_SOURCE
-#endif
 
 #include <string.h>
 #include <stdlib.h>
