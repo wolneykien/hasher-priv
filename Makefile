@@ -52,8 +52,8 @@ $(PROJECT): $(OBJ)
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 install: all
-	$(MKDIR_P) -m700 $(DESTDIR)$(configdir)/user.d
-	$(INSTALL) -p -m755 system.conf $(DESTDIR)$(configdir)/system
+	$(MKDIR_P) -m710 $(DESTDIR)$(configdir)/user.d
+	$(INSTALL) -p -m640 system.conf $(DESTDIR)$(configdir)/system
 	$(MKDIR_P) -m750 $(DESTDIR)$(helperdir)
 	$(INSTALL) -p -m700 $(PROJECT) $(DESTDIR)$(helperdir)/
 	$(INSTALL) -p -m755 $(SCRIPTS) $(DESTDIR)$(helperdir)/

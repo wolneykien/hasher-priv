@@ -40,9 +40,9 @@ required by pkg-build utilities.
 %_mandir/man?/*
 # config
 %attr(400,root,root) %config(noreplace) %_sysconfdir/sudo.d/%name
-%attr(700,root,root) %dir %configdir
-%attr(700,root,root) %dir %configdir/user.d
-%attr(600,root,root) %config(noreplace) %configdir/system
+%attr(710,root,pkg-build) %dir %configdir
+%attr(710,root,pkg-build) %dir %configdir/user.d
+%attr(640,root,pkg-build) %config(noreplace) %configdir/system
 # helpers
 %attr(750,root,pkg-build) %dir %helperdir
 %attr(2710,root,pkg-build) %helperdir/pkg-build-priv

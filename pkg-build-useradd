@@ -108,9 +108,6 @@ fi
 ! [ -e "$config" ] ||
 	Fatal "config file '$config' for user '$caller' already exists"
 
-# We are going to create files.
-umask 077
-
 # First satellite.
 /usr/sbin/useradd -M -c "pkg-build satellite for $caller" -d /dev/null -s /dev/null "$user1" ||
 	Fatal "error creating satellite user $user1"
@@ -125,8 +122,10 @@ glist="$((id -Gn "$caller" |tr ' ' '\n' && id -gn "$user1" && echo pkg-build) |s
 	Fatal "error updating groups for user $caller"
 
 # Create config.
+umask 037
 cat >"$config" <<__EOF__
 user1=$user1
 user2=$user2
 __EOF__
 
+chgrp -- "$(id -g "$caller")" "$config"
