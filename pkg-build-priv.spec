@@ -57,6 +57,8 @@ required by pkg-build utilities.
 - Set umask=022 and nice=10 by default
   (same values which was hardcoded before).
 - Make config files readable by users.
+- chrootuid{1,2}.sh: do killuid call before chrootuid call
+  as well as after chrootuid call.
 
 * Tue May 06 2003 Dmitry V. Levin <ldv@altlinux.org> 0.1.6-alt1
 - pkg-build-priv:

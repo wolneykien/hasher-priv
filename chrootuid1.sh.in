@@ -1,4 +1,4 @@
-#!/bin/sh +e
+#!/bin/sh -e
 #
 # $Id$
 # Copyright (C) 2003  Dmitry V. Levin <ldv@altlinux.org>
@@ -26,6 +26,8 @@ if [ -n "$1" -a -z "${1##-*}" ]; then
 	shift
 fi
 
+sudo @helper@ $n killuid1
+set +e
 sudo @helper@ $n chrootuid1 "$@"
 rc=$?
 sudo @helper@ $n killuid1 &&
