@@ -37,19 +37,20 @@
 #endif
 
 static int
-xumount (const char *dir, const char *fsname)
+xumount (const char *chdir_path1, const char *chdir_path2, const char *dir,
+	 const char *fsname)
 {
 	int     unmounted = 0;
 
 	for (;;)
 	{
+		chdiruid (chdir_path1);
+		if (chdir_path2)
+			chdiruid (chdir_path2);
 		safe_chdir (dir, stat_permok_validator);
 		if (umount2 (".", MNT_DETACH) < 0)
 			break;
 		unmounted = 1;
-		if (chdir ("..") < 0)
-			error (EXIT_FAILURE, errno, "umount: %s: chdir: ..",
-			       fsname);
 	}
 
 	if (unmounted)
@@ -63,23 +64,19 @@ xumount (const char *dir, const char *fsname)
 static int
 umount_proc (void)
 {
-	chdiruid (chroot_path);
-	return xumount ("proc", "proc");
+	return xumount (chroot_path, 0, "proc", "proc");
 }
 
 static int
 umount_devpts (void)
 {
-	chdiruid (chroot_path);
-	chdiruid ("dev");
-	return xumount ("pts", "devpts");
+	return xumount (chroot_path, "dev", "pts", "devpts");
 }
 
 static int
 umount_sysfs (void)
 {
-	chdiruid (chroot_path);
-	return xumount ("sys", "sysfs");
+	return xumount (chroot_path, 0, "sys", "sysfs");
 }
 
 int
