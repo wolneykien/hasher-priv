@@ -61,24 +61,6 @@ xumount (const char *chdir_path1, const char *chdir_path2, const char *dir,
 	return unmounted;
 }
 
-static int
-umount_proc (void)
-{
-	return xumount (chroot_path, 0, "proc", "proc");
-}
-
-static int
-umount_devpts (void)
-{
-	return xumount (chroot_path, "dev", "pts", "devpts");
-}
-
-static int
-umount_sysfs (void)
-{
-	return xumount (chroot_path, 0, "sys", "sysfs");
-}
-
 int
 do_umount (void)
 {
@@ -94,11 +76,12 @@ do_umount (void)
 	     target = strtok (0, " \t,"))
 	{
 		if (!strcmp (target, "/proc"))
-			unmounted |= umount_proc ();
+			unmounted |= xumount (chroot_path, 0, "proc", "proc");
 		else if (!strcmp (target, "/dev/pts"))
-			unmounted |= umount_devpts ();
+			unmounted |=
+				xumount (chroot_path, "dev", "pts", "devpts");
 		else if (!strcmp (target, "/sys"))
-			unmounted |= umount_sysfs ();
+			unmounted |= xumount (chroot_path, 0, "sys", "sysfs");
 		else
 			error (EXIT_SUCCESS, 0,
 			       "umount: %s: mount point not supported",
