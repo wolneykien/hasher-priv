@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2004  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2004,2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The umount action for the hasher-priv program.
 
@@ -37,21 +37,25 @@
 #endif
 
 static int
-xumount (const char *target)
+xumount (const char *dir, const char *fsname)
 {
 	int     unmounted = 0;
 
 	for (;;)
 	{
+		safe_chdir (dir, stat_permok_validator);
 		if (umount2 (".", MNT_DETACH) < 0)
 			break;
 		unmounted = 1;
+		if (chdir ("..") < 0)
+			error (EXIT_FAILURE, errno, "umount: %s: chdir: ..",
+			       fsname);
 	}
 
 	if (unmounted)
 		errno = 0;
 	else if (errno != EINVAL)
-		error (EXIT_SUCCESS, errno, "umount: %s", target);
+		error (EXIT_SUCCESS, errno, "umount: %s", fsname);
 
 	return unmounted;
 }
@@ -60,8 +64,7 @@ static int
 umount_proc (void)
 {
 	chdiruid (chroot_path);
-	safe_chdir ("proc", stat_permok_validator);
-	return xumount ("proc");
+	return xumount ("proc", "proc");
 }
 
 static int
@@ -69,16 +72,14 @@ umount_devpts (void)
 {
 	chdiruid (chroot_path);
 	chdiruid ("dev");
-	safe_chdir ("pts", stat_permok_validator);
-	return xumount ("devpts");
+	return xumount ("pts", "devpts");
 }
 
 static int
 umount_sysfs (void)
 {
 	chdiruid (chroot_path);
-	safe_chdir ("sys", stat_permok_validator);
-	return xumount ("sysfs");
+	return xumount ("sys", "sysfs");
 }
 
 int
