@@ -1,7 +1,7 @@
 # $Id$
 
 Name: hasher-priv
-Version: 1.0.4
+Version: 1.0.5
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -61,6 +61,9 @@ fi
 %doc DESIGN
 
 %changelog
+* Sat Apr 30 2005 Dmitry V. Levin <ldv@altlinux.org> 1.0.5-alt1
+- Fixed umount looping on 2.6 kernel (closes #6667).
+
 * Sun Mar 13 2005 Dmitry V. Levin <ldv@altlinux.org> 1.0.4-alt1
 - When making device files inside chroot,
   first try to hardlink existing device files,
