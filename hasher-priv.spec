@@ -19,7 +19,7 @@ PreReq: coreutils, shadow-utils, glibc-utils
 Obsoletes: pkg-build-priv
 
 # due to libexec hell.
-Conflicts: hasher < 0:1.0.9-alt1
+Conflicts: hasher < 0:1.0.9-alt0.M24.1
 
 # Automatically added by buildreq on Fri May 02 2003
 BuildRequires: help2man
