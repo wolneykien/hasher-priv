@@ -1,7 +1,7 @@
 # $Id$
 
 Name: hasher-priv
-Version: 1.0.5
+Version: 1.1.0
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -61,6 +61,9 @@ fi
 %doc DESIGN
 
 %changelog
+* Sat Jul 09 2005 Dmitry V. Levin <ldv@altlinux.org> 1.1.0-alt1
+- Implemented X11 forwarding.
+
 * Sat Apr 30 2005 Dmitry V. Levin <ldv@altlinux.org> 1.0.5-alt1
 - Fixed umount looping on 2.6 kernel (closes #6667).
 

@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2004  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2004, 2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The chrootuid child handler for the hasher-priv program.
 
@@ -64,7 +64,7 @@ connect_fds (int pty_fd, int pipe_fd)
 }
 
 int
-handle_child (char *const *env, int pty_fd, int pipe_fd)
+handle_child (char *const *env, int pty_fd, int pipe_fd, int x11_fd)
 {
 	connect_fds (pty_fd, pipe_fd);
 
@@ -74,6 +74,14 @@ handle_child (char *const *env, int pty_fd, int pipe_fd)
 
 	if (nice (change_nice) < 0)
 		error (EXIT_FAILURE, errno, "nice");
+
+	if (x11_fd >= 0)
+	{
+		int rc = x11_bind (x11_fd);
+		close (x11_fd);
+		if (!rc)
+			xauth_add_entry (env);
+	}
 
 	umask (change_umask);
 

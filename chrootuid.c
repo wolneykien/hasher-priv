@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The chrootuid actions for the hasher-priv program.
 
@@ -70,13 +70,17 @@ static int
 chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	   const char *euser, const char *epath)
 {
-	int     master = -1, slave = -1;
+	int     master = -1, slave = -1, x11_fd;
 	int     out[2];
 	pid_t   pid;
-	char *term_env;
-	xasprintf (&term_env, "TERM=%s", term ?: "dumb");
+	char   *term_env, *x11_env = 0;
+
+	xasprintf (&term_env, "TERM=%s", term ? : "dumb");
+	if (x11_display && x11_key)
+		x11_env = "DISPLAY=:10.0";
+
 	const char *const env[] =
-		{ ehome, euser, epath, term_env, "SHELL=/bin/sh", 0 };
+		{ ehome, euser, epath, term_env, x11_env, "SHELL=/bin/sh", 0 };
 
 	if (uid < MIN_CHANGE_UID || uid == getuid ())
 		error (EXIT_FAILURE, 0, "chrootuid: invalid uid: %u", uid);
@@ -92,9 +96,11 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	if (pipe (out) < 0)
 		error (EXIT_FAILURE, errno, "pipe");
 
-	/* Always create pty, necessary for ioctl TIOCSCTTY in child. */
+	/* Always create pty, necessary for ioctl TIOCSCTTY in the child. */
 	if (openpty (&master, &slave, 0, 0, 0) < 0)
 		error (EXIT_FAILURE, errno, "openpty");
+
+	x11_fd = x11_socket ();
 
 	if (chroot (".") < 0)
 		error (EXIT_FAILURE, errno, "chroot: %s", chroot_path);
@@ -122,7 +128,7 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 		if (close (out[1]) || close (slave))
 			error (EXIT_FAILURE, errno, "close");
 
-		return handle_parent (pid, master, out[0]);
+		return handle_parent (pid, master, out[0], x11_fd);
 	} else
 	{
 		if (setgid (gid) < 0)
@@ -136,7 +142,8 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 		if (close (out[0]) || close (master))
 			error (EXIT_FAILURE, errno, "close");
 
-		return handle_child ((char *const *) env, slave, out[1]);
+		return handle_child ((char *const *) env, slave, out[1],
+				     x11_fd);
 	}
 }
 
@@ -148,7 +155,6 @@ do_chrootuid1 (void)
 			  "PATH=/sbin:/usr/sbin:/bin:/usr/bin");
 }
 
-/* This function may be executed with root privileges. */
 int
 do_chrootuid2 (void)
 {

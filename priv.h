@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
 
   Main include header for the hasher-priv project.
 
@@ -74,14 +74,19 @@ void    parse_env (void);
 void    configure (void);
 void    chdiruid (const char *path);
 void    purge_ipc (uid_t uid);
-int     handle_child (char *const *env, int pty_fd, int pipe_fd);
-int     handle_parent (pid_t pid, int pty_fd, int pipe_fd);
+int     handle_child (char *const *env, int pty_fd, int pipe_fd, int x11_fd);
+int     handle_parent (pid_t pid, int pty_fd, int pipe_fd, int x11_fd);
 void    block_signal_handler (int no, int what);
 void    dfl_signal_handler (int no);
 void    safe_chdir (const char *name, VALIDATE_FPTR validator);
 void    stat_userok_validator (struct stat *st, const char *name);
 void    stat_rootok_validator (struct stat *st, const char *name);
 void    stat_permok_validator (struct stat *st, const char *name);
+int     xauth_add_entry (char *const *env);
+int     x11_socket (void);
+int     x11_bind (int fd);
+int     x11_connect (void);
+int     x11_accept (int fd);
 
 int     do_getugid1 (void);
 int     do_killuid1 (void);
@@ -94,8 +99,6 @@ int     do_maketty (void);
 int     do_mount (void);
 int     do_umount (void);
 
-extern const char *__progname;
-
 extern const char *chroot_path;
 extern const char **chroot_argv;
 
@@ -103,6 +106,7 @@ extern const char *mountpoint;
 extern const char *allowed_mountpoints;
 
 extern const char *term;
+extern const char *x11_display, *x11_key;
 
 extern int allow_tty_devices, use_pty;
 

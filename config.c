@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
 
   Configuration support module for the hasher-priv program.
 
@@ -40,6 +40,7 @@ const char *chroot_prefix;
 const char *allowed_mountpoints;
 const char *change_user1, *change_user2;
 const char *term;
+const char *x11_display, *x11_key;
 uid_t   change_uid1, change_uid2;
 gid_t   change_gid1, change_gid2;
 mode_t  change_umask = 022;
@@ -86,7 +87,7 @@ change_rlimit_t change_rlimit[] = {
 
 work_limit_t wlimit;
 
-static void __attribute__ ((__noreturn__))
+static void __attribute__ ((noreturn))
 bad_option_name (const char *optname, const char *filename)
 {
 	error (EXIT_FAILURE, 0, "%s: unrecognized option: %s", filename,
@@ -94,7 +95,7 @@ bad_option_name (const char *optname, const char *filename)
 	exit (EXIT_FAILURE);
 }
 
-static void __attribute__ ((__noreturn__))
+static void __attribute__ ((noreturn))
 bad_option_value (const char *optname, const char *value, const char *filename)
 {
 	error (EXIT_FAILURE, 0, "%s: invalid value for \"%s\" option: %s",
@@ -511,4 +512,10 @@ parse_env (void)
 
 	if (use_pty && (e = getenv ("TERM")) && *e)
 		term = xstrdup (e);
+
+	if ((e = getenv ("XAUTH_DISPLAY")) && *e)
+		x11_display = xstrdup (e);
+
+	if ((e = getenv ("XAUTH_KEY")) && *e)
+		x11_key = xstrdup (e);
 }
