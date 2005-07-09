@@ -71,7 +71,7 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	   const char *euser, const char *epath)
 {
 	int     master = -1, slave = -1, x11_fd;
-	int     out[2];
+	int     out[2] = { -1, -1 };
 	pid_t   pid;
 	char   *term_env, *x11_env = 0;
 
@@ -93,7 +93,7 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	/* Check and sanitize file descriptors again. */
 	sanitize_fds ();
 
-	if (pipe (out) < 0)
+	if (!use_pty && pipe (out) < 0)
 		error (EXIT_FAILURE, errno, "pipe");
 
 	/* Always create pty, necessary for ioctl TIOCSCTTY in the child. */
@@ -125,7 +125,7 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 
 		/* Process is no longer privileged at this point. */
 
-		if (close (out[1]) || close (slave))
+		if (close (slave) || (!use_pty && close (out[1])))
 			error (EXIT_FAILURE, errno, "close");
 
 		return handle_parent (pid, master, out[0], x11_fd);
@@ -139,7 +139,7 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 
 		/* Process is no longer privileged at this point. */
 
-		if (close (out[0]) || close (master))
+		if (close (master) || (!use_pty && close (out[0])))
 			error (EXIT_FAILURE, errno, "close");
 
 		return handle_child ((char *const *) env, slave, out[1],

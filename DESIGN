@@ -70,7 +70,8 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
     + check for valid uid specified
     + safe chdir to chroot_path
     + sanitize file descriptors again
-    + create pipe and pty pairs
+    + if requested, create pipe
+    + create pty
     + if requested, create unix socket for X11 forwarding and
       open /tmp/.X11-unix for later use
     + chroot to "."

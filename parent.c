@@ -536,12 +536,6 @@ handle_parent (pid_t child, int a_pty_fd, int pipe_fd, int a_x11_fd)
 	block_signal_handler (SIGCHLD, SIG_UNBLOCK);
 	signal (SIGPIPE, SIG_IGN);
 
-	if (use_pty)
-	{
-		(void) close (pipe_fd);
-		pipe_fd = -1;
-	}
-
 	std_io = xmalloc (sizeof (*std_io));
 	memset (std_io, 0, sizeof (*std_io));
 	std_io->master_read_fd = use_pty ? STDIN_FILENO : -1;
