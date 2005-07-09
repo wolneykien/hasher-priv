@@ -79,14 +79,14 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
     + set rlimits
     + fork
       + in child:
-	+ setgid/setuid to specified user
+        + setgid/setuid to specified user
         + setsid
-	+ change controlling terminal to pty
-	+ redirect stdin if required, either to null or to pty
-	+ redirect stdout and stderr either to pipe or to pty
+        + change controlling terminal to pty
+        + redirect stdin if required, either to null or to pty
+        + redirect stdout and stderr either to pipe or to pty
         + set nice
-	+ if requested, bind unix socket for X11 forwarding
-	+ if requested, add X11 auth entry using xauth utility
+        + if requested, bind unix socket for X11 forwarding
+        + if requested, add X11 auth entry using xauth utility
         + set umask
         + execute specified program
       + in parent:
