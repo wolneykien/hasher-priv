@@ -100,12 +100,12 @@ sigwinch_handler (__attribute__ ((unused)) int signo)
 	++sigwinch_arrived;
 }
 
-static volatile sig_atomic_t x11_accept_timed_out;
+static volatile sig_atomic_t x11_startup_timed_out;
 
 static void
 sigalrm_handler (__attribute__ ((unused)) int signo)
 {
-	++x11_accept_timed_out;
+	++x11_startup_timed_out;
 	signal (SIGALRM, SIG_DFL);
 }
 
@@ -276,11 +276,181 @@ static unsigned long total_bytes_read, total_bytes_written;
 
 static int pty_fd = -1, x11_fd = -1;
 
+static int x11_accept_works;
+
+static void
+prepare_x11_new (int *max_fd, fd_set *read_fds)
+{
+	if (x11_fd < 0)
+		return;
+
+	FD_SET (x11_fd, read_fds);
+	if (x11_fd > *max_fd)
+		*max_fd = x11_fd;
+}
+
+static void
+prepare_x11_select (int *max_fd, fd_set * read_fds, fd_set * write_fds)
+{
+	unsigned i;
+
+	for (i = 0; i < io_x11_count; ++i)
+	{
+		io_pair_t io;
+
+		if (!(io = io_x11_list[i]))
+			continue;
+
+		if (io->slave_read_fd >= 0 && !io->slave_read_avail)
+		{
+			FD_SET (io->slave_read_fd, read_fds);
+			if (io->slave_read_fd > *max_fd)
+				*max_fd = io->slave_read_fd;
+		}
+		if (io->master_read_fd >= 0 && !io->master_read_avail)
+		{
+			FD_SET (io->master_read_fd, read_fds);
+			if (io->master_read_fd > *max_fd)
+				*max_fd = io->master_read_fd;
+		}
+		if (io->slave_write_fd >= 0 && io->master_read_avail)
+		{
+			FD_SET (io->slave_write_fd, write_fds);
+			if (io->slave_write_fd > *max_fd)
+				*max_fd = io->slave_write_fd;
+		}
+		if (io->master_write_fd >= 0 && io->slave_read_avail)
+		{
+			FD_SET (io->master_write_fd, write_fds);
+			if (io->master_write_fd > *max_fd)
+				*max_fd = io->master_write_fd;
+		}
+	}
+}
+
+static void
+handle_x11_select (fd_set *read_fds, fd_set *write_fds)
+{
+	unsigned i;
+	ssize_t n;
+
+	for (i = 0; i < io_x11_count; ++i)
+	{
+		io_pair_t io;
+
+		if (!(io = io_x11_list[i]))
+			continue;
+
+		if (io->slave_write_fd >= 0 && io->master_read_avail
+		    && FD_ISSET (io->slave_write_fd, write_fds))
+		{
+			n = write_loop (io->slave_write_fd,
+					io->master_read_buf,
+					io->master_read_avail);
+			if (n <= 0)
+			{
+				io_x11_free (io);
+				continue;
+			}
+
+			if ((size_t) n < io->master_read_avail)
+			{
+				memmove (io->master_read_buf,
+					 io->master_read_buf + n,
+					 io->master_read_avail - n);
+			}
+			io->master_read_avail -= n;
+		}
+
+		if (io->master_read_fd >= 0 && io->master_read_avail == 0
+		    && FD_ISSET (io->master_read_fd, read_fds))
+		{
+			n = read_retry (io->master_read_fd,
+					io->master_read_buf,
+					sizeof io->master_read_buf);
+			if (n <= 0)
+			{
+				io_x11_free (io);
+				continue;
+			}
+
+			io->master_read_avail = n;
+		}
+
+		if (io->master_write_fd >= 0 && io->slave_read_avail
+		    && FD_ISSET (io->master_write_fd, write_fds))
+		{
+			n = write_loop (io->master_write_fd,
+					io->slave_read_buf,
+					io->slave_read_avail);
+			if (n <= 0)
+			{
+				io_x11_free (io);
+				continue;
+			}
+
+			if ((size_t) n < io->slave_read_avail)
+			{
+				memmove (io->slave_read_buf,
+					 io->slave_read_buf + n,
+					 io->slave_read_avail - n);
+			}
+			io->slave_read_avail -= n;
+		}
+
+		if (io->slave_read_fd >= 0 && io->slave_read_avail == 0
+		    && FD_ISSET (io->slave_read_fd, read_fds))
+		{
+			n = read_retry (io->slave_read_fd,
+					io->slave_read_buf,
+					sizeof io->slave_read_buf);
+			if (n <= 0)
+			{
+				io_x11_free (io);
+				continue;
+			}
+
+			io->slave_read_avail = n;
+		}
+	}
+}
+
+static void
+handle_x11_new (fd_set *read_fds)
+{
+	if (x11_fd < 0 || !FD_ISSET (x11_fd, read_fds))
+		return;
+
+	int     accept_fd = x11_accept (x11_fd);
+
+	if (accept_fd < 0)
+	{
+		if (x11_startup_timed_out && !x11_accept_works)
+		{
+			(void) close (x11_fd);
+			x11_fd = -1;
+		}
+		return;
+	}
+
+	if (!x11_accept_works)
+	{
+		(void) alarm (0);
+		x11_accept_works = 1;
+	}
+
+	int     connect_fd = x11_connect ();
+
+	if (connect_fd >= 0)
+		io_x11_new (connect_fd, accept_fd);
+	else
+		(void) close (accept_fd);
+}
+
 static int
 handle_io (io_pair_t std_io)
 {
 	ssize_t n;
-	unsigned i;
 	fd_set  read_fds, write_fds;
 
 	FD_ZERO (&read_fds);
@@ -311,45 +481,10 @@ handle_io (io_pair_t std_io)
 			if (std_io->slave_write_fd > max_fd)
 				max_fd = std_io->slave_write_fd;
 		}
-		if (x11_fd >= 0)
-		{
-			FD_SET (x11_fd, &read_fds);
-			if (x11_fd > max_fd)
-				max_fd = x11_fd;
-		}
 
-		for (i = 0; i < io_x11_count; ++i)
-		{
-			io_pair_t io;
+		prepare_x11_new (&max_fd, &read_fds);
 
-			if (!(io = io_x11_list[i]))
-				continue;
-
-			if (io->slave_read_fd >= 0 && !io->slave_read_avail)
-			{
-				FD_SET (io->slave_read_fd, &read_fds);
-				if (io->slave_read_fd > max_fd)
-					max_fd = io->slave_read_fd;
-			}
-			if (io->master_read_fd >= 0 && !io->master_read_avail)
-			{
-				FD_SET (io->master_read_fd, &read_fds);
-				if (io->master_read_fd > max_fd)
-					max_fd = io->master_read_fd;
-			}
-			if (io->slave_write_fd >= 0 && io->master_read_avail)
-			{
-				FD_SET (io->slave_write_fd, &write_fds);
-				if (io->slave_write_fd > max_fd)
-					max_fd = io->slave_write_fd;
-			}
-			if (io->master_write_fd >= 0 && io->slave_read_avail)
-			{
-				FD_SET (io->master_write_fd, &write_fds);
-				if (io->master_write_fd > max_fd)
-					max_fd = io->master_write_fd;
-			}
-		}
+		prepare_x11_select (&max_fd, &read_fds, &write_fds);
 
 		tmout.tv_sec = wlimit.time_idle;
 		tmout.tv_usec = 0;
@@ -374,7 +509,8 @@ handle_io (io_pair_t std_io)
 			return EXIT_FAILURE;
 
 		if (write_loop
-		    (std_io->master_write_fd, std_io->slave_read_buf, n) != n)
+		    (std_io->master_write_fd, std_io->slave_read_buf,
+		     (size_t) n) != n)
 			error (EXIT_FAILURE, errno, "write");
 		total_bytes_written += n;
 	}
@@ -419,104 +555,9 @@ handle_io (io_pair_t std_io)
 			std_io->master_read_fd = -1;
 	}
 
-	for (i = 0; i < io_x11_count; ++i)
-	{
-		io_pair_t io;
+	handle_x11_select (&read_fds, &write_fds);
 
-		if (!(io = io_x11_list[i]))
-			continue;
-
-		if (io->slave_write_fd >= 0 && io->master_read_avail
-		    && FD_ISSET (io->slave_write_fd, &write_fds))
-		{
-			n = write_loop (io->slave_write_fd,
-					io->master_read_buf,
-					io->master_read_avail);
-			if (n <= 0)
-			{
-				io_x11_free (io);
-				continue;
-			}
-
-			if ((size_t) n < io->master_read_avail)
-			{
-				memmove (io->master_read_buf,
-					 io->master_read_buf + n,
-					 io->master_read_avail - n);
-			}
-			io->master_read_avail -= n;
-		}
-
-		if (io->master_read_fd >= 0 && io->master_read_avail == 0
-		    && FD_ISSET (io->master_read_fd, &read_fds))
-		{
-			n = read_retry (io->master_read_fd,
-					io->master_read_buf,
-					sizeof io->master_read_buf);
-			if (n <= 0)
-			{
-				io_x11_free (io);
-				continue;
-			}
-
-			io->master_read_avail = n;
-		}
-
-		if (io->master_write_fd >= 0 && io->slave_read_avail
-		    && FD_ISSET (io->master_write_fd, &write_fds))
-		{
-			n = write_loop (io->master_write_fd,
-					io->slave_read_buf,
-					io->slave_read_avail);
-			if (n <= 0)
-			{
-				io_x11_free (io);
-				continue;
-			}
-
-			if ((size_t) n < io->slave_read_avail)
-			{
-				memmove (io->slave_read_buf,
-					 io->slave_read_buf + n,
-					 io->slave_read_avail - n);
-			}
-			io->slave_read_avail -= n;
-		}
-
-		if (io->slave_read_fd >= 0 && io->slave_read_avail == 0
-		    && FD_ISSET (io->slave_read_fd, &read_fds))
-		{
-			n = read_retry (io->slave_read_fd,
-					io->slave_read_buf,
-					sizeof io->slave_read_buf);
-			if (n <= 0)
-			{
-				io_x11_free (io);
-				continue;
-			}
-
-			io->slave_read_avail = n;
-		}
-	}
-
-	if (x11_fd >= 0 && FD_ISSET (x11_fd, &read_fds))
-	{
-		int accept_fd, connect_fd;
-		if ((accept_fd = x11_accept (x11_fd)) < 0)
-		{
-			if (x11_accept_timed_out)
-			{
-				(void) close (x11_fd);
-				x11_fd = -1;
-			}
-		} else
-		{
-			if ((connect_fd = x11_connect()) >= 0)
-				io_x11_new (connect_fd, accept_fd);
-			else
-				(void) close (accept_fd);
-		}
-	}
+	handle_x11_new (&read_fds);
 }
 
 int
