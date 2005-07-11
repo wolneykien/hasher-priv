@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The caller data initialization module for the hasher-priv program.
 
@@ -56,13 +56,16 @@ init_caller_data (void)
 		error (EXIT_FAILURE, 0, "caller has invalid gid: %u",
 		       caller_gid);
 
-	logname = getenv ("LOGNAME");
-	if (!logname || !*logname || strchr (logname, ':'))
-		logname = 0;
+	if ((logname = getenv ("LOGNAME")))
+		if (!*logname || strchr (logname, ':'))
+			logname = 0;
 
-	if (logname && (pw = getpwnam (logname)))
+	if (logname)
+	{
+		pw = getpwnam (logname);
 		if (caller_uid != pw->pw_uid || caller_gid != pw->pw_gid)
 			pw = 0;
+	}
 
 	if (!pw)
 		pw = getpwuid (caller_uid);
