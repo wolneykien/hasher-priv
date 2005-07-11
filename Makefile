@@ -41,7 +41,12 @@ INSTALL = install
 HELP2MAN8 = help2man -N -s8
 CHDIRUID_FLAGS = -DENABLE_SETFSUGID -DENABLE_SUPPLEMENTARY_GROUPS
 CPPFLAGS = -std=gnu99 -D_GNU_SOURCE $(CHDIRUID_FLAGS) -D_FILE_OFFSET_BITS=64 -DPROJECT_VERSION=\"$(VERSION)\"
-CFLAGS = -pipe -Wall -Werror -W -O2
+WARNINGS = -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings \
+	-Wconversion -Waggregate-return -Wstrict-prototypes -Werror \
+	-Wold-style-definition -Wmissing-prototypes -Wmissing-declarations \
+	-Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls \
+	-Wdisabled-optimization
+CFLAGS = -pipe -O2 $(WARNINGS)
 LDLIBS = -lutil
 
 SRC = caller.c chdir.c chdiruid.c child.c chrootuid.c cmdline.c config.c \
