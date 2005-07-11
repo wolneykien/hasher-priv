@@ -32,7 +32,8 @@
 #include "priv.h"
 
 static void
-xmknod (const char *name, const char *devpath, mode_t mode, dev_t major, dev_t minor)
+xmknod (const char *name, const char *devpath, mode_t mode, unsigned major,
+	unsigned minor)
 {
 	if (link (devpath, name) == 0)
 		return;
