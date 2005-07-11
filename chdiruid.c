@@ -112,8 +112,8 @@ is_not_prefix (const char *prefix, const char *sample)
 void
 chdiruid (const char *path)
 {
-	uid_t   saved_uid = -1;
-	gid_t   saved_gid = -1;
+	uid_t   saved_uid = (uid_t) -1;
+	gid_t   saved_gid = (gid_t) -1;
 	char   *cwd;
 
 	if (!path)
