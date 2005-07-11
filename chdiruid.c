@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The switch-user-and-chdir-with-validation module for the hasher-priv program.
 
