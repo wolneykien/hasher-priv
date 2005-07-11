@@ -73,14 +73,17 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	int     master = -1, slave = -1, x11_fd;
 	int     out[2] = { -1, -1 };
 	pid_t   pid;
-	char   *term_env, *x11_env = 0;
+	char   *term_env;
+	const char *x11_env = 0;
 
 	xasprintf (&term_env, "TERM=%s", term ? : "dumb");
 	if (x11_display && x11_key)
 		x11_env = "DISPLAY=:10.0";
 
 	const char *const env[] =
-		{ ehome, euser, epath, term_env, x11_env, "SHELL=/bin/sh", 0 };
+		{ ehome, euser, epath, term_env, x11_env, "SHELL=/bin/sh",
+		0
+	};
 
 	if (uid < MIN_CHANGE_UID || uid == getuid ())
 		error (EXIT_FAILURE, 0, "chrootuid: invalid uid: %u", uid);
