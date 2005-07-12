@@ -52,7 +52,7 @@ purge_sem (uid_t uid)
 	maxid = semctl (0, 0, SEM_INFO, arg);
 	if (maxid < 0)
 	{
-		error (0, errno, "semctl: SEM_INFO");
+		error (EXIT_SUCCESS, errno, "semctl: SEM_INFO");
 		return;
 	}
 
@@ -69,7 +69,7 @@ purge_sem (uid_t uid)
 			continue;
 
 		arg.val = 0;
-		semctl (semid, 0, IPC_RMID, arg);	/* ignore return code */
+		(void) semctl (semid, 0, IPC_RMID, arg);
 	}
 }
 
@@ -90,7 +90,7 @@ purge_shm (uid_t uid)
 	maxid = shmctl (0, SHM_INFO, arg.buf);
 	if (maxid < 0)
 	{
-		error (0, errno, "shmctl: SHM_INFO");
+		error (EXIT_SUCCESS, errno, "shmctl: SHM_INFO");
 		return;
 	}
 
@@ -105,7 +105,7 @@ purge_shm (uid_t uid)
 		if (uid != buf.shm_perm.uid)
 			continue;
 
-		shmctl (shmid, IPC_RMID, 0);	/* ignore return code */
+		(void) shmctl (shmid, IPC_RMID, 0);
 	}
 }
 
@@ -126,7 +126,7 @@ purge_msg (uid_t uid)
 	maxid = msgctl (0, MSG_INFO, arg.buf);
 	if (maxid < 0)
 	{
-		error (0, errno, "msgctl: MSG_INFO");
+		error (EXIT_SUCCESS, errno, "msgctl: MSG_INFO");
 		return;
 	}
 
@@ -141,7 +141,7 @@ purge_msg (uid_t uid)
 		if (uid != buf.msg_perm.uid)
 			continue;
 
-		msgctl (msqid, IPC_RMID, 0);	/* ignore return code */
+		(void) msgctl (msqid, IPC_RMID, 0);
 	}
 }
 
