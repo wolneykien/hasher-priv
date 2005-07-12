@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The file descriptor sanitizer for the hasher-priv program.
 
@@ -77,4 +77,66 @@ nullify_stdin (void)
 		if (close (fd) < 0)
 			error (EXIT_FAILURE, errno, "close");
 	}
+}
+
+/* This function may be executed with caller privileges. */
+void
+unblock_fd (int fd)
+{
+	int     flags;
+
+	if ((flags = fcntl (fd, F_GETFL, 0)) < 0)
+		error (EXIT_FAILURE, errno, "fcntl F_GETFL");
+
+	flags |= O_NONBLOCK;
+
+	if (fcntl (fd, F_SETFL, flags) < 0)
+		error (EXIT_FAILURE, errno, "fcntl F_SETFL");
+}
+
+/* This function may be executed with caller privileges. */
+ssize_t
+read_retry (int fd, void *buf, size_t count)
+{
+	return TEMP_FAILURE_RETRY (read (fd, buf, count));
+}
+
+/* This function may be executed with caller privileges. */
+ssize_t
+write_retry (int fd, const void *buf, size_t count)
+{
+	return TEMP_FAILURE_RETRY (write (fd, buf, count));
+}
+
+/* This function may be executed with caller privileges. */
+ssize_t
+write_loop (int fd, const char *buffer, size_t count)
+{
+	ssize_t offset = 0;
+
+	while (count > 0)
+	{
+		ssize_t block = write_retry (fd, &buffer[offset], count);
+
+		if (block <= 0)
+			return offset ?: block;
+		offset += block;
+		count -= block;
+	}
+	return offset;
+}
+
+/* This function may be executed with root privileges. */
+void
+set_cloexec (int fd)
+{
+	int     flags = fcntl (fd, F_GETFD, 0);
+
+	if (flags < 0)
+		error (EXIT_FAILURE, errno, "fcntl F_GETFD");
+
+	int     newflags = flags | FD_CLOEXEC;
+
+	if (flags != newflags && fcntl (fd, F_SETFD, newflags))
+		error (EXIT_FAILURE, errno, "fcntl F_SETFD");
 }
