@@ -39,34 +39,12 @@
 
 #define X11_UNIX_DIR "/tmp/.X11-unix"
 
+typedef int (*x11_connect_method_t) (const char *, unsigned);
+static x11_connect_method_t x11_connect_method;
+static const char *x11_connect_name;
+static unsigned long x11_connect_port;
+
 static int x11_dir_fd = -1;
-
-/* This function may be executed with root privileges. */
-
-int
-x11_socket (void)
-{
-	if (!x11_display || !x11_key)
-		return -1;
-
-	int     fd = socket (AF_UNIX, SOCK_STREAM, 0);
-
-	if (fd < 0)
-		error (EXIT_SUCCESS, errno, "socket");
-
-	if (x11_dir_fd < 0)
-	{
-		if ((x11_dir_fd = open (X11_UNIX_DIR, O_RDONLY)) < 0)
-		{
-			error (EXIT_SUCCESS, errno, "open: %s", X11_UNIX_DIR);
-			(void) close (fd);
-			fd = -1;
-		} else
-			set_cloexec (x11_dir_fd);
-	}
-
-	return fd;
-}
 
 /* This function may be executed with child privileges. */
 
@@ -232,41 +210,9 @@ x11_connect_inet (const char *name, unsigned display_number)
 int
 x11_connect (void)
 {
-	typedef int (*x11_connect_method) (const char *, unsigned);
-	static x11_connect_method method;
-	static char *display, *name, *number, *endp;
-	static unsigned long n;
-
-	if (method)
-		return method (name, n);
-
-	if (!display)
-	{
-		display = xstrdup (x11_display);
-		name = strtok (display, ":");
-		number = strtok (0, ":");
-		if (name && *name && !number)
-		{
-			number = name;
-			name = xstrdup ("");
-		}
-		n = number ? strtoul (number, &endp, 10) : 0;
-	}
-
-	if (!number || !endp || (*endp && *endp != '.') || n > 100)
-	{
-		error (EXIT_SUCCESS, 0, "Unrecognized DISPLAY: %s\r", display);
-		return -1;
-	}
-
-	const char *slash = strrchr (name, '/');
-
-	if (name[0] == '\0' || (slash && !strcmp (slash + 1, "unix")))
-		method = x11_connect_unix;
-	else
-		method = x11_connect_inet;
-
-	return method (name, n);
+	return x11_connect_method
+		? x11_connect_method (x11_connect_name,
+				      x11_connect_port) : -1;
 }
 
 /* This function may be executed with caller privileges. */
@@ -278,4 +224,82 @@ x11_accept (int fd)
 	socklen_t len = sizeof (sun);
 
 	return accept (fd, (struct sockaddr *) &sun, &len);
+}
+
+/* This function may be executed with root privileges. */
+
+static x11_connect_method_t
+x11_parse_display (void)
+{
+	static char *display;
+
+	if (!x11_display || !x11_key || x11_connect_method)
+		return 0;
+
+	display = xstrdup (x11_display);
+
+	char   *colon = strchr (display, ':');
+	const char *number = strrchr (display, ':');
+
+	if (!colon || !number)
+	{
+		error (EXIT_SUCCESS, 0,
+		       "Unrecognized DISPLAY=%s, X11 forwarding disabled",
+		       display);
+		x11_display = 0;
+		return 0;
+	}
+
+	x11_connect_name = display;
+	*colon = '\0';
+	++number;
+
+	char   *endp;
+
+	x11_connect_port = strtoul (number, &endp, 10);
+	if (!endp || (*endp && *endp != '.') || x11_connect_port > 100)
+	{
+		error (EXIT_SUCCESS, 0,
+		       "Unrecognized DISPLAY=%s, X11 forwarding disabled",
+		       display);
+		x11_display = 0;
+		return 0;
+	}
+
+	if (x11_connect_name[0] == '\0')
+		return x11_connect_unix;
+
+	const char *slash = strrchr (x11_connect_name, '/');
+
+	if (slash && !strcmp (slash + 1, "unix"))
+		return x11_connect_unix;
+	else
+		return x11_connect_inet;
+}
+
+/* This function may be executed with root privileges. */
+
+int
+x11_socket (void)
+{
+	if (!(x11_connect_method = x11_parse_display ()))
+		return -1;
+
+	int     fd = socket (AF_UNIX, SOCK_STREAM, 0);
+
+	if (fd < 0)
+		error (EXIT_SUCCESS, errno, "socket");
+
+	if (x11_dir_fd < 0)
+	{
+		if ((x11_dir_fd = open (X11_UNIX_DIR, O_RDONLY)) < 0)
+		{
+			error (EXIT_SUCCESS, errno, "open: %s", X11_UNIX_DIR);
+			(void) close (fd);
+			fd = -1;
+		} else
+			set_cloexec (x11_dir_fd);
+	}
+
+	return fd;
 }
