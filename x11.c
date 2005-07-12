@@ -39,22 +39,6 @@
 
 #define X11_UNIX_DIR "/tmp/.X11-unix"
 
-/* This function may be executed with root privileges. */
-
-static void
-set_cloexec (int desc)
-{
-	int     flags = fcntl (desc, F_GETFD, 0);
-
-	if (flags < 0)
-		error (EXIT_FAILURE, errno, "fcntl F_GETFD");
-
-	int     newflags = flags | FD_CLOEXEC;
-
-	if (flags != newflags && fcntl (desc, F_SETFD, newflags))
-		error (EXIT_FAILURE, errno, "fcntl F_SETFD");
-}
-
 static int x11_dir_fd = -1;
 
 /* This function may be executed with root privileges. */
@@ -167,12 +151,14 @@ x11_connect_unix ( __attribute__ ((unused)) const char *name,
 		{
 			error (EXIT_SUCCESS, errno, "fchdir (%d)",
 			       x11_dir_fd);
+			fputc('\r', stderr);
 			break;
 		}
 
 		if ((fd = socket (AF_UNIX, SOCK_STREAM, 0)) < 0)
 		{
 			error (EXIT_SUCCESS, errno, "socket");
+			fputc('\r', stderr);
 			break;
 		}
 
@@ -187,6 +173,7 @@ x11_connect_unix ( __attribute__ ((unused)) const char *name,
 			break;
 
 		error (EXIT_SUCCESS, errno, "connect: %s", sun.sun_path);
+		fputc('\r', stderr);
 		close (fd);
 		fd = -1;
 		break;
@@ -213,6 +200,7 @@ x11_connect_inet (const char *name, unsigned display_number)
 	{
 		error (EXIT_SUCCESS, errno, "getaddrinfo: %s:%u", name,
 		       port_num);
+		fputc('\r', stderr);
 		return -1;
 	}
 	for (ai = aitop; ai; ai = ai->ai_next)
@@ -232,7 +220,10 @@ x11_connect_inet (const char *name, unsigned display_number)
 
 	freeaddrinfo (aitop);
 	if (!ai)
+	{
 		error (EXIT_SUCCESS, errno, "connect: %s:%u", name, port_num);
+		fputc('\r', stderr);
+	}
 	return fd;
 }
 
@@ -264,7 +255,7 @@ x11_connect (void)
 
 	if (!number || !endp || (*endp && *endp != '.') || n > 100)
 	{
-		error (EXIT_SUCCESS, 0, "Unrecognized DISPLAY: %s", display);
+		error (EXIT_SUCCESS, 0, "Unrecognized DISPLAY: %s\r", display);
 		return -1;
 	}
 
