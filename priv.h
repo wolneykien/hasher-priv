@@ -65,6 +65,11 @@ typedef void VALIDATE_FPTR (struct stat *, const char *);
 
 void    sanitize_fds (void);
 void    nullify_stdin (void);
+void    unblock_fd (int fd);
+void    set_cloexec (int fd);
+ssize_t read_retry (int fd, void *buf, size_t count);
+ssize_t write_retry (int fd, const void *buf, size_t count);
+ssize_t write_loop (int fd, const char *buffer, size_t count);
 int     init_tty (void);
 void    restore_tty (void);
 int     tty_copy_winsize (int master_fd, int slave_fd);
@@ -87,6 +92,10 @@ int     x11_socket (void);
 int     x11_bind (int fd);
 int     x11_connect (void);
 int     x11_accept (int fd);
+void    prepare_x11_new (int *x11_fd, int *max_fd, fd_set *read_fds);
+void    handle_x11_new (int *x11_fd, fd_set *read_fds);
+void    prepare_x11_select (int *max_fd, fd_set *read_fds, fd_set *write_fds);
+void    handle_x11_select (fd_set *read_fds, fd_set *write_fds);
 
 int     do_getugid1 (void);
 int     do_killuid1 (void);
