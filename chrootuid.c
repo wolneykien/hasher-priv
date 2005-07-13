@@ -87,6 +87,7 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	/* Check and sanitize file descriptors again. */
 	sanitize_fds ();
 
+	/* Create pipes only if use_pty is not set. */
 	if (!use_pty && pipe (out) < 0)
 		error (EXIT_FAILURE, errno, "pipe");
 
@@ -94,6 +95,7 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	if (openpty (&master, &slave, 0, 0, 0) < 0)
 		error (EXIT_FAILURE, errno, "openpty");
 
+	/* Create socketpair only if X11 forwarding is enabled. */
 	if (x11_parse_display () == EXIT_SUCCESS
 	    && socketpair (AF_UNIX, SOCK_STREAM, 0, ctl))
 		error (EXIT_FAILURE, errno, "socketpair");
