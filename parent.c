@@ -169,7 +169,7 @@ struct io_std
 
 typedef struct io_std *io_std_t;
 
-static int pty_fd = -1, x11_fd = -1;
+static int pty_fd = -1, ctl_fd = -1, x11_fd = -1;
 static unsigned long total_bytes_read, total_bytes_written;
 
 static int
@@ -200,11 +200,19 @@ handle_io (io_std_t io)
 			if (io->master_read_fd > max_fd)
 				max_fd = io->master_read_fd;
 		}
+
 		if (io->slave_write_fd >= 0 && io->master_avail)
 		{
 			FD_SET (io->slave_write_fd, &write_fds);
 			if (io->slave_write_fd > max_fd)
 				max_fd = io->slave_write_fd;
+		}
+
+		if (ctl_fd >= 0)
+		{
+			FD_SET (ctl_fd, &read_fds);
+			if (ctl_fd > max_fd)
+				max_fd = ctl_fd;
 		}
 
 		prepare_x11_new (&x11_fd, &max_fd, &read_fds);
@@ -235,6 +243,7 @@ handle_io (io_std_t io)
 		if (write_loop
 		    (io->master_write_fd, io->slave_buf, (size_t) n) != n)
 			error (EXIT_FAILURE, errno, "write");
+
 		total_bytes_written += n;
 	}
 
@@ -255,6 +264,7 @@ handle_io (io_std_t io)
 			memmove (io->master_buf,
 				 io->master_buf + n, io->master_avail - n);
 		}
+
 		total_bytes_read += io->master_avail;
 		io->master_avail -= n;
 	}
@@ -278,13 +288,35 @@ handle_io (io_std_t io)
 	handle_x11_select (&read_fds, &write_fds);
 
 	handle_x11_new (&x11_fd, &read_fds);
+
+	if (ctl_fd >= 0 && FD_ISSET (ctl_fd, &read_fds))
+	{
+		x11_fd = fd_recv (ctl_fd);
+		(void) close (ctl_fd);
+		ctl_fd = -1;
+		if (x11_fd >= 0)
+			x11_fd = x11_check_listen (x11_fd);
+		if (x11_fd < 0)
+		{
+			x11_closedir ();
+			error (EXIT_SUCCESS, 0, "X11 forwarding disabled\r");
+		}
+	}
+}
+
+static void
+parent_print_progname (void)
+{
+	fprintf (stderr, "%s: parent: ", program_invocation_short_name);
 }
 
 int
-handle_parent (pid_t a_child_pid, int a_pty_fd, int pipe_fd, int a_x11_fd)
+handle_parent (pid_t a_child_pid, int a_pty_fd, int pipe_fd, int a_ctl_fd)
 {
+	error_print_progname = parent_print_progname;
+
 	pty_fd = a_pty_fd;
-	x11_fd = a_x11_fd;
+	ctl_fd = a_ctl_fd;
 
 	int     child_fd = use_pty ? pty_fd : pipe_fd;
 	io_std_t io;
@@ -310,8 +342,6 @@ handle_parent (pid_t a_child_pid, int a_pty_fd, int pipe_fd, int a_x11_fd)
 	io->slave_write_fd = use_pty ? child_fd : -1;
 
 	unblock_fd (child_fd);
-	if (x11_fd >= 0)
-		unblock_fd (x11_fd);
 
 	/* redirect standard descriptors, init tty if necessary */
 	if (init_tty () && tty_copy_winsize (STDIN_FILENO, pty_fd) == 0)

@@ -32,6 +32,7 @@
 #include <pwd.h>
 #include <grp.h>
 #include <pty.h>
+#include <sys/socket.h>
 
 #include "priv.h"
 #include "xmalloc.h"
@@ -70,8 +71,9 @@ static int
 chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	   const char *euser, const char *epath)
 {
-	int     master = -1, slave = -1, x11_fd;
+	int     master = -1, slave = -1;
 	int     out[2] = { -1, -1 };
+	int     ctl[2] = { -1, -1 };
 	pid_t   pid;
 
 	if (uid < MIN_CHANGE_UID || uid == getuid ())
@@ -92,7 +94,9 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	if (openpty (&master, &slave, 0, 0, 0) < 0)
 		error (EXIT_FAILURE, errno, "openpty");
 
-	x11_fd = x11_socket ();
+	if (x11_parse_display () == EXIT_SUCCESS
+	    && socketpair (AF_UNIX, SOCK_STREAM, 0, ctl))
+		error (EXIT_FAILURE, errno, "socketpair");
 
 	if (chroot (".") < 0)
 		error (EXIT_FAILURE, errno, "chroot: %s", chroot_path);
@@ -101,6 +105,9 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 		error (EXIT_FAILURE, errno, "setgroups");
 
 	set_rlimits ();
+
+	/* Set close-on-exec flag on all non-standard descriptors. */
+	cloexec_fds ();
 
 	block_signal_handler (SIGCHLD, SIG_BLOCK);
 
@@ -117,10 +124,11 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 
 		/* Process is no longer privileged at this point. */
 
-		if (close (slave) || (!use_pty && close (out[1])))
+		if (close (slave) || (!use_pty && close (out[1]))
+		    || (x11_display && close (ctl[1])))
 			error (EXIT_FAILURE, errno, "close");
 
-		return handle_parent (pid, master, out[0], x11_fd);
+		return handle_parent (pid, master, out[0], ctl[0]);
 	} else
 	{
 		if (setgid (gid) < 0)
@@ -131,21 +139,22 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 
 		/* Process is no longer privileged at this point. */
 
-		if (close (master) || (!use_pty && close (out[0])))
+		if (close (master) || (!use_pty && close (out[0]))
+		    || (x11_display && close (ctl[0])))
 			error (EXIT_FAILURE, errno, "close");
 
 		char   *term_env;
 
 		xasprintf (&term_env, "TERM=%s", term ? : "dumb");
 		const char *x11_env = (x11_display && x11_key)
-				       ? "DISPLAY=:10.0" : 0;
+			? "DISPLAY=:10.0" : 0;
 		const char *const env[] = {
 			ehome, euser, epath, term_env, x11_env,
-				"SHELL=/bin/sh", 0
+			"SHELL=/bin/sh", 0
 		};
 
 		return handle_child ((char *const *) env, slave, out[1],
-				     x11_fd);
+				     ctl[1]);
 	}
 }
 

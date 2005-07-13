@@ -62,6 +62,47 @@ sanitize_fds (void)
 	errno = 0;
 }
 
+/* This function may be executed with root privileges. */
+void
+set_cloexec (int fd)
+{
+	int     flags = fcntl (fd, F_GETFD, 0);
+
+	if (flags < 0)
+		error (EXIT_FAILURE, errno, "fcntl F_GETFD");
+
+	int     newflags = flags | FD_CLOEXEC;
+
+	if (flags != newflags && fcntl (fd, F_SETFD, newflags))
+		error (EXIT_FAILURE, errno, "fcntl F_SETFD");
+}
+
+/* This function may be executed with root privileges. */
+void
+cloexec_fds (void)
+{
+	int     fd, max_fd;
+
+	if ((max_fd = sysconf (_SC_OPEN_MAX)) < NR_OPEN)
+		max_fd = NR_OPEN;
+
+	/* Set cloexec flag for all the rest. */
+	for (fd = STDERR_FILENO + 1; fd < max_fd; ++fd)
+	{
+		int     flags = fcntl (fd, F_GETFD, 0);
+
+		if (flags < 0)
+			continue;
+
+		int     newflags = flags | FD_CLOEXEC;
+
+		if (flags != newflags && fcntl (fd, F_SETFD, newflags))
+			error (EXIT_FAILURE, errno, "fcntl F_SETFD");
+	}
+
+	errno = 0;
+}
+
 /* This function may be executed with caller or child privileges. */
 void
 nullify_stdin (void)
@@ -124,19 +165,4 @@ write_loop (int fd, const char *buffer, size_t count)
 		count -= block;
 	}
 	return offset;
-}
-
-/* This function may be executed with root privileges. */
-void
-set_cloexec (int fd)
-{
-	int     flags = fcntl (fd, F_GETFD, 0);
-
-	if (flags < 0)
-		error (EXIT_FAILURE, errno, "fcntl F_GETFD");
-
-	int     newflags = flags | FD_CLOEXEC;
-
-	if (flags != newflags && fcntl (fd, F_SETFD, newflags))
-		error (EXIT_FAILURE, errno, "fcntl F_SETFD");
 }

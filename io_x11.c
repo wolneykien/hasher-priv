@@ -28,7 +28,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <signal.h>
 
 #include "priv.h"
 #include "xmalloc.h"
@@ -89,15 +88,6 @@ io_x11_free (io_x11_t io)
 	free (io);
 }
 
-static volatile sig_atomic_t x11_startup_timed_out = -1;
-
-static void
-sigalrm_handler (__attribute__ ((unused)) int signo)
-{
-	x11_startup_timed_out = 1;
-	signal (SIGALRM, SIG_DFL);
-}
-
 void
 prepare_x11_new (int *x11_fd, int *max_fd, fd_set *read_fds)
 {
@@ -115,39 +105,10 @@ handle_x11_new (int *x11_fd, fd_set *read_fds)
 	if (*x11_fd < 0 || !FD_ISSET (*x11_fd, read_fds))
 		return;
 
-	static int x11_accept_works;
 	int     accept_fd = x11_accept (*x11_fd);
 
 	if (accept_fd < 0)
-	{
-		if (x11_startup_timed_out < 0)
-		{
-			x11_startup_timed_out = 0;
-
-			struct sigaction act;
-
-			act.sa_handler = sigalrm_handler;
-			sigemptyset (&act.sa_mask);
-			act.sa_flags = SA_RESTART;
-			if (sigaction (SIGALRM, &act, 0))
-				error (EXIT_FAILURE, errno, "sigaction");
-
-			alarm (1);
-		}
-		else if (x11_startup_timed_out > 0 && !x11_accept_works)
-		{
-			error (EXIT_SUCCESS, 0, "X11 forwarding disabled\r");
-			(void) close (*x11_fd);
-			*x11_fd = -1;
-		}
 		return;
-	}
-
-	if (!x11_accept_works)
-	{
-		(void) alarm (0);
-		x11_accept_works = 1;
-	}
 
 	int     connect_fd = x11_connect ();
 

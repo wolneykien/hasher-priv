@@ -32,7 +32,6 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#include <sys/wait.h>
 
 #include "priv.h"
 #include "xmalloc.h"
@@ -44,43 +43,10 @@ static x11_connect_method_t x11_connect_method;
 static const char *x11_connect_name;
 static unsigned long x11_connect_port;
 
-static int x11_dir_fd = -1;
-
 /* This function may be executed with child privileges. */
 
 int
-xauth_add_entry (char *const *env)
-{
-	if (!x11_display || !x11_key)
-		return 0;
-
-	const char *av[] = { "xauth", "add", ":10.0", ".", x11_key, 0 };
-	const char *path = "/usr/X11R6/bin/xauth";
-
-	pid_t   pid = fork ();
-
-	if (pid < 0)
-		return 1;
-
-	if (!pid)
-	{
-		execve (path, (char *const *) av, env);
-		error (EXIT_SUCCESS, errno, "execve: %s", path);
-		_exit (1);
-	} else
-	{
-		int     status = 0;
-
-		if (waitpid (pid, &status, 0) != pid || !WIFEXITED (status))
-			return 1;
-		return WEXITSTATUS (status);
-	}
-}
-
-/* This function may be executed with child privileges. */
-
-int
-x11_bind (int fd)
+x11_listen (void)
 {
 	struct sockaddr_un sun;
 
@@ -101,18 +67,43 @@ x11_bind (int fd)
 		return -1;
 	}
 
+	int fd;
+
+	if ((fd = socket (AF_UNIX, SOCK_STREAM, 0)) < 0)
+	{
+		error (EXIT_SUCCESS, errno, "socket");
+		return -1;
+	}
+
 	if (bind (fd, (struct sockaddr *) &sun, sizeof sun))
 	{
 		error (EXIT_SUCCESS, errno, "bind: %s", sun.sun_path);
+		(void) close (fd);
 		return -1;
 	}
 
 	if (listen (fd, 16) < 0)
 	{
 		error (EXIT_SUCCESS, errno, "listen: %s", sun.sun_path);
+		(void) close (fd);
 		return -1;
 	}
-	return 0;
+
+	return fd;
+}
+
+static int x11_dir_fd = -1;
+
+/* This function may be executed with caller privileges. */
+
+void
+x11_closedir (void)
+{
+	if (x11_dir_fd >= 0)
+	{
+		close (x11_dir_fd);
+		x11_dir_fd = -1;
+	}
 }
 
 /* This function may be executed with caller privileges. */
@@ -129,14 +120,14 @@ x11_connect_unix ( __attribute__ ((unused)) const char *name,
 		{
 			error (EXIT_SUCCESS, errno, "fchdir (%d)",
 			       x11_dir_fd);
-			fputc('\r', stderr);
+			fputc ('\r', stderr);
 			break;
 		}
 
 		if ((fd = socket (AF_UNIX, SOCK_STREAM, 0)) < 0)
 		{
 			error (EXIT_SUCCESS, errno, "socket");
-			fputc('\r', stderr);
+			fputc ('\r', stderr);
 			break;
 		}
 
@@ -151,7 +142,7 @@ x11_connect_unix ( __attribute__ ((unused)) const char *name,
 			break;
 
 		error (EXIT_SUCCESS, errno, "connect: %s", sun.sun_path);
-		fputc('\r', stderr);
+		fputc ('\r', stderr);
 		close (fd);
 		fd = -1;
 		break;
@@ -165,7 +156,7 @@ x11_connect_unix ( __attribute__ ((unused)) const char *name,
 static int
 x11_connect_inet (const char *name, unsigned display_number)
 {
-	int     rc, fd = -1;
+	int     rc, saved_errno = 0, fd = -1;
 	unsigned port_num = 6000 + display_number;
 	struct addrinfo hints, *ai, *aitop;
 	char    port_str[NI_MAXSERV];
@@ -174,13 +165,15 @@ x11_connect_inet (const char *name, unsigned display_number)
 	hints.ai_family = PF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	snprintf (port_str, sizeof port_str, "%u", port_num);
+
 	if ((rc = getaddrinfo (name, port_str, &hints, &aitop)) != 0)
 	{
 		error (EXIT_SUCCESS, errno, "getaddrinfo: %s:%u", name,
 		       port_num);
-		fputc('\r', stderr);
+		fputc ('\r', stderr);
 		return -1;
 	}
+
 	for (ai = aitop; ai; ai = ai->ai_next)
 	{
 		fd = socket (ai->ai_family, ai->ai_socktype, ai->ai_protocol);
@@ -189,6 +182,7 @@ x11_connect_inet (const char *name, unsigned display_number)
 
 		if (connect (fd, ai->ai_addr, ai->ai_addrlen) < 0)
 		{
+			saved_errno = errno;
 			close (fd);
 			continue;
 		}
@@ -199,9 +193,11 @@ x11_connect_inet (const char *name, unsigned display_number)
 	freeaddrinfo (aitop);
 	if (!ai)
 	{
-		error (EXIT_SUCCESS, errno, "connect: %s:%u", name, port_num);
-		fputc('\r', stderr);
+		error (EXIT_SUCCESS, saved_errno, "connect: %s:%u",
+		       name, port_num);
+		fputc ('\r', stderr);
 	}
+
 	return fd;
 }
 
@@ -223,18 +219,53 @@ x11_accept (int fd)
 	struct sockaddr_un sun;
 	socklen_t len = sizeof (sun);
 
-	return accept (fd, (struct sockaddr *) &sun, &len);
+	int     rc = accept (fd, (struct sockaddr *) &sun, &len);
+
+	if (rc < 0)
+	{
+		error (EXIT_SUCCESS, errno, "accept");
+		fputc ('\r', stderr);
+	}
+
+	return rc;
+}
+
+/* This function may be executed with caller privileges. */
+
+int
+x11_check_listen (int fd)
+{
+	struct sockaddr_un sun;
+	socklen_t len = sizeof (sun);
+
+	memset (&sun, 0, sizeof sun);
+	if (getsockname (fd, (struct sockaddr *) &sun, &len))
+	{
+		error (EXIT_SUCCESS, errno, "getsockname");
+		fputc ('\r', stderr);
+		(void) close (fd);
+		return -1;
+	}
+
+	if (sun.sun_family != AF_UNIX)
+	{
+		error (EXIT_SUCCESS, 0, "getsockname: expected type %u got %u\r",
+		       AF_UNIX, sun.sun_family);
+		return -1;
+	}
+
+	return fd;
 }
 
 /* This function may be executed with root privileges. */
 
-static x11_connect_method_t
+int
 x11_parse_display (void)
 {
 	static char *display;
 
-	if (!x11_display || !x11_key || x11_connect_method)
-		return 0;
+	if (!x11_display || !x11_key)
+		return EXIT_FAILURE;
 
 	display = xstrdup (x11_display);
 
@@ -247,7 +278,7 @@ x11_parse_display (void)
 		       "Unrecognized DISPLAY=%s, X11 forwarding disabled",
 		       display);
 		x11_display = 0;
-		return 0;
+		return EXIT_FAILURE;
 	}
 
 	x11_connect_name = display;
@@ -263,43 +294,33 @@ x11_parse_display (void)
 		       "Unrecognized DISPLAY=%s, X11 forwarding disabled",
 		       display);
 		x11_display = 0;
-		return 0;
+		return EXIT_FAILURE;
 	}
+
+	/* DISPLAY looks valid. */
 
 	if (x11_connect_name[0] == '\0')
-		return x11_connect_unix;
-
-	const char *slash = strrchr (x11_connect_name, '/');
-
-	if (slash && !strcmp (slash + 1, "unix"))
-		return x11_connect_unix;
-	else
-		return x11_connect_inet;
-}
-
-/* This function may be executed with root privileges. */
-
-int
-x11_socket (void)
-{
-	if (!(x11_connect_method = x11_parse_display ()))
-		return -1;
-
-	int     fd = socket (AF_UNIX, SOCK_STREAM, 0);
-
-	if (fd < 0)
-		error (EXIT_SUCCESS, errno, "socket");
-
-	if (x11_dir_fd < 0)
 	{
-		if ((x11_dir_fd = open (X11_UNIX_DIR, O_RDONLY)) < 0)
-		{
-			error (EXIT_SUCCESS, errno, "open: %s", X11_UNIX_DIR);
-			(void) close (fd);
-			fd = -1;
-		} else
-			set_cloexec (x11_dir_fd);
+		x11_connect_method = x11_connect_unix;
+	} else
+	{
+
+		const char *slash = strrchr (x11_connect_name, '/');
+
+		if (slash && !strcmp (slash + 1, "unix"))
+			x11_connect_method = x11_connect_unix;
+		else
+			x11_connect_method = x11_connect_inet;
 	}
 
-	return fd;
+	if (x11_connect_method == x11_connect_unix &&
+	    (x11_dir_fd = open (X11_UNIX_DIR, O_RDONLY)) < 0)
+	{
+		error (EXIT_SUCCESS, errno, "open: %s", X11_UNIX_DIR);
+		error (EXIT_SUCCESS, 0, "X11 forwarding disabled");
+		x11_display = 0;
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
 }

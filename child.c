@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2004, 2005  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2004-2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The chrootuid child handler for the hasher-priv program.
 
@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <sys/ioctl.h>
+#include <sys/wait.h>
 
 #include "priv.h"
 
@@ -63,9 +64,46 @@ connect_fds (int pty_fd, int pipe_fd)
 		close (pipe_fd);
 }
 
-int
-handle_child (char *const *env, int pty_fd, int pipe_fd, int x11_fd)
+static int
+xauth_add_entry (char *const *env)
 {
+	if (!x11_display || !x11_key)
+		return EXIT_FAILURE;
+
+	const char *av[] = { "xauth", "add", ":10.0", ".", x11_key, 0 };
+	const char *path = "/usr/X11R6/bin/xauth";
+
+	pid_t   pid = fork ();
+
+	if (pid < 0)
+		return EXIT_FAILURE;
+
+	if (!pid)
+	{
+		execve (path, (char *const *) av, env);
+		error (EXIT_SUCCESS, errno, "execve: %s", path);
+		_exit (EXIT_FAILURE);
+	} else
+	{
+		int     status = 0;
+
+		if (waitpid (pid, &status, 0) != pid || !WIFEXITED (status))
+			return 1;
+		return WEXITSTATUS (status);
+	}
+}
+
+static void
+child_print_progname (void)
+{
+	fprintf (stderr, "%s: child: ", program_invocation_short_name);
+}
+
+int
+handle_child (char *const *env, int pty_fd, int pipe_fd, int ctl_fd)
+{
+	error_print_progname = child_print_progname;
+
 	connect_fds (pty_fd, pipe_fd);
 
 	dfl_signal_handler (SIGHUP);
@@ -75,12 +113,16 @@ handle_child (char *const *env, int pty_fd, int pipe_fd, int x11_fd)
 	if (nice (change_nice) < 0)
 		error (EXIT_FAILURE, errno, "nice");
 
-	if (x11_fd >= 0)
+	if (ctl_fd >= 0)
 	{
-		int rc = x11_bind (x11_fd);
-		close (x11_fd);
-		if (!rc)
-			xauth_add_entry (env);
+		int x11_fd = x11_listen ();
+
+		if (x11_fd >= 0)
+		{
+			if (xauth_add_entry (env) == EXIT_SUCCESS)
+				fd_send (ctl_fd, x11_fd);
+			(void) close (x11_fd);
+		}
 	}
 
 	umask (change_umask);
