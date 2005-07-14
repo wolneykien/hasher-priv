@@ -46,6 +46,7 @@ gid_t   change_gid1, change_gid2;
 mode_t  change_umask = 022;
 int     change_nice = 10;
 int     allow_tty_devices, use_pty;
+unsigned x11_data_len;
 change_rlimit_t change_rlimit[] = {
 
 /* Per-process CPU limit, in seconds.  */
@@ -518,4 +519,25 @@ parse_env (void)
 
 	if ((e = getenv ("XAUTH_KEY")) && *e)
 		x11_key = xstrdup (e);
+
+	if (x11_display && x11_key)
+	{
+		x11_data_len = strlen (x11_key);
+		if (x11_data_len & 1)
+		{
+			error (EXIT_SUCCESS, 0,
+			       "Invalid X11 authentication data");
+			x11_data_len = 0;
+		} else
+		{
+			x11_data_len /= 2;
+		}
+	}
+
+	if (x11_data_len == 0)
+	{
+		free ((char *) x11_display);
+		free ((char *) x11_key);
+		x11_display = x11_key = 0;
+	}
 }

@@ -172,6 +172,53 @@ typedef struct io_std *io_std_t;
 static int pty_fd = -1, ctl_fd = -1, x11_fd = -1;
 static unsigned long total_bytes_read, total_bytes_written;
 
+static char *x11_saved_data, *x11_fake_data;
+
+static int
+handle_x11_ctl (void)
+{
+	x11_saved_data = xmalloc (x11_data_len);
+
+	unsigned i;
+
+	for (i = 0; i < x11_data_len; i++)
+	{
+		unsigned value = 0;
+
+		if (sscanf (x11_key + 2 * i, "%2x", &value) != 1)
+		{
+			error (EXIT_SUCCESS, 0,
+			       "Invalid X11 authentication data\r");
+			free (x11_saved_data);
+			x11_saved_data = 0;
+			return -1;
+		}
+		x11_saved_data[i] = value;
+	}
+
+	x11_fake_data = xmalloc (x11_data_len);
+	int     fd = fd_recv (ctl_fd, x11_fake_data, x11_data_len);
+
+	if (fd >= 0)
+		fd = x11_check_listen (fd);
+
+	if (!memcmp (x11_saved_data, x11_fake_data, x11_data_len))
+	{
+		error (EXIT_SUCCESS, 0,
+		       "Invalid X11 fake authentication data\r");
+		free (x11_saved_data);
+		free (x11_fake_data);
+		x11_saved_data = x11_fake_data = 0;
+		if (fd >= 0)
+		{
+			(void) close (fd);
+			fd = -1;
+		}
+	}
+
+	return fd;
+}
+
 static int
 handle_io (io_std_t io)
 {
@@ -285,22 +332,20 @@ handle_io (io_std_t io)
 			io->master_read_fd = -1;
 	}
 
-	handle_x11_select (&read_fds, &write_fds);
+	handle_x11_select (&read_fds, &write_fds, x11_saved_data,
+			   x11_fake_data);
 
 	handle_x11_new (&x11_fd, &read_fds);
 
 	if (ctl_fd >= 0 && FD_ISSET (ctl_fd, &read_fds))
 	{
-		x11_fd = fd_recv (ctl_fd);
-		(void) close (ctl_fd);
-		ctl_fd = -1;
-		if (x11_fd >= 0)
-			x11_fd = x11_check_listen (x11_fd);
-		if (x11_fd < 0)
+		if ((x11_fd = handle_x11_ctl ()) < 0)
 		{
 			x11_closedir ();
 			error (EXIT_SUCCESS, 0, "X11 forwarding disabled\r");
 		}
+		(void) close (ctl_fd);
+		ctl_fd = -1;
 	}
 }
 

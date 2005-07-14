@@ -64,21 +64,6 @@ sanitize_fds (void)
 
 /* This function may be executed with root privileges. */
 void
-set_cloexec (int fd)
-{
-	int     flags = fcntl (fd, F_GETFD, 0);
-
-	if (flags < 0)
-		error (EXIT_FAILURE, errno, "fcntl F_GETFD");
-
-	int     newflags = flags | FD_CLOEXEC;
-
-	if (flags != newflags && fcntl (fd, F_SETFD, newflags))
-		error (EXIT_FAILURE, errno, "fcntl F_SETFD");
-}
-
-/* This function may be executed with root privileges. */
-void
 cloexec_fds (void)
 {
 	int     fd, max_fd;

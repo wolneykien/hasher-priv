@@ -25,13 +25,16 @@
 #include <errno.h>
 #include <error.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 
 #include "priv.h"
+#include "xmalloc.h"
 
 static void
 connect_fds (int pty_fd, int pipe_fd)
@@ -64,12 +67,64 @@ connect_fds (int pty_fd, int pipe_fd)
 		close (pipe_fd);
 }
 
+static  ssize_t
+read_loop (int fd, char *buffer, size_t count)
+{
+	ssize_t offset = 0;
+
+	while (count > 0)
+	{
+		ssize_t block = read_retry (fd, &buffer[offset], count);
+
+		if (block <= 0)
+			return offset ? : block;
+		offset += block;
+		count -= block;
+	}
+	return offset;
+}
+
+#define PATH_DEVURANDOM "/dev/urandom"
+
+static char *
+xauth_gen_fake (void)
+{
+	int     fd = open (PATH_DEVURANDOM, O_RDONLY);
+
+	if (fd < 0)
+	{
+		error (EXIT_SUCCESS, errno, "open: %s", PATH_DEVURANDOM);
+		return 0;
+	}
+
+	char *x11_fake_data = xmalloc (x11_data_len);
+
+	if (read_loop (fd, x11_fake_data, x11_data_len) !=
+	    (ssize_t) x11_data_len)
+	{
+		error (EXIT_SUCCESS, errno, "read: %s", PATH_DEVURANDOM);
+		(void) close (fd);
+		free (x11_fake_data);
+		return 0;
+	}
+
+	(void) close (fd);
+
+	/* Replace original x11_key with fake one. */
+	unsigned i, key_len = 2 * x11_data_len + 1;
+	char   *new_key = xmalloc (key_len);
+
+	for (i = 0; i < x11_data_len; ++i)
+		snprintf (new_key + 2 * i, key_len - 2 * i,
+			  "%02x", (unsigned char) x11_fake_data[i]);
+	x11_key = new_key;
+
+	return x11_fake_data;
+}
+
 static int
 xauth_add_entry (char *const *env)
 {
-	if (!x11_display || !x11_key)
-		return EXIT_FAILURE;
-
 	const char *av[] = { "xauth", "add", ":10.0", ".", x11_key, 0 };
 	const char *path = "/usr/X11R6/bin/xauth";
 
@@ -104,6 +159,13 @@ handle_child (char *const *env, int pty_fd, int pipe_fd, int ctl_fd)
 {
 	error_print_progname = child_print_progname;
 
+	if (x11_key)
+	{
+		/* Child process doesn't need X11 authentication data. */
+		memset ((char *) x11_key, 0, strlen (x11_key));
+		free ((char *) x11_key);
+		x11_key = 0;
+	}
 	connect_fds (pty_fd, pipe_fd);
 
 	dfl_signal_handler (SIGHUP);
@@ -115,13 +177,16 @@ handle_child (char *const *env, int pty_fd, int pipe_fd, int ctl_fd)
 
 	if (ctl_fd >= 0)
 	{
-		int x11_fd = x11_listen ();
+		int     x11_fd = x11_listen ();
 
 		if (x11_fd >= 0)
 		{
-			if (xauth_add_entry (env) == EXIT_SUCCESS)
-				fd_send (ctl_fd, x11_fd);
+			char *data;
+			if ((data = xauth_gen_fake ())
+			    && xauth_add_entry (env) == EXIT_SUCCESS)
+				fd_send (ctl_fd, x11_fd, data, x11_data_len);
 			(void) close (x11_fd);
+			free (data);
 		}
 	}
 

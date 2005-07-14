@@ -67,7 +67,6 @@ void    sanitize_fds (void);
 void    cloexec_fds (void);
 void    nullify_stdin (void);
 void    unblock_fd (int fd);
-void    set_cloexec (int fd);
 ssize_t read_retry (int fd, void *buf, size_t count);
 ssize_t write_retry (int fd, const void *buf, size_t count);
 ssize_t write_loop (int fd, const char *buffer, size_t count);
@@ -88,8 +87,8 @@ void    safe_chdir (const char *name, VALIDATE_FPTR validator);
 void    stat_userok_validator (struct stat *st, const char *name);
 void    stat_rootok_validator (struct stat *st, const char *name);
 void    stat_permok_validator (struct stat *st, const char *name);
-void    fd_send (int ctl, int pass);
-int     fd_recv (int ctl);
+void    fd_send (int ctl, int pass, const char *data, size_t len);
+int     fd_recv (int ctl, char *data, size_t data_len);
 int     x11_parse_display (void);
 void    x11_closedir (void);
 int     x11_listen (void);
@@ -98,8 +97,11 @@ int     x11_accept (int fd);
 int     x11_check_listen (int fd);
 void    prepare_x11_new (int *x11_fd, int *max_fd, fd_set *read_fds);
 void    handle_x11_new (int *x11_fd, fd_set *read_fds);
-void    prepare_x11_select (int *max_fd, fd_set *read_fds, fd_set *write_fds);
-void    handle_x11_select (fd_set *read_fds, fd_set *write_fds);
+void    prepare_x11_select (int *max_fd, fd_set * read_fds,
+			    fd_set * write_fds);
+void    handle_x11_select (fd_set * read_fds, fd_set * write_fds,
+			   const char *x11_saved_data,
+			   const char *x11_fake_data);
 
 int     do_getugid1 (void);
 int     do_killuid1 (void);
@@ -122,6 +124,7 @@ extern const char *term;
 extern const char *x11_display, *x11_key;
 
 extern int allow_tty_devices, use_pty;
+extern unsigned x11_data_len;
 
 extern const char *chroot_prefix;
 extern const char *caller_user, *caller_home;

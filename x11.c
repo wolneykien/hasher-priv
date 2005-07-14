@@ -158,7 +158,7 @@ x11_connect_inet (const char *name, unsigned display_number)
 {
 	int     rc, saved_errno = 0, fd = -1;
 	unsigned port_num = 6000 + display_number;
-	struct addrinfo hints, *ai, *aitop;
+	struct addrinfo hints, *ai, *ai_start;
 	char    port_str[NI_MAXSERV];
 
 	memset (&hints, 0, sizeof (hints));
@@ -166,7 +166,7 @@ x11_connect_inet (const char *name, unsigned display_number)
 	hints.ai_socktype = SOCK_STREAM;
 	snprintf (port_str, sizeof port_str, "%u", port_num);
 
-	if ((rc = getaddrinfo (name, port_str, &hints, &aitop)) != 0)
+	if ((rc = getaddrinfo (name, port_str, &hints, &ai_start)) != 0)
 	{
 		error (EXIT_SUCCESS, errno, "getaddrinfo: %s:%u", name,
 		       port_num);
@@ -174,7 +174,7 @@ x11_connect_inet (const char *name, unsigned display_number)
 		return -1;
 	}
 
-	for (ai = aitop; ai; ai = ai->ai_next)
+	for (ai = ai_start; ai; ai = ai->ai_next)
 	{
 		fd = socket (ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 		if (fd < 0)
@@ -184,14 +184,15 @@ x11_connect_inet (const char *name, unsigned display_number)
 		{
 			saved_errno = errno;
 			close (fd);
+			fd = -1;
 			continue;
 		}
 
 		break;
 	}
 
-	freeaddrinfo (aitop);
-	if (!ai)
+	freeaddrinfo (ai_start);
+	if (fd < 0)
 	{
 		error (EXIT_SUCCESS, saved_errno, "connect: %s:%u",
 		       name, port_num);
@@ -249,8 +250,19 @@ x11_check_listen (int fd)
 
 	if (sun.sun_family != AF_UNIX)
 	{
-		error (EXIT_SUCCESS, 0, "getsockname: expected type %u got %u\r",
-		       AF_UNIX, sun.sun_family);
+		error (EXIT_SUCCESS, 0,
+		       "getsockname: expected type %u, got %u\r", AF_UNIX,
+		       sun.sun_family);
+		return -1;
+	}
+
+	char    path[sizeof sun.sun_path];
+
+	snprintf (path, sizeof path, "%s/%s", X11_UNIX_DIR, "X10");
+	if (strcmp (path, sun.sun_path))
+	{
+		error (EXIT_SUCCESS, 0, "getsockname: path %s, got %*s\r",
+		       path, sizeof path, sun.sun_path);
 		return -1;
 	}
 
@@ -264,7 +276,7 @@ x11_parse_display (void)
 {
 	static char *display;
 
-	if (!x11_display || !x11_key)
+	if (!x11_display)
 		return EXIT_FAILURE;
 
 	display = xstrdup (x11_display);

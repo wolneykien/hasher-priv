@@ -35,13 +35,12 @@
 /* This function may be executed with child privileges. */
 
 void
-fd_send (int ctl, int pass)
+fd_send (int ctl, int pass, const char *data, size_t data_len)
 {
 	struct iovec vec;
 	struct msghdr msg;
 	struct cmsghdr *cmsg;
 	char    buf[CMSG_SPACE (sizeof pass)];
-	char    ch = 0;
 
 	memset (&msg, 0, sizeof (msg));
 	msg.msg_control = buf;
@@ -56,23 +55,23 @@ fd_send (int ctl, int pass)
 
 	*(int *) CMSG_DATA (cmsg) = pass;
 
-	vec.iov_base = &ch;
-	vec.iov_len = sizeof (ch);
+	vec.iov_base = (char *) data;
+	vec.iov_len = data_len;
 
-	if (sendmsg (ctl, &msg, 0) != sizeof (ch))
+	if (TEMP_FAILURE_RETRY (sendmsg (ctl, &msg, 0)) != (ssize_t) data_len)
 		error (EXIT_FAILURE, errno, "sendmsg");
 }
 
 /* This function may be executed with caller privileges. */
 
 int
-fd_recv (int ctl)
+fd_recv (int ctl, char *data, size_t data_len)
 {
+	ssize_t rc;
 	struct iovec vec;
 	struct msghdr msg;
 	struct cmsghdr *cmsg;
 	char    buf[CMSG_SPACE (sizeof (int))];
-	char    ch = 0;
 
 	memset (&msg, 0, sizeof (msg));
 	msg.msg_control = buf;
@@ -80,13 +79,20 @@ fd_recv (int ctl)
 	msg.msg_iov = &vec;
 	msg.msg_iovlen = 1;
 
-	vec.iov_base = &ch;
-	vec.iov_len = sizeof (ch);
+	vec.iov_base = data;
+	vec.iov_len = data_len;
 
-	if (recvmsg (ctl, &msg, 0) != sizeof (ch))
+	if ((rc = TEMP_FAILURE_RETRY (recvmsg (ctl, &msg, 0)))
+	    != (ssize_t) data_len)
 	{
-		error (EXIT_SUCCESS, errno, "recvmsg");
-		fputc ('\r', stderr);
+		if (rc < 0)
+		{
+			error (EXIT_SUCCESS, errno, "recvmsg");
+			fputc ('\r', stderr);
+		} else
+			error (EXIT_SUCCESS, 0,
+			       "recvmsg: expected size %u, got %u\r",
+			       (unsigned) data_len, (unsigned) rc);
 		return -1;
 	}
 
@@ -98,7 +104,7 @@ fd_recv (int ctl)
 
 	if (cmsg->cmsg_type != SCM_RIGHTS)
 	{
-		error (EXIT_SUCCESS, 0, "recvmsg: expected type %u got %u\r",
+		error (EXIT_SUCCESS, 0, "recvmsg: expected type %u, got %u\r",
 		       SCM_RIGHTS, cmsg->cmsg_type);
 		return -1;
 	}

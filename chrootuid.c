@@ -118,6 +118,10 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 
 	if (pid)
 	{
+		if (close (slave) || (!use_pty && close (out[1]))
+		    || (x11_display && close (ctl[1])))
+			error (EXIT_FAILURE, errno, "close");
+
 		if (setgid (caller_gid) < 0)
 			error (EXIT_FAILURE, errno, "setgid");
 
@@ -126,13 +130,13 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 
 		/* Process is no longer privileged at this point. */
 
-		if (close (slave) || (!use_pty && close (out[1]))
-		    || (x11_display && close (ctl[1])))
-			error (EXIT_FAILURE, errno, "close");
-
 		return handle_parent (pid, master, out[0], ctl[0]);
 	} else
 	{
+		if (close (master) || (!use_pty && close (out[0]))
+		    || (x11_display && close (ctl[0])))
+			error (EXIT_FAILURE, errno, "close");
+
 		if (setgid (gid) < 0)
 			error (EXIT_FAILURE, errno, "setgid");
 
@@ -141,15 +145,10 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 
 		/* Process is no longer privileged at this point. */
 
-		if (close (master) || (!use_pty && close (out[0]))
-		    || (x11_display && close (ctl[0])))
-			error (EXIT_FAILURE, errno, "close");
-
 		char   *term_env;
 
 		xasprintf (&term_env, "TERM=%s", term ? : "dumb");
-		const char *x11_env = (x11_display && x11_key)
-			? "DISPLAY=:10.0" : 0;
+		const char *x11_env = x11_display ? "DISPLAY=:10.0" : 0;
 		const char *const env[] = {
 			ehome, euser, epath, term_env, x11_env,
 			"SHELL=/bin/sh", 0

@@ -36,6 +36,7 @@ struct io_x11
 {
 	int     master_fd, slave_fd;
 	size_t  master_avail, slave_avail;
+	int     authenticated;
 	char    master_buf[BUFSIZ], slave_buf[BUFSIZ];
 };
 
@@ -156,8 +157,69 @@ prepare_x11_select (int *max_fd, fd_set *read_fds, fd_set *write_fds)
 	}
 }
 
+static void
+io_check_auth_data (io_x11_t io, const char *x11_saved_data, const char *x11_fake_data)
+{
+	if (io->authenticated)
+		return;
+	io->authenticated = 1;
+
+	unsigned avail = io->slave_avail, expected = 12;
+
+	if (avail < expected)
+	{
+		error (EXIT_SUCCESS, 0,
+		       "Initial X11 packet too short, expected length = %u\r",
+		       expected);
+		return;
+	}
+	unsigned proto_len = 0, data_len = 0;
+	char   *p = io->slave_buf;
+
+	if (p[0] == 0x42)
+	{			/* Byte order MSB first. */
+		proto_len = 256 * p[6] + p[7];
+		data_len = 256 * p[8] + p[9];
+	} else if (p[0] == 0x6c)
+	{			/* Byte order LSB first. */
+		proto_len = p[6] + 256 * p[7];
+		data_len = p[8] + 256 * p[9];
+	} else
+	{
+		error (EXIT_SUCCESS, 0,
+		       "Initial X11 packet contains unrecognized order byte: %#x\r",
+		       p[0]);
+		return;
+	}
+
+	expected =
+		12 + ((proto_len + 3) & (unsigned) ~3) +
+		((data_len + 3) & (unsigned) ~3);
+	if (avail < expected)
+	{
+		error (EXIT_SUCCESS, 0,
+		       "Initial X11 packet too short, expected length = %u\r",
+		       expected);
+		return;
+	}
+
+	if (data_len != x11_data_len ||
+	    memcmp (p + 12 + ((proto_len + 3) & (unsigned) ~3),
+		    x11_fake_data, x11_data_len) != 0)
+	{
+		error (EXIT_SUCCESS, 0,
+		       "X11 auth data does not match fake data\r");
+		return;
+	}
+
+	memcpy (p + 12 + ((proto_len + 3) & (unsigned) ~3),
+		x11_saved_data, x11_data_len);
+}
+
 void
-handle_x11_select (fd_set *read_fds, fd_set *write_fds)
+handle_x11_select (fd_set * read_fds, fd_set * write_fds,
+		   const char *x11_saved_data,
+		   const char *x11_fake_data)
 {
 	unsigned i;
 	ssize_t n;
@@ -232,6 +294,7 @@ handle_x11_select (fd_set *read_fds, fd_set *write_fds)
 			}
 
 			io->slave_avail = n;
+			io_check_auth_data (io, x11_saved_data, x11_fake_data);
 		}
 	}
 }
