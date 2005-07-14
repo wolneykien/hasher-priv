@@ -97,14 +97,15 @@ bad_option_name (const char *optname, const char *filename)
 }
 
 static void __attribute__ ((noreturn))
-bad_option_value (const char *optname, const char *value, const char *filename)
+bad_option_value (const char *optname, const char *value,
+		  const char *filename)
 {
 	error (EXIT_FAILURE, 0, "%s: invalid value for \"%s\" option: %s",
 	       filename, optname, value);
 	exit (EXIT_FAILURE);
 }
 
-static mode_t
+static  mode_t
 str2umask (const char *name, const char *value, const char *filename)
 {
 	char   *p = 0;
@@ -136,7 +137,7 @@ str2nice (const char *name, const char *value, const char *filename)
 	return n;
 }
 
-static rlim_t
+static  rlim_t
 str2rlim (const char *name, const char *value, const char *filename)
 {
 	char   *p = 0;

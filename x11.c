@@ -67,7 +67,7 @@ x11_listen (void)
 		return -1;
 	}
 
-	int fd;
+	int     fd;
 
 	if ((fd = socket (AF_UNIX, SOCK_STREAM, 0)) < 0)
 	{
@@ -109,7 +109,7 @@ x11_closedir (void)
 /* This function may be executed with caller privileges. */
 
 static int
-x11_connect_unix ( __attribute__ ((unused)) const char *name,
+x11_connect_unix (__attribute__ ((unused)) const char *name,
 		  unsigned display_number)
 {
 	int     fd = -1;

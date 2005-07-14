@@ -145,7 +145,7 @@ write_loop (int fd, const char *buffer, size_t count)
 		ssize_t block = write_retry (fd, &buffer[offset], count);
 
 		if (block <= 0)
-			return offset ?: block;
+			return offset ? : block;
 		offset += block;
 		count -= block;
 	}

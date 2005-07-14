@@ -60,6 +60,7 @@ io_x11_new (int master_fd, int slave_fd)
 				  (++io_x11_count) * sizeof (*io_x11_list));
 
 	io_x11_t io = io_x11_list[i] = xmalloc (sizeof (*io_x11_list[i]));
+
 	memset (io, 0, sizeof (*io));
 	io->master_fd = master_fd;
 	io->slave_fd = slave_fd;
@@ -158,7 +159,8 @@ prepare_x11_select (int *max_fd, fd_set *read_fds, fd_set *write_fds)
 }
 
 static void
-io_check_auth_data (io_x11_t io, const char *x11_saved_data, const char *x11_fake_data)
+io_check_auth_data (io_x11_t io, const char *x11_saved_data,
+		    const char *x11_fake_data)
 {
 	if (io->authenticated)
 		return;
@@ -217,9 +219,8 @@ io_check_auth_data (io_x11_t io, const char *x11_saved_data, const char *x11_fak
 }
 
 void
-handle_x11_select (fd_set * read_fds, fd_set * write_fds,
-		   const char *x11_saved_data,
-		   const char *x11_fake_data)
+handle_x11_select (fd_set *read_fds, fd_set *write_fds,
+		   const char *x11_saved_data, const char *x11_fake_data)
 {
 	unsigned i;
 	ssize_t n;
@@ -294,7 +295,8 @@ handle_x11_select (fd_set * read_fds, fd_set * write_fds,
 			}
 
 			io->slave_avail = n;
-			io_check_auth_data (io, x11_saved_data, x11_fake_data);
+			io_check_auth_data (io, x11_saved_data,
+					    x11_fake_data);
 		}
 	}
 }

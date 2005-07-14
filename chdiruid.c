@@ -93,6 +93,7 @@ ch_gid (gid_t gid, gid_t * save)
  * Check whether the file path PREFIX is prefix of the file path SAMPLE.
  * Return zero if prefix check succeeded, and non-zero otherwise.
  */
+
 /* This function may be executed with caller privileges. */
 static int
 is_not_prefix (const char *prefix, const char *sample)
@@ -108,6 +109,7 @@ is_not_prefix (const char *prefix, const char *sample)
  * Temporary change credentials to caller_user during this operation.
  * If chroot_prefix is set, ensure that it is prefix of the given path.
  */
+
 /* This function may be executed with root privileges. */
 void
 chdiruid (const char *path)

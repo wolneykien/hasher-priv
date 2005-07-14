@@ -97,9 +97,9 @@ int     x11_accept (int fd);
 int     x11_check_listen (int fd);
 void    prepare_x11_new (int *x11_fd, int *max_fd, fd_set *read_fds);
 void    handle_x11_new (int *x11_fd, fd_set *read_fds);
-void    prepare_x11_select (int *max_fd, fd_set * read_fds,
-			    fd_set * write_fds);
-void    handle_x11_select (fd_set * read_fds, fd_set * write_fds,
+void    prepare_x11_select (int *max_fd, fd_set *read_fds,
+			    fd_set *write_fds);
+void    handle_x11_select (fd_set *read_fds, fd_set *write_fds,
 			   const char *x11_saved_data,
 			   const char *x11_fake_data);
 

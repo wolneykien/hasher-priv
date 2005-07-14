@@ -97,7 +97,7 @@ xauth_gen_fake (void)
 		return 0;
 	}
 
-	char *x11_fake_data = xmalloc (x11_data_len);
+	char   *x11_fake_data = xmalloc (x11_data_len);
 
 	if (read_loop (fd, x11_fake_data, x11_data_len) !=
 	    (ssize_t) x11_data_len)
@@ -181,7 +181,8 @@ handle_child (char *const *env, int pty_fd, int pipe_fd, int ctl_fd)
 
 		if (x11_fd >= 0)
 		{
-			char *data;
+			char   *data;
+
 			if ((data = xauth_gen_fake ())
 			    && xauth_add_entry (env) == EXIT_SUCCESS)
 				fd_send (ctl_fd, x11_fd, data, x11_data_len);

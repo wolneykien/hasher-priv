@@ -51,6 +51,7 @@ is_changed (struct stat *st1, struct stat *st2)
  * Change the current working directory
  * using lstat+validate+chdir+lstat+compare technique.
  */
+
 /* This function may be executed with root privileges. */
 void
 safe_chdir (const char *name, VALIDATE_FPTR validator)
@@ -82,6 +83,7 @@ safe_chdir (const char *name, VALIDATE_FPTR validator)
  * no world writable permissions, and group writable
  * bit is set if and only if sticky bit is also set.
  */
+
 /* This function may be executed with caller privileges. */
 void
 stat_userok_validator (struct stat *st, const char *name)
@@ -106,6 +108,7 @@ stat_userok_validator (struct stat *st, const char *name)
  * Ensure that owner is root and permissions contain no
  * group or world writable bits set.
  */
+
 /* This function may be executed with root privileges. */
 void
 stat_rootok_validator (struct stat *st, const char *name)
@@ -123,6 +126,7 @@ stat_rootok_validator (struct stat *st, const char *name)
  * Ensure that owner is either root or caller_uid:change_gid1,
  * and permissions contain no group or world writable bits set.
  */
+
 /* This function may be executed with root privileges. */
 void
 stat_permok_validator (struct stat *st, const char *name)

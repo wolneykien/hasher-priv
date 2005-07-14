@@ -38,6 +38,7 @@ show_usage (const char *fmt, ...)
 	fprintf (stderr, "%s: ", program_invocation_short_name);
 
 	va_list arg;
+
 	va_start (arg, fmt);
 	vfprintf (stderr, fmt, arg);
 	va_end (arg);

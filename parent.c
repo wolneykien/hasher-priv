@@ -42,7 +42,8 @@ static int
 select_retry (int n, fd_set * readfds, fd_set * writefds, fd_set * exceptfds,
 	      struct timeval *timeout)
 {
-	int rc = -1;
+	int     rc = -1;
+
 	errno = EINTR;
 	while (rc < 0 && errno == EINTR && child_pid)
 		rc = select (n, readfds, writefds, exceptfds, timeout);
