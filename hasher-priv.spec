@@ -1,7 +1,7 @@
 # $Id$
 
 Name: hasher-priv
-Version: 1.1.0
+Version: 1.1.1
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -61,6 +61,9 @@ fi
 %doc DESIGN
 
 %changelog
+* Thu Jul 14 2005 Dmitry V. Levin <ldv@altlinux.org> 1.1.1-alt1
+- Implemented X11 authentication spoofing.
+
 * Sat Jul 09 2005 Dmitry V. Levin <ldv@altlinux.org> 1.1.0-alt1
 - Implemented X11 forwarding.
 
