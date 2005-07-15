@@ -58,8 +58,25 @@ fd_send (int ctl, int pass, const char *data, size_t data_len)
 	vec.iov_base = (char *) data;
 	vec.iov_len = data_len;
 
-	if (TEMP_FAILURE_RETRY (sendmsg (ctl, &msg, 0)) != (ssize_t) data_len)
-		error (EXIT_FAILURE, errno, "sendmsg");
+	ssize_t rc;
+
+	if ((rc = TEMP_FAILURE_RETRY (sendmsg (ctl, &msg, 0))) !=
+	    (ssize_t) data_len)
+	{
+		if (rc < 0)
+		{
+			error (EXIT_FAILURE, errno, "sendmsg");
+		} else
+		{
+			if (rc)
+				error (EXIT_FAILURE, 0,
+				       "sendmsg: expected size %u, got %u",
+				       (unsigned) data_len, (unsigned) rc);
+			else
+				error (EXIT_FAILURE, 0,
+				       "sendmsg: unexpected EOF");
+		}
+	}
 }
 
 /* This function may be executed with caller privileges. */
@@ -67,7 +84,6 @@ fd_send (int ctl, int pass, const char *data, size_t data_len)
 int
 fd_recv (int ctl, char *data, size_t data_len)
 {
-	ssize_t rc;
 	struct iovec vec;
 	struct msghdr msg;
 	struct cmsghdr *cmsg;
@@ -82,17 +98,25 @@ fd_recv (int ctl, char *data, size_t data_len)
 	vec.iov_base = data;
 	vec.iov_len = data_len;
 
-	if ((rc = TEMP_FAILURE_RETRY (recvmsg (ctl, &msg, 0)))
-	    != (ssize_t) data_len)
+	ssize_t rc;
+
+	if ((rc = TEMP_FAILURE_RETRY (recvmsg (ctl, &msg, 0))) !=
+	    (ssize_t) data_len)
 	{
 		if (rc < 0)
 		{
 			error (EXIT_SUCCESS, errno, "recvmsg");
 			fputc ('\r', stderr);
 		} else
-			error (EXIT_SUCCESS, 0,
-			       "recvmsg: expected size %u, got %u\r",
-			       (unsigned) data_len, (unsigned) rc);
+		{
+			if (rc)
+				error (EXIT_SUCCESS, 0,
+				       "recvmsg: expected size %u, got %u\r",
+				       (unsigned) data_len, (unsigned) rc);
+			else
+				error (EXIT_SUCCESS, 0,
+				       "recvmsg: unexpected EOF\r");
+		}
 		return -1;
 	}
 
