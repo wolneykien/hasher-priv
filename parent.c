@@ -350,17 +350,9 @@ handle_io (io_std_t io)
 	}
 }
 
-static void
-parent_print_progname (void)
-{
-	fprintf (stderr, "%s: parent: ", program_invocation_short_name);
-}
-
 int
 handle_parent (pid_t a_child_pid, int a_pty_fd, int pipe_fd, int a_ctl_fd)
 {
-	error_print_progname = parent_print_progname;
-
 	pty_fd = a_pty_fd;
 	ctl_fd = a_ctl_fd;
 

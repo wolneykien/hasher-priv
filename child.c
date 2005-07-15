@@ -148,17 +148,9 @@ xauth_add_entry (char *const *env)
 	}
 }
 
-static void
-child_print_progname (void)
-{
-	fprintf (stderr, "%s: child: ", program_invocation_short_name);
-}
-
 int
 handle_child (char *const *env, int pty_fd, int pipe_fd, int ctl_fd)
 {
-	error_print_progname = child_print_progname;
-
 	if (x11_key)
 	{
 		/* Child process doesn't need X11 authentication data. */

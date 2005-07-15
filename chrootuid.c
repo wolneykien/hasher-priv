@@ -67,6 +67,15 @@ set_rlimits (void)
 	}
 }
 
+static const char *program_subname = "root";
+
+static void
+print_program_subname (void)
+{
+	fprintf (stderr, "%s: %s: ", program_invocation_short_name,
+		 program_subname);
+}
+
 static int
 chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	   const char *euser, const char *epath)
@@ -116,8 +125,12 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	if ((pid = fork ()) < 0)
 		error (EXIT_FAILURE, errno, "fork");
 
+	error_print_progname = print_program_subname;
+
 	if (pid)
 	{
+		program_subname = "master";
+
 		if (close (slave) || (!use_pty && close (out[1]))
 		    || (x11_display && close (ctl[1])))
 			error (EXIT_FAILURE, errno, "close");
@@ -133,6 +146,8 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 		return handle_parent (pid, master, out[0], ctl[0]);
 	} else
 	{
+		program_subname = "slave";
+
 		if (close (master) || (!use_pty && close (out[0]))
 		    || (x11_display && close (ctl[0])))
 			error (EXIT_FAILURE, errno, "close");
