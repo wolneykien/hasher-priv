@@ -35,8 +35,11 @@
 #include "xmalloc.h"
 
 static void
-xmount (const char *fstype, const char *grname)
+xmount (const char *mpoint, const char *fstype, const char *grname)
 {
+	if (mpoint[0] != '/')
+		error (EXIT_FAILURE, EINVAL, "xmount: %s", mpoint);
+
 	struct group *gr;
 	char   *options = 0;
 
@@ -46,35 +49,14 @@ xmount (const char *fstype, const char *grname)
 		endgrent ();
 	}
 
-	if (mount (fstype, ".", fstype, MS_MGC_VAL, options ? : "") < 0)
+	unsigned long flags = MS_MGC_VAL | MS_NOSUID;
+
+	chdiruid (chroot_path);
+	chdiruid (mpoint + 1);
+	if (mount (fstype, ".", fstype, flags, options ? : "") < 0)
 		error (EXIT_FAILURE, errno, "mount: %s", fstype);
 
 	free (options);
-}
-
-static void
-mount_proc (void)
-{
-	chdiruid (chroot_path);
-	chdiruid ("proc");
-	xmount ("proc", "proc");
-}
-
-static void
-mount_devpts (void)
-{
-	chdiruid (chroot_path);
-	chdiruid ("dev");
-	chdiruid ("pts");
-	xmount ("devpts", "tty");
-}
-
-static void
-mount_sysfs (void)
-{
-	chdiruid (chroot_path);
-	chdiruid ("sys");
-	xmount ("sysfs", 0);
 }
 
 int
@@ -94,11 +76,11 @@ do_mount (void)
 		       "mount: %s: mount point not allowed", mountpoint);
 
 	if (!strcmp (target, "/proc"))
-		mount_proc ();
+		xmount (target, "proc", "proc");
 	else if (!strcmp (target, "/dev/pts"))
-		mount_devpts ();
+		xmount (target, "devpts", "tty");
 	else if (!strcmp (target, "/sys"))
-		mount_sysfs ();
+		xmount (target, "sysfs", 0);
 	else
 		error (EXIT_FAILURE, 0,
 		       "mount: %s: mount point not supported", target);

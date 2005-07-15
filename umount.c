@@ -37,26 +37,46 @@
 #endif
 
 static int
-xumount (const char *chdir_path1, const char *chdir_path2, const char *dir,
-	 const char *fsname)
+xumount (const char *mpoint)
 {
+	if (mpoint[0] != '/')
+		error (EXIT_FAILURE, EINVAL, "xumount: %s", mpoint);
+
+	char   *buf = xstrdup (mpoint);
+	const char *dir = buf + 1;
+	char   *p = strrchr (dir, '/');
+	const char *base = p + 1;
+
+	if (!p)
+	{
+		base = dir;
+		dir = p = buf;
+	}
+	*p = '\0';
+
+	if (dir[0] == '/' || base[0] == '/')
+		error (EXIT_FAILURE, EINVAL, "xumount: %s", mpoint);
+
 	int     unmounted = 0;
 
 	for (;;)
 	{
-		chdiruid (chdir_path1);
-		if (chdir_path2)
-			chdiruid (chdir_path2);
-		safe_chdir (dir, stat_permok_validator);
+		chdiruid (chroot_path);
+		if (dir[0] != '\0')
+			chdiruid (dir);
+		safe_chdir (base, stat_permok_validator);
+
 		if (umount2 (".", MNT_DETACH) < 0)
 			break;
 		unmounted = 1;
 	}
 
+	free (buf);
+
 	if (unmounted)
 		errno = 0;
 	else if (errno != EINVAL)
-		error (EXIT_SUCCESS, errno, "umount: %s", fsname);
+		error (EXIT_SUCCESS, errno, "umount: %s", mpoint);
 
 	return unmounted;
 }
@@ -75,17 +95,14 @@ do_umount (void)
 	for (target = targets ? strtok (targets, " \t,") : 0; target;
 	     target = strtok (0, " \t,"))
 	{
-		if (!strcmp (target, "/proc"))
-			unmounted |= xumount (chroot_path, 0, "proc", "proc");
-		else if (!strcmp (target, "/dev/pts"))
-			unmounted |=
-				xumount (chroot_path, "dev", "pts", "devpts");
-		else if (!strcmp (target, "/sys"))
-			unmounted |= xumount (chroot_path, 0, "sys", "sysfs");
-		else
+		if (strcmp (target, "/proc")
+		    && strcmp (target, "/dev/pts")
+		    && strcmp (target, "/sys"))
 			error (EXIT_SUCCESS, 0,
 			       "umount: %s: mount point not supported",
 			       target);
+		else
+			unmounted |= xumount (target);
 	}
 
 	free (targets);
