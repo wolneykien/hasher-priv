@@ -45,7 +45,8 @@ WARNINGS = -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings \
 	-Wold-style-definition -Wmissing-prototypes -Wmissing-declarations \
 	-Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls \
 	-Wdisabled-optimization
-CPPFLAGS = -std=gnu99 $(WARNINGS) -D_GNU_SOURCE $(CHDIRUID_FLAGS) -D_FILE_OFFSET_BITS=64 -DPROJECT_VERSION=\"$(VERSION)\"
+CPPFLAGS = -std=gnu99 $(WARNINGS) -D_GNU_SOURCE $(CHDIRUID_FLAGS) \
+	-D_FILE_OFFSET_BITS=64 -DPROJECT_VERSION=\"$(VERSION)\"
 CFLAGS = -pipe -O2
 LDLIBS = -lutil
 
