@@ -31,6 +31,7 @@
 #include <grp.h>
 
 #include "priv.h"
+#include "xmalloc.h"
 
 #ifdef ENABLE_SETFSUGID
 #include <sys/fsuid.h>
@@ -106,31 +107,17 @@ is_not_prefix (const char *prefix, const char *sample)
 
 /*
  * Change the current work directory to the given path.
- * Temporary change credentials to caller_user during this operation.
  * If chroot_prefix is set, ensure that it is prefix of the given path.
  */
 
 /* This function may be executed with root privileges. */
-void
-chdiruid (const char *path)
+static void
+chdiruid_simple (const char *path)
 {
-	uid_t   saved_uid = (uid_t) -1;
-	gid_t   saved_gid = (gid_t) -1;
-	char   *cwd;
-
-	if (!path)
-		error (EXIT_FAILURE, 0, "chdiruid: invalid chroot path");
-
-	/* Set credentials. */
-#ifdef ENABLE_SUPPLEMENTARY_GROUPS
-	if (initgroups (caller_user, caller_gid) < 0)
-		error (EXIT_FAILURE, errno, "initgroups: %s", caller_user);
-#endif /* ENABLE_SUPPLEMENTARY_GROUPS */
-	ch_gid (caller_gid, &saved_gid);
-	ch_uid (caller_uid, &saved_uid);
-
 	/* Change and verify directory. */
 	safe_chdir (path, stat_userok_validator);
+
+	char   *cwd;
 
 	if (!(cwd = getcwd (0, 0)))
 		error (EXIT_FAILURE, errno, "getcwd");
@@ -143,6 +130,44 @@ chdiruid (const char *path)
 		       cwd, chroot_prefix);
 
 	free (cwd);
+}
+
+/*
+ * Change the current work directory to the given path.
+ * Temporary change credentials to caller_user during this operation.
+ * If the path is relative, chdir to each path element sequentially.
+ * If chroot_prefix is set, ensure that it is prefix of the given path.
+ */
+
+/* This function may be executed with root privileges. */
+void
+chdiruid (const char *path)
+{
+	uid_t   saved_uid = (uid_t) -1;
+	gid_t   saved_gid = (gid_t) -1;
+
+	if (!path)
+		error (EXIT_FAILURE, 0, "chdiruid: invalid chroot path");
+
+	/* Set credentials. */
+#ifdef ENABLE_SUPPLEMENTARY_GROUPS
+	if (initgroups (caller_user, caller_gid) < 0)
+		error (EXIT_FAILURE, errno, "initgroups: %s", caller_user);
+#endif /* ENABLE_SUPPLEMENTARY_GROUPS */
+	ch_gid (caller_gid, &saved_gid);
+	ch_uid (caller_uid, &saved_uid);
+
+	/* Change and verify directory, check for chroot_prefix. */
+	if (path[0] == '/' || !strchr (path, '/'))
+		chdiruid_simple (path);
+	else
+	{
+		char   *elem, *p = xstrdup (path);
+
+		for (elem = strtok (p, "/"); elem; elem = strtok (0, "/"))
+			chdiruid_simple (elem);
+		free (p);
+	}
 
 	/* Restore credentials. */
 	ch_uid (saved_uid, 0);
