@@ -1,7 +1,7 @@
 # $Id$
 
 Name: hasher-priv
-Version: 1.1.1
+Version: 1.2.0
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -52,6 +52,7 @@ fi
 # config
 %attr(710,root,hashman) %dir %configdir
 %attr(710,root,hashman) %dir %configdir/user.d
+%attr(640,root,hashman) %config(noreplace) %configdir/fstab
 %attr(640,root,hashman) %config(noreplace) %configdir/system
 # helpers
 %attr(750,root,hashman) %dir %helperdir
@@ -61,8 +62,9 @@ fi
 %doc DESIGN
 
 %changelog
-* Thu Jul 14 2005 Dmitry V. Levin <ldv@altlinux.org> 1.1.1-alt1
+* Sat Jul 16 2005 Dmitry V. Levin <ldv@altlinux.org> 1.2.0-alt1
 - Implemented X11 authentication spoofing.
+- Implemented custom mounts support via %configdir/fstab.
 
 * Sat Jul 09 2005 Dmitry V. Levin <ldv@altlinux.org> 1.1.0-alt1
 - Implemented X11 forwarding.
