@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <fcntl.h>
 #include <grp.h>
 #include <mntent.h>
 #include <sys/mount.h>
@@ -180,29 +181,29 @@ unsigned var_fstab_size;
 static void
 load_fstab (void)
 {
-	const char *fstab = "fstab";
-	FILE   *fp = setmntent (fstab, "r");
-
-	if (!fp)
-	{
-		if (errno != ENOENT)
-			error (EXIT_FAILURE, errno, "setmntent: %s", fstab);
-		return;
-	}
-
+	const char *name = "fstab";
 	struct stat st;
+	int     fd = open (name, O_RDONLY | O_NOFOLLOW | O_NOCTTY);
 
-	if (fstat (fileno (fp), &st) < 0)
-		error (EXIT_FAILURE, errno, "fstat: %s", fstab);
+	if (fd < 0)
+		error (EXIT_FAILURE, errno, "open: %s", name);
 
-	stat_rootok_validator (&st, fstab);
+	if (fstat (fd, &st) < 0)
+		error (EXIT_FAILURE, errno, "fstat: %s", name);
+
+	stat_rootok_validator (&st, name);
 
 	if (!S_ISREG (st.st_mode))
-		error (EXIT_FAILURE, 0, "%s: not a regular file", fstab);
+		error (EXIT_FAILURE, 0, "%s: not a regular file", name);
 
 	if (st.st_size > MAX_CONFIG_SIZE)
 		error (EXIT_FAILURE, 0, "%s: file too large: %lu",
-		       fstab, (unsigned long) st.st_size);
+		       name, (unsigned long) st.st_size);
+
+	FILE   *fp = fdopen (fd, "r");
+
+	if (!fp)
+		error (EXIT_FAILURE, errno, "fdopen: %s", name);
 
 	struct mntent *ent;
 
@@ -221,7 +222,7 @@ load_fstab (void)
 		var_fstab[var_fstab_size++] = e;
 	}
 
-	(void) endmntent (fp);
+	(void) fclose (fp);
 }
 
 int
