@@ -93,7 +93,14 @@ do_umount (void)
 	if (!allowed_mountpoints)
 		error (EXIT_FAILURE, 0, "umount: no mount points allowed");
 
-	unsigned chroot_path_len = strlen (chroot_path), i = 0;
+	chdiruid (chroot_path);
+
+	char   *cwd = getcwd (0, 0);
+
+	if (!cwd)
+		error (EXIT_FAILURE, errno, "getcwd");
+
+	unsigned cwd_len = strlen (cwd), i = 0;
 	char  **v = 0;
 	struct mntent *ent;
 	FILE   *fp = setmntent (_PATH_MOUNTS, "r");
@@ -103,15 +110,16 @@ do_umount (void)
 
 	while ((ent = getmntent (fp)))
 	{
-		if (strncmp (ent->mnt_dir, chroot_path, chroot_path_len)
-		    || (ent->mnt_dir[chroot_path_len] != '/'))
+		if (strncmp (ent->mnt_dir, cwd, cwd_len)
+		    || (ent->mnt_dir[cwd_len] != '/'))
 			continue;
 
 		v = xrealloc (v, (i + 1) * sizeof (*v));
-		v[i++] = xstrdup (ent->mnt_dir + chroot_path_len);
+		v[i++] = xstrdup (ent->mnt_dir + cwd_len);
 	}
 
 	endmntent (fp);
+	free (cwd);
 
 	int     unmounted = 0;
 
