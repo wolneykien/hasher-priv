@@ -24,10 +24,12 @@
 #include <error.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 #include "priv.h"
+#include "xmalloc.h"
 
 /* This function may be executed with root privileges. */
 static const char *
@@ -53,8 +55,8 @@ is_changed (struct stat *st1, struct stat *st2)
  */
 
 /* This function may be executed with root privileges. */
-void
-safe_chdir (const char *name, VALIDATE_FPTR validator)
+static void
+safe_chdir_simple (const char *name, VALIDATE_FPTR validator)
 {
 	struct stat st1, st2;
 	const char *what;
@@ -76,6 +78,28 @@ safe_chdir (const char *name, VALIDATE_FPTR validator)
 	if ((what = is_changed (&st1, &st2)))
 		error (EXIT_FAILURE, 0, "%s: %s changed during execution",
 		       name, what);
+}
+
+/*
+ * Change the current working directory
+ * using lstat+validate+chdir+lstat+compare technique.
+ * If the path is relative, chdir to each path element sequentially.
+ */
+
+/* This function may be executed with root privileges. */
+void
+safe_chdir (const char *path, VALIDATE_FPTR validator)
+{
+	if (path[0] == '/' || !strchr (path, '/'))
+		safe_chdir_simple (path, validator);
+	else
+	{
+		char   *elem, *p = xstrdup (path);
+
+		for (elem = strtok (p, "/"); elem; elem = strtok (0, "/"))
+			safe_chdir_simple (elem, validator);
+		free (p);
+	}
 }
 
 /*

@@ -240,7 +240,8 @@ do_mount (void)
 		error (EXIT_FAILURE, 0,
 		       "mount: %s: mount point not allowed", mountpoint);
 
-	safe_chdir ("/etc/hasher-priv", stat_rootok_validator);
+	safe_chdir ("/", stat_rootok_validator);
+	safe_chdir ("etc/hasher-priv", stat_rootok_validator);
 	load_fstab ();
 	safe_chdir ("/", stat_rootok_validator);
 

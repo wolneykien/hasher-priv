@@ -449,13 +449,10 @@ void
 configure (void)
 {
 	safe_chdir ("/", stat_rootok_validator);
-	safe_chdir ("etc", stat_rootok_validator);
-	safe_chdir ("hasher-priv", stat_rootok_validator);
-
+	safe_chdir ("etc/hasher-priv", stat_rootok_validator);
 	load_config ("system");
 
 	safe_chdir ("user.d", stat_rootok_validator);
-
 	load_config (caller_user);
 
 	if (caller_num)
