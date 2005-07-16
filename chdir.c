@@ -122,29 +122,9 @@ stat_rootok_validator (struct stat *st, const char *name)
 		       st->st_mode & 07777);
 }
 
-/*
- * Ensure that owner is either root or caller_uid:change_gid1,
- * and permissions contain no group or world writable bits set.
- */
-
 /* This function may be executed with root privileges. */
 void
-stat_permok_validator (struct stat *st, const char *name)
+stat_anyok_validator (__attribute__ ((unused)) struct stat *st,
+		      __attribute__ ((unused)) const char *name)
 {
-	if (st->st_mode & (S_IWGRP | S_IWOTH))
-		error (EXIT_FAILURE, 0, "%s: bad perms: %o", name,
-		       st->st_mode & 07777);
-
-	if (st->st_uid == 0)
-		return;
-
-	if (st->st_uid != caller_uid)
-		error (EXIT_FAILURE, 0,
-		       "%s: expected owner 0 or %u, found owner %u",
-		       name, caller_uid, st->st_uid);
-
-	if (st->st_gid != change_gid1)
-		error (EXIT_FAILURE, 0,
-		       "%s: expected group %u, found group %u",
-		       name, change_gid1, st->st_gid);
 }

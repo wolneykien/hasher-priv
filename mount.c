@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2004  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2004, 2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The mount action for the hasher-priv program.
 
@@ -24,39 +24,204 @@
 
 #include <errno.h>
 #include <error.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <grp.h>
+#include <mntent.h>
 #include <sys/mount.h>
 
 #include "priv.h"
 #include "xmalloc.h"
 
-static void
-xmount (const char *mpoint, const char *fstype, const char *grname)
+static struct mnt_ent
 {
-	if (mpoint[0] != '/')
-		error (EXIT_FAILURE, EINVAL, "xmount: %s", mpoint);
+	const char *mnt_fsname;
+	const char *mnt_dir;
+	const char *mnt_type;
+	const char *mnt_opts;
+} def_fstab[] =
+{
+	{"proc", "/proc", "proc", "gid=proc"},
+	{"devpts", "/dev/pts", "devpts", "noexec,gid=tty,mode=0620"},
+	{"sysfs", "/sys", "sysfs", "noexec"}
+};
 
-	struct group *gr;
-	char   *options = 0;
+#define def_fstab_size (sizeof (def_fstab) / sizeof (def_fstab[0]))
 
-	if (grname && (gr = getgrnam (grname)))
+#ifndef MS_MANDLOCK
+#define MS_MANDLOCK	64
+#endif
+#ifndef MS_DIRSYNC
+#define MS_DIRSYNC	128
+#endif
+#ifndef MS_NOATIME
+#define MS_NOATIME	1024
+#endif
+#ifndef MS_NODIRATIME
+#define MS_NODIRATIME	2048
+#endif
+#ifndef MS_BIND
+#define MS_BIND		4096
+#endif
+#ifndef MS_MOVE
+#define MS_MOVE		8192
+#endif
+#ifndef MS_REC
+#define MS_REC		16384
+#endif
+
+static struct
+{
+	const char *name;
+	int     invert;
+	unsigned long value;
+} opt_map[] = {
+	{"defaults", 0, 0},
+	{"rw", 1, MS_RDONLY},
+	{"ro", 0, MS_RDONLY},
+	{"suid", 1, MS_NOSUID},
+	{"nosuid", 0, MS_NOSUID},
+	{"dev", 1, MS_NODEV},
+	{"nodev", 0, MS_NODEV},
+	{"exec", 1, MS_NOEXEC},
+	{"noexec", 0, MS_NOEXEC},
+	{"sync", 0, MS_SYNCHRONOUS},
+	{"async", 1, MS_SYNCHRONOUS},
+	{"mand", 0, MS_MANDLOCK},
+	{"nomand", 1, MS_MANDLOCK},
+	{"dirsync", 0, MS_DIRSYNC},
+	{"dirasync", 1, MS_DIRSYNC},
+	{"bind", 0, MS_BIND},
+	{"rbind", 0, MS_BIND | MS_REC},
+	{"atime", 1, MS_NOATIME},
+	{"noatime", 0, MS_NOATIME},
+	{"diratime", 1, MS_NODIRATIME},
+	{"nodiratime", 0, MS_NODIRATIME}
+};
+
+#define opt_map_size (sizeof (opt_map) / sizeof (opt_map[0]))
+
+static void
+parse_opt (const char *opt, unsigned long *flags, char **options)
+{
+	unsigned i;
+
+	for (i = 0; i < opt_map_size; ++i)
+		if (!strcmp (opt, opt_map[i].name))
+			break;
+
+	if (i < opt_map_size)
 	{
-		xasprintf (&options, "gid=%u", gr->gr_gid);
-		endgrent ();
+		if (opt_map[i].invert)
+			*flags &= ~opt_map[i].value;
+		else
+			*flags |= opt_map[i].value;
+		return;
 	}
 
+	char   *buf = 0;
+
+	if (!strncmp (opt, "gid=", 4) && !isdigit (opt[4]))
+	{
+		struct group *gr = getgrnam (opt + 4);
+
+		if (gr)
+		{
+			xasprintf (&buf, "gid=%u", (unsigned) gr->gr_gid);
+			opt = buf;
+		}
+	}
+
+	if (*options)
+	{
+		*options = xrealloc (*options,
+				     strlen (*options) + strlen (opt) + 2);
+		strcat (*options, ",");
+		strcat (*options, opt);
+	} else
+	{
+		*options = xstrdup (opt);
+	}
+
+	free (buf);
+}
+
+static void
+xmount (struct mnt_ent *e)
+{
+	if (!chroot_path || chroot_path[0] != '/')
+		error (EXIT_FAILURE, 0, "%s: %s", "xmount", "invalid chroot path");
+
+	if (e->mnt_dir[0] != '/')
+		error (EXIT_FAILURE, EINVAL, "xmount: %s", e->mnt_dir);
+
+	char   *options = 0, *opt;
+	char   *buf = xstrdup (e->mnt_opts);
 	unsigned long flags = MS_MGC_VAL | MS_NOSUID;
 
+	for (opt = strtok (buf, ","); opt; opt = strtok (0, ","))
+		parse_opt (opt, &flags, &options);
+
 	chdiruid (chroot_path);
-	chdiruid (mpoint + 1);
-	if (mount (fstype, ".", fstype, flags, options ? : "") < 0)
-		error (EXIT_FAILURE, errno, "mount: %s", fstype);
+	chdiruid (e->mnt_dir + 1);
+	if (mount (e->mnt_fsname, ".", e->mnt_type, flags, options ? : ""))
+		error (EXIT_FAILURE, errno, "mount: %s", e->mnt_dir);
 
 	free (options);
+	free (buf);
+}
+
+static struct mnt_ent **var_fstab;
+unsigned var_fstab_size;
+
+static void
+load_fstab (void)
+{
+	const char *fstab = "fstab";
+	FILE   *fp = setmntent (fstab, "r");
+
+	if (!fp)
+	{
+		if (errno != ENOENT)
+			error (EXIT_FAILURE, errno, "setmntent: %s", fstab);
+		return;
+	}
+
+	struct stat st;
+
+	if (fstat (fileno (fp), &st) < 0)
+		error (EXIT_FAILURE, errno, "fstat: %s", fstab);
+
+	stat_rootok_validator (&st, fstab);
+
+	if (!S_ISREG (st.st_mode))
+		error (EXIT_FAILURE, 0, "%s: not a regular file", fstab);
+
+	if (st.st_size > MAX_CONFIG_SIZE)
+		error (EXIT_FAILURE, 0, "%s: file too large: %lu",
+		       fstab, (unsigned long) st.st_size);
+
+	struct mntent *ent;
+
+	while ((ent = getmntent (fp)))
+	{
+		struct mnt_ent *e = xmalloc (sizeof (*e));
+
+		e->mnt_fsname = xstrdup (ent->mnt_fsname);
+		e->mnt_dir = xstrdup (ent->mnt_dir);
+		e->mnt_type = xstrdup (ent->mnt_type);
+		e->mnt_opts = xstrdup (ent->mnt_opts);
+
+		var_fstab =
+			xrealloc (var_fstab,
+				  (var_fstab_size + 1) * sizeof (*var_fstab));
+		var_fstab[var_fstab_size++] = e;
+	}
+
+	(void) endmntent (fp);
 }
 
 int
@@ -64,10 +229,9 @@ do_mount (void)
 {
 	char   *targets =
 		allowed_mountpoints ? xstrdup (allowed_mountpoints) : 0;
-	char   *target;
+	char   *target = targets ? strtok (targets, " \t,") : 0;
 
-	for (target = targets ? strtok (targets, " \t,") : 0; target;
-	     target = strtok (0, " \t,"))
+	for (; target; target = strtok (0, " \t,"))
 		if (!strcasecmp (target, mountpoint))
 			break;
 
@@ -75,15 +239,31 @@ do_mount (void)
 		error (EXIT_FAILURE, 0,
 		       "mount: %s: mount point not allowed", mountpoint);
 
-	if (!strcmp (target, "/proc"))
-		xmount (target, "proc", "proc");
-	else if (!strcmp (target, "/dev/pts"))
-		xmount (target, "devpts", "tty");
-	else if (!strcmp (target, "/sys"))
-		xmount (target, "sysfs", 0);
+	safe_chdir ("/etc/hasher-priv", stat_rootok_validator);
+	load_fstab ();
+	safe_chdir ("/", stat_rootok_validator);
+
+	unsigned i;
+
+	for (i = 0; i < var_fstab_size; ++i)
+		if (!strcmp (target, var_fstab[i]->mnt_dir))
+			break;
+
+	if (i < var_fstab_size)
+		xmount (var_fstab[i]);
 	else
-		error (EXIT_FAILURE, 0,
-		       "mount: %s: mount point not supported", target);
+	{
+		for (i = 0; i < def_fstab_size; ++i)
+			if (!strcmp (target, def_fstab[i].mnt_dir))
+				break;
+
+		if (i < def_fstab_size)
+			xmount (&def_fstab[i]);
+		else
+			error (EXIT_FAILURE, 0,
+			       "mount: %s: mount point not supported",
+			       target);
+	}
 
 	free (targets);
 	return 0;

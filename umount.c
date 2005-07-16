@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2004,2005  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2004, 2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The umount action for the hasher-priv program.
 
@@ -27,6 +27,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <mntent.h>
 #include <sys/mount.h>
 
 #include "priv.h"
@@ -39,6 +40,9 @@
 static int
 xumount (const char *mpoint)
 {
+	if (!chroot_path || chroot_path[0] != '/')
+		error (EXIT_FAILURE, 0, "%s: %s", "xmount", "invalid chroot path");
+
 	if (mpoint[0] != '/')
 		error (EXIT_FAILURE, EINVAL, "xumount: %s", mpoint);
 
@@ -64,7 +68,7 @@ xumount (const char *mpoint)
 		chdiruid (chroot_path);
 		if (dir[0] != '\0')
 			chdiruid (dir);
-		safe_chdir (base, stat_permok_validator);
+		safe_chdir (base, stat_anyok_validator);
 
 		if (umount2 (".", MNT_DETACH) < 0)
 			break;
@@ -81,31 +85,44 @@ xumount (const char *mpoint)
 	return unmounted;
 }
 
+#define _PATH_MOUNTS "/proc/mounts"
+
 int
 do_umount (void)
 {
-	char   *targets =
-		allowed_mountpoints ? xstrdup (allowed_mountpoints) : 0;
-	char   *target;
-	int     unmounted = 0;
-
-	if (!targets)
+	if (!allowed_mountpoints)
 		error (EXIT_FAILURE, 0, "umount: no mount points allowed");
 
-	for (target = targets ? strtok (targets, " \t,") : 0; target;
-	     target = strtok (0, " \t,"))
+	unsigned chroot_path_len = strlen (chroot_path), i = 0;
+	char  **v = 0;
+	struct mntent *ent;
+	FILE   *fp = setmntent (_PATH_MOUNTS, "r");
+
+	if (!fp)
+		error (EXIT_FAILURE, errno, "setmntent: %s", _PATH_MOUNTS);
+
+	while ((ent = getmntent (fp)))
 	{
-		if (strcmp (target, "/proc")
-		    && strcmp (target, "/dev/pts")
-		    && strcmp (target, "/sys"))
-			error (EXIT_SUCCESS, 0,
-			       "umount: %s: mount point not supported",
-			       target);
-		else
-			unmounted |= xumount (target);
+		if (strncmp (ent->mnt_dir, chroot_path, chroot_path_len)
+		    || (ent->mnt_dir[chroot_path_len] != '/'))
+			continue;
+
+		v = xrealloc (v, (i + 1) * sizeof (*v));
+		v[i++] = xstrdup (ent->mnt_dir + chroot_path_len);
 	}
 
-	free (targets);
+	endmntent (fp);
+
+	int     unmounted = 0;
+
+	while (i > 0)
+	{
+		--i;
+		unmounted |= xumount (v[i]);
+		free (v[i]);
+		v[i] = 0;
+	}
+	free (v);
 
 	if (!unmounted)
 		error (EXIT_FAILURE, 0, "umount: no file systems mounted");

@@ -86,7 +86,7 @@ void    dfl_signal_handler (int no);
 void    safe_chdir (const char *name, VALIDATE_FPTR validator);
 void    stat_userok_validator (struct stat *st, const char *name);
 void    stat_rootok_validator (struct stat *st, const char *name);
-void    stat_permok_validator (struct stat *st, const char *name);
+void    stat_anyok_validator (struct stat *st, const char *name);
 void    fd_send (int ctl, int pass, const char *data, size_t len);
 int     fd_recv (int ctl, char *data, size_t data_len);
 int     x11_parse_display (void);

@@ -251,8 +251,7 @@ parse_mountpoints (const char *value, const char *filename)
 	for (target = targets ? strtok (targets, " \t,") : 0; target;
 	     target = strtok (0, " \t,"))
 	{
-		if (strcmp (target, "/proc")
-		    && strcmp (target, "/dev/pts") && strcmp (target, "/sys"))
+		if (target[0] != '/')
 			error (EXIT_FAILURE, 0,
 			       "%s: mount point \"%s\" not supported",
 			       filename, target);
