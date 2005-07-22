@@ -18,11 +18,10 @@ Provides: %helperdir
 PreReq: coreutils, shadow-utils, glibc-utils
 Obsoletes: pkg-build-priv
 
-# due to libexec hell.
+# Due to libexec hell.
 Conflicts: hasher < 0:1.0.9-alt0.M24.1
 
-# Automatically added by buildreq on Fri May 02 2003
-BuildRequires: help2man
+BuildPreReq: help2man, sisyphus_check >= 0:0.7.11
 
 %description
 This package provides helpers for executing privileged operations
