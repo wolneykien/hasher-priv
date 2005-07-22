@@ -348,6 +348,8 @@ handle_io (io_std_t io)
 		(void) close (ctl_fd);
 		ctl_fd = -1;
 	}
+
+	return EXIT_SUCCESS;
 }
 
 int
