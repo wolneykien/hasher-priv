@@ -40,11 +40,10 @@ MKDIR_P = mkdir -p
 INSTALL = install
 HELP2MAN8 = help2man -N -s8
 CHDIRUID_FLAGS = -DENABLE_SETFSUGID -DENABLE_SUPPLEMENTARY_GROUPS
-WARNINGS = -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings \
+WARNINGS = -Wall -W -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings \
 	-Wconversion -Waggregate-return -Wstrict-prototypes -Werror \
-	-Wold-style-definition -Wmissing-prototypes -Wmissing-declarations \
-	-Wmissing-noreturn -Wmissing-format-attribute -Wredundant-decls \
-	-Wdisabled-optimization
+	-Wmissing-prototypes -Wmissing-declarations -Wmissing-noreturn \
+	-Wmissing-format-attribute -Wredundant-decls -Wdisabled-optimization
 CPPFLAGS = -std=gnu99 $(WARNINGS) -D_GNU_SOURCE $(CHDIRUID_FLAGS) \
 	-D_FILE_OFFSET_BITS=64 -DPROJECT_VERSION=\"$(VERSION)\"
 CFLAGS = -pipe -O2
