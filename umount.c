@@ -95,12 +95,13 @@ do_umount (void)
 
 	chdiruid (chroot_path);
 
-	char   *cwd = getcwd (0, 0);
+	char   *cwd = getcwd (0, 0UL);
 
 	if (!cwd)
 		error (EXIT_FAILURE, errno, "getcwd");
 
-	unsigned cwd_len = strlen (cwd), i = 0;
+	size_t cwd_len = strlen (cwd);
+	unsigned i = 0;
 	char  **v = 0;
 	struct mntent *ent;
 	FILE   *fp = setmntent (_PATH_MOUNTS, "r");

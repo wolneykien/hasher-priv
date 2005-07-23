@@ -124,7 +124,7 @@ extern const char *term;
 extern const char *x11_display, *x11_key;
 
 extern int allow_tty_devices, use_pty;
-extern unsigned x11_data_len;
+extern size_t x11_data_len;
 
 extern const char *chroot_prefix;
 extern const char *caller_user, *caller_home;

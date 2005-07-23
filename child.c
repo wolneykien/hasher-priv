@@ -44,7 +44,7 @@ connect_fds (int pty_fd, int pipe_fd)
 	if (setsid () < 0)
 		error (EXIT_FAILURE, errno, "setsid");
 
-	if (ioctl (pty_fd, TIOCSCTTY, 0) < 0)
+	if (ioctl (pty_fd, (unsigned long) TIOCSCTTY, 0) < 0)
 		error (EXIT_FAILURE, errno, "ioctl TIOCSCTTY");
 
 	if (use_pty)
@@ -111,7 +111,7 @@ xauth_gen_fake (void)
 	(void) close (fd);
 
 	/* Replace original x11_key with fake one. */
-	unsigned i, key_len = 2 * x11_data_len + 1;
+	size_t i, key_len = 2 * x11_data_len + 1;
 	char   *new_key = xmalloc (key_len);
 
 	for (i = 0; i < x11_data_len; ++i)

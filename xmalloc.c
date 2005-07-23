@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2002, 2004  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2002-2005  Dmitry V. Levin <ldv@altlinux.org>
 
   Dynamic memory allocation with error checking.
 
@@ -54,10 +54,10 @@ xrealloc (void *ptr, size_t size)
 char   *
 xstrdup (const char *s)
 {
-	char   *r = strdup (s);
+	size_t  len = strlen (s);
+	char   *r = xmalloc (len + 1);
 
-	if (!r)
-		error (EXIT_FAILURE, errno, "strdup");
+	memcpy (r, s, len + 1);
 	return r;
 }
 

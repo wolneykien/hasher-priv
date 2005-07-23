@@ -81,7 +81,7 @@ tty_copy_winsize (int master_fd, int slave_fd)
 	int     rc;
 	struct winsize ws;
 
-	if ((rc = ioctl (master_fd, TIOCGWINSZ, &ws)) < 0)
+	if ((rc = ioctl (master_fd, (unsigned long) TIOCGWINSZ, &ws)) < 0)
 		return rc;
-	return ioctl (slave_fd, TIOCSWINSZ, &ws);
+	return ioctl (slave_fd, (unsigned long) TIOCSWINSZ, &ws);
 }

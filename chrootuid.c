@@ -112,7 +112,7 @@ chrootuid (uid_t uid, gid_t gid, const char *ehome,
 	if (chroot (".") < 0)
 		error (EXIT_FAILURE, errno, "chroot: %s", chroot_path);
 
-	if (setgroups (0, 0) < 0)
+	if (setgroups (0UL, 0) < 0)
 		error (EXIT_FAILURE, errno, "setgroups");
 
 	set_rlimits ();

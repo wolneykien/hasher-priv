@@ -46,7 +46,7 @@ gid_t   change_gid1, change_gid2;
 mode_t  change_umask = 022;
 int     change_nice = 10;
 int     allow_tty_devices, use_pty;
-unsigned x11_data_len;
+size_t  x11_data_len;
 change_rlimit_t change_rlimit[] = {
 
 /* Per-process CPU limit, in seconds.  */
@@ -328,7 +328,7 @@ read_config (int fd, const char *name)
 	if (!fp)
 		error (EXIT_FAILURE, errno, "fdopen: %s", name);
 
-	for (line = 1; fgets (buf, sizeof buf, fp); ++line)
+	for (line = 1; fgets (buf, BUFSIZ, fp); ++line)
 	{
 		const char *start, *left;
 		char   *eq, *right, *end;

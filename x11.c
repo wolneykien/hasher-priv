@@ -75,7 +75,7 @@ x11_listen (void)
 		return -1;
 	}
 
-	if (bind (fd, (struct sockaddr *) &sun, sizeof sun))
+	if (bind (fd, (struct sockaddr *) &sun, (socklen_t) sizeof sun))
 	{
 		error (EXIT_SUCCESS, errno, "bind: %s", sun.sun_path);
 		(void) close (fd);
@@ -138,7 +138,8 @@ x11_connect_unix (__attribute__ ((unused)) const char *name,
 		snprintf (sun.sun_path, sizeof sun.sun_path, "X%u",
 			  display_number);
 
-		if (!connect (fd, (struct sockaddr *) &sun, sizeof sun))
+		if (!connect
+		    (fd, (struct sockaddr *) &sun, (socklen_t) sizeof sun))
 			break;
 
 		error (EXIT_SUCCESS, errno, "connect: %s", sun.sun_path);
@@ -209,7 +210,7 @@ x11_connect (void)
 {
 	return x11_connect_method
 		? x11_connect_method (x11_connect_name,
-				      x11_connect_port) : -1;
+				      (unsigned) x11_connect_port) : -1;
 }
 
 /* This function may be executed with caller privileges. */
@@ -262,7 +263,7 @@ x11_check_listen (int fd)
 	if (strcmp (path, sun.sun_path))
 	{
 		error (EXIT_SUCCESS, 0, "getsockname: path %s, got %*s\r",
-		       path, sizeof path, sun.sun_path);
+		       path, (unsigned) sizeof path, sun.sun_path);
 		return -1;
 	}
 

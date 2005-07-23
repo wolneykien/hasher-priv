@@ -99,7 +99,7 @@ ch_gid (gid_t gid, gid_t * save)
 static int
 is_not_prefix (const char *prefix, const char *sample)
 {
-	unsigned len = strlen (prefix);
+	size_t len = strlen (prefix);
 
 	return strncmp (sample, prefix, len)
 		|| ((sample[len] != '\0') && (sample[len] != '/'));
@@ -119,7 +119,7 @@ chdiruid_simple (const char *path)
 
 	char   *cwd;
 
-	if (!(cwd = getcwd (0, 0)))
+	if (!(cwd = getcwd (0, 0UL)))
 		error (EXIT_FAILURE, errno, "getcwd");
 
 	/* Check for chroot_prefix. */
@@ -173,7 +173,7 @@ chdiruid (const char *path)
 	ch_uid (saved_uid, 0);
 	ch_gid (saved_gid, 0);
 #ifdef ENABLE_SUPPLEMENTARY_GROUPS
-	if (setgroups (0, 0) < 0)
+	if (setgroups (0UL, 0) < 0)
 		error (EXIT_FAILURE, errno, "setgroups");
 #endif /* ENABLE_SUPPLEMENTARY_GROUPS */
 }

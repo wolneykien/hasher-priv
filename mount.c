@@ -125,7 +125,7 @@ parse_opt (const char *opt, unsigned long *flags, char **options)
 
 	char   *buf = 0;
 
-	if (!strncmp (opt, "gid=", 4) && !isdigit (opt[4]))
+	if (!strncmp (opt, "gid=", 4UL) && !isdigit (opt[4]))
 	{
 		struct group *gr = getgrnam (opt + 4);
 
