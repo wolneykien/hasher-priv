@@ -28,7 +28,7 @@ behaviour.
 .BR hasher\-priv (8)
 first loads systemwide config file
 .IR /etc/hasher\-priv/system ,
-then it loads pser-user config file
+then it loads per-user config file
 \fI/etc/hasher\-priv/user.d/\fBUSER\fR,
 and finally, if subconfig identifier
 .B NUMBER
