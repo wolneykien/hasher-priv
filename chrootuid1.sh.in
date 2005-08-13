@@ -26,6 +26,13 @@ if [ -n "$1" -a -z "${1##-*}" ]; then
 	shift
 fi
 
+chroot_prefix=
+if [ -n "$1" ]; then
+	chroot_prefix="$1"
+fi
+mounted=
+rm_ttydev=
+
 killuid()
 {
 	@helper@ $n killuid1
@@ -35,6 +42,14 @@ exit_handler()
 {
 	local rc=$?
 	trap - EXIT
+	if [ -n "$chroot_prefix" -a -n "$mounted" ]; then
+		@helper@ $n umount "$chroot_prefix" ||
+			[ rc = 0 ] || rc=1
+	fi
+	if [ -n "$rm_ttydev" ]; then
+		rm -f "$chroot_prefix/dev/tty" "$chroot_prefix/dev/ptmx" ||
+			[ rc = 0 ] || rc=1
+	fi
 	killuid
 	exit $rc
 }
@@ -42,5 +57,21 @@ exit_handler()
 killuid
 
 trap exit_handler EXIT HUP INT QUIT PIPE TERM
+
+need_maketty=
+if [ -n "$chroot_prefix" -a -n "$mountpoints" ]; then
+	for target in `printf %s "$mountpoints" |tr ',' ' '`; do
+		@helper@ $n mount "$chroot_prefix" "$target" &&
+			mounted=1 ||
+			exit
+		[ "$target" != /dev/pts ] || need_maketty=1
+	done
+fi
+
+if [ -n "$need_maketty" ]; then
+	@helper@ $n maketty "$chroot_prefix" &&
+		rm_ttydev=1 ||
+		exit
+fi
 
 @helper@ $n chrootuid1 "$@"
