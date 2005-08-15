@@ -242,14 +242,9 @@ static void
 parse_mountpoints (const char *value, const char *filename)
 {
 	char   *targets = xstrdup (value);
-	char   *target;
+	char   *target = strtok (targets, " \t,");
 
-	for (target = targets; *target; ++target)
-		*target = tolower (*target);
-	allowed_mountpoints = xstrdup (targets);
-
-	for (target = targets ? strtok (targets, " \t,") : 0; target;
-	     target = strtok (0, " \t,"))
+	for (; target; target = strtok (0, " \t,"))
 	{
 		if (target[0] != '/')
 			error (EXIT_FAILURE, 0,
@@ -258,6 +253,7 @@ parse_mountpoints (const char *value, const char *filename)
 	}
 
 	free (targets);
+	allowed_mountpoints = xstrdup (value);
 }
 
 static int
