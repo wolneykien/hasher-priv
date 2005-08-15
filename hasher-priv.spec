@@ -1,7 +1,7 @@
 # $Id$
 
 Name: hasher-priv
-Version: 1.2.0
+Version: 1.2.1
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -61,6 +61,11 @@ fi
 %doc DESIGN
 
 %changelog
+* Mon Aug 15 2005 Dmitry V. Levin <ldv@altlinux.org> 1.2.1-alt1
+- hasher-priv: Do not lowercase mount points (at@).
+- chrootuid1.sh: synced with chrootuid2.sh.
+- DESIGN: fixed typo (at@).
+
 * Sat Jul 16 2005 Dmitry V. Levin <ldv@altlinux.org> 1.2.0-alt1
 - Implemented X11 authentication spoofing.
 - Implemented custom mounts support via %configdir/fstab.
