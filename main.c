@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The entry function for the hasher-priv program.
 
@@ -48,12 +48,12 @@ main (int ac, const char *av[])
 	/* Second, parse command line arguments. */
 	task = parse_cmdline (ac, av);
 
-	/* Third, initialize data related to caller. */
-	init_caller_data ();
-
 	if (chroot_path && *chroot_path != '/')
 		error (EXIT_FAILURE, 0, "%s: invalid chroot path",
 		       chroot_path);
+
+	/* Third, initialize data related to caller. */
+	init_caller_data ();
 
 	/* 4th, parse environment for config options. */
 	parse_env ();
