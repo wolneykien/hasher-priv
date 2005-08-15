@@ -153,9 +153,6 @@ parse_opt (const char *opt, unsigned long *flags, char **options)
 static void
 xmount (struct mnt_ent *e)
 {
-	if (!chroot_path || chroot_path[0] != '/')
-		error (EXIT_FAILURE, 0, "%s: %s", "xmount", "invalid chroot path");
-
 	if (e->mnt_dir[0] != '/')
 		error (EXIT_FAILURE, EINVAL, "xmount: %s", e->mnt_dir);
 

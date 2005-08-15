@@ -40,9 +40,6 @@
 static int
 xumount (const char *mpoint)
 {
-	if (!chroot_path || chroot_path[0] != '/')
-		error (EXIT_FAILURE, 0, "%s: %s", "xmount", "invalid chroot path");
-
 	if (mpoint[0] != '/')
 		error (EXIT_FAILURE, EINVAL, "xumount: %s", mpoint);
 
