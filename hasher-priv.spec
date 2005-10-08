@@ -1,7 +1,7 @@
 # $Id$
 
 Name: hasher-priv
-Version: 1.2.1
+Version: 1.2.2
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -61,6 +61,10 @@ fi
 %doc DESIGN
 
 %changelog
+* Sun Oct 09 2005 Dmitry V. Levin <ldv@altlinux.org> 1.2.2-alt1
+- If use_pty is not set, handle child's stdout and stderr separately.
+- In makedev mode, create few devices available to root only (mouse@).
+
 * Mon Aug 15 2005 Dmitry V. Levin <ldv@altlinux.org> 1.2.1-alt1
 - hasher-priv: Do not lowercase mount points (at@).
 - chrootuid1.sh: synced with chrootuid2.sh.
