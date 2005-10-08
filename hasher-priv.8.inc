@@ -84,7 +84,8 @@ Execute program in build chroot with credentials of pseudouser.
 Following operation modes have medium security implications:
 .TP
 .B makedev
-Create essential device files: \fInull\fR, \fIzero\fR and \fIurandom\fR.
+Create essential device files available for all users:
+\fInull\fR, \fIzero\fR and \fIurandom\fR.
 Using this operation mode, caller user may populate file system with
 these devices.  While \fInull\fR and \fIzero\fR cause no harm for OS,
 pseudousers may abuse \fIurandom\fR to cause host system randomness
@@ -101,10 +102,10 @@ and therefore install DoS attack against host system.
 .TP
 .B mount
 Mount appropriate file system according to specified mount point.
-proc and sysfs virtual file systems provide access to various system
-resources which could be abused by pseudousers; devpts virtual file system
-provides access to all pty device files which also could be abused by
-pseudousers if these files have inappropriate permissions.
+for example, proc and sysfs virtual file systems provide access to various
+system resources which could be abused by pseudousers, devpts virtual
+file system provides access to all pty device files which also could be
+abused by pseudousers if these files have inappropriate permissions.
 .TP
 .B umount
 Umount all file systems previously mounted by

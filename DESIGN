@@ -98,7 +98,8 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
   + makedev
     + safe chdir to chroot_path
     + safe chdir to dev
-    + create devices: null, zero, random, urandom
+    + create devices available to all users: null, zero, random, urandom
+    + create devices available to root only: console, tty0, fb0
   + maketty
     + safe chdir to chroot_path
     + safe chdir to dev
