@@ -7,6 +7,7 @@ Release: alt1
 Summary: A privileged helper for the hasher project
 License: GPL
 Group: Development/Other
+Packager: Dmitry V. Levin <ldv@altlinux.org>
 
 Source: %name-%version.tar.bz2
 
