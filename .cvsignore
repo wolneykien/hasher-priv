@@ -1,0 +1,10 @@
+chrootuid1.sh
+chrootuid2.sh
+getugid1.sh
+getugid2.sh
+hasher-priv
+hasher-priv.8
+hasher-priv.conf.5
+hasher-useradd.8
+makedev.sh
+maketty.sh
