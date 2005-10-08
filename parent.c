@@ -162,8 +162,8 @@ work_limits_ok(unsigned long bytes_read, unsigned long bytes_written)
 
 struct io_std
 {
-	int     master_read_fd, master_write_fd;
-	int     slave_read_fd, slave_write_fd;
+	int     master_read_fd, master_write_out_fd, master_write_err_fd;
+	int     slave_read_out_fd, slave_read_err_fd, slave_write_fd;
 	size_t  master_avail, slave_avail;
 	char    master_buf[BUFSIZ], slave_buf[BUFSIZ];
 };
@@ -224,11 +224,11 @@ static int
 handle_io(io_std_t io)
 {
 	ssize_t n;
+	int     max_fd = 0;
 	fd_set  read_fds, write_fds;
 
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
-	FD_SET(io->slave_read_fd, &read_fds);
 
 	if (sigwinch_arrived)
 	{
@@ -236,11 +236,25 @@ handle_io(io_std_t io)
 		(void) tty_copy_winsize(STDIN_FILENO, pty_fd);
 	}
 
+	if (io->slave_read_out_fd >= 0)
+	{
+		FD_SET(io->slave_read_out_fd, &read_fds);
+		if (io->slave_read_out_fd > max_fd)
+			max_fd = io->slave_read_out_fd;
+	}
+
+	if (io->slave_read_err_fd >= 0)
+	{
+		FD_SET(io->slave_read_err_fd, &read_fds);
+		if (io->slave_read_err_fd > max_fd)
+			max_fd = io->slave_read_err_fd;
+	}
+
 	/* select only if child is running */
 	if (child_pid)
 	{
 		struct timeval tmout;
-		int     max_fd = io->slave_read_fd + 1, rc;
+		int     rc;
 
 		if (io->master_read_fd >= 0 && !io->master_avail)
 		{
@@ -280,16 +294,33 @@ handle_io(io_std_t io)
 			return EXIT_FAILURE;
 	}
 
-	if (FD_ISSET(io->slave_read_fd, &read_fds))
+	if (io->slave_read_out_fd >= 0
+	    && FD_ISSET(io->slave_read_out_fd, &read_fds))
 	{
-		/* handle child output */
-		n = read_retry(io->slave_read_fd,
+		/* handle child stdout */
+		n = read_retry(io->slave_read_out_fd,
 			       io->slave_buf, sizeof io->slave_buf);
 		if (n <= 0)
 			return EXIT_FAILURE;
 
 		if (write_loop
-		    (io->master_write_fd, io->slave_buf, (size_t) n) != n)
+		    (io->master_write_out_fd, io->slave_buf, (size_t) n) != n)
+			error(EXIT_FAILURE, errno, "write");
+
+		total_bytes_written += n;
+	}
+
+	if (io->slave_read_err_fd >= 0
+	    && FD_ISSET(io->slave_read_err_fd, &read_fds))
+	{
+		/* handle child stderr */
+		n = read_retry(io->slave_read_err_fd,
+			       io->slave_buf, sizeof io->slave_buf);
+		if (n <= 0)
+			return EXIT_FAILURE;
+
+		if (write_loop
+		    (io->master_write_err_fd, io->slave_buf, (size_t) n) != n)
 			error(EXIT_FAILURE, errno, "write");
 
 		total_bytes_written += n;
@@ -353,17 +384,16 @@ handle_io(io_std_t io)
 }
 
 int
-handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_fd, int a_ctl_fd)
+handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_out, int pipe_err,
+	      int a_ctl_fd)
 {
+	io_std_t io;
+	struct sigaction act;
+
 	pty_fd = a_pty_fd;
 	ctl_fd = a_ctl_fd;
 
-	int     child_fd = use_pty ? pty_fd : pipe_fd;
-	io_std_t io;
-
 	child_pid = a_child_pid;
-
-	struct sigaction act;
 
 	act.sa_handler = sigchld_handler;
 	sigemptyset(&act.sa_mask);
@@ -377,11 +407,18 @@ handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_fd, int a_ctl_fd)
 	io = xmalloc(sizeof(*io));
 	memset(io, 0, sizeof(*io));
 	io->master_read_fd = use_pty ? STDIN_FILENO : -1;
-	io->master_write_fd = STDOUT_FILENO;
-	io->slave_read_fd = child_fd;
-	io->slave_write_fd = use_pty ? child_fd : -1;
+	io->master_write_out_fd = STDOUT_FILENO;
+	io->master_write_err_fd = use_pty ? -1 : STDERR_FILENO;
+	io->slave_read_out_fd = use_pty ? pty_fd : pipe_out;
+	io->slave_read_err_fd = use_pty ? -1 : pipe_err;
+	io->slave_write_fd = use_pty ? pty_fd : -1;
 
-	unblock_fd(child_fd);
+	if (pty_fd >= 0)
+		unblock_fd(pty_fd);
+	if (pipe_out >= 0)
+		unblock_fd(pipe_out);
+	if (pipe_err >= 0)
+		unblock_fd(pipe_err);
 
 	/* redirect standard descriptors, init tty if necessary */
 	if (init_tty() && tty_copy_winsize(STDIN_FILENO, pty_fd) == 0)

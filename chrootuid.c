@@ -81,7 +81,8 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 	  const char *euser, const char *epath)
 {
 	int     master = -1, slave = -1;
-	int     out[2] = { -1, -1 };
+	int     pipe_out[2] = { -1, -1 };
+	int     pipe_err[2] = { -1, -1 };
 	int     ctl[2] = { -1, -1 };
 	pid_t   pid;
 
@@ -97,7 +98,7 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 	sanitize_fds();
 
 	/* Create pipes only if use_pty is not set. */
-	if (!use_pty && pipe(out) < 0)
+	if (!use_pty && (pipe(pipe_out) || pipe(pipe_err)))
 		error(EXIT_FAILURE, errno, "pipe");
 
 	/* Always create pty, necessary for ioctl TIOCSCTTY in the child. */
@@ -131,7 +132,9 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 	{
 		program_subname = "master";
 
-		if (close(slave) || (!use_pty && close(out[1]))
+		if (close(slave)
+		    || (!use_pty
+			&& (close(pipe_out[1]) || close(pipe_err[1])))
 		    || (x11_display && close(ctl[1])))
 			error(EXIT_FAILURE, errno, "close");
 
@@ -143,12 +146,15 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 
 		/* Process is no longer privileged at this point. */
 
-		return handle_parent(pid, master, out[0], ctl[0]);
+		return handle_parent(pid, master, pipe_out[0], pipe_err[0],
+				     ctl[0]);
 	} else
 	{
 		program_subname = "slave";
 
-		if (close(master) || (!use_pty && close(out[0]))
+		if (close(master)
+		    || (!use_pty
+			&& (close(pipe_out[0]) || close(pipe_err[0])))
 		    || (x11_display && close(ctl[0])))
 			error(EXIT_FAILURE, errno, "close");
 
@@ -169,8 +175,8 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 			"SHELL=/bin/sh", 0
 		};
 
-		return handle_child((char *const *) env, slave, out[1],
-				    ctl[1]);
+		return handle_child((char *const *) env, slave,
+				    pipe_out[1], pipe_err[1], ctl[1]);
 	}
 }
 

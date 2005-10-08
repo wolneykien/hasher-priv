@@ -37,10 +37,8 @@
 #include "xmalloc.h"
 
 static void
-connect_fds(int pty_fd, int pipe_fd)
+connect_fds(int pty_fd, int pipe_out, int pipe_err)
 {
-	int     fd = use_pty ? pty_fd : pipe_fd;
-
 	if (setsid() < 0)
 		error(EXIT_FAILURE, errno, "setsid");
 
@@ -58,13 +56,16 @@ connect_fds(int pty_fd, int pipe_fd)
 		if (isatty(STDIN_FILENO))
 			nullify_stdin();
 	}
-	if (dup2(fd, STDOUT_FILENO) < 0 || dup2(fd, STDERR_FILENO) < 0)
+	if (dup2((use_pty ? pty_fd : pipe_out), STDOUT_FILENO) < 0
+	    || dup2((use_pty ? pty_fd : pipe_err), STDERR_FILENO) < 0)
 		error(EXIT_FAILURE, errno, "dup2");
 
 	if (pty_fd > STDERR_FILENO)
 		close(pty_fd);
-	if (pipe_fd > STDERR_FILENO)
-		close(pipe_fd);
+	if (pipe_out > STDERR_FILENO)
+		close(pipe_out);
+	if (pipe_err > STDERR_FILENO)
+		close(pipe_err);
 }
 
 static  ssize_t
@@ -149,7 +150,8 @@ xauth_add_entry(char *const *env)
 }
 
 int
-handle_child(char *const *env, int pty_fd, int pipe_fd, int ctl_fd)
+handle_child(char *const *env, int pty_fd, int pipe_out, int pipe_err,
+	     int ctl_fd)
 {
 	if (x11_key)
 	{
@@ -158,7 +160,7 @@ handle_child(char *const *env, int pty_fd, int pipe_fd, int ctl_fd)
 		free((char *) x11_key);
 		x11_key = 0;
 	}
-	connect_fds(pty_fd, pipe_fd);
+	connect_fds(pty_fd, pipe_out, pipe_err);
 
 	dfl_signal_handler(SIGHUP);
 	dfl_signal_handler(SIGPIPE);
