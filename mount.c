@@ -79,7 +79,8 @@ static struct
 	const char *name;
 	int     invert;
 	unsigned long value;
-} opt_map[] = {
+} opt_map[] =
+{
 	{"defaults", 0, 0},
 	{"rw", 1, MS_RDONLY},
 	{"ro", 0, MS_RDONLY},
@@ -106,12 +107,12 @@ static struct
 #define opt_map_size (sizeof (opt_map) / sizeof (opt_map[0]))
 
 static void
-parse_opt (const char *opt, unsigned long *flags, char **options)
+parse_opt(const char *opt, unsigned long *flags, char **options)
 {
 	unsigned i;
 
 	for (i = 0; i < opt_map_size; ++i)
-		if (!strcmp (opt, opt_map[i].name))
+		if (!strcmp(opt, opt_map[i].name))
 			break;
 
 	if (i < opt_map_size)
@@ -125,145 +126,144 @@ parse_opt (const char *opt, unsigned long *flags, char **options)
 
 	char   *buf = 0;
 
-	if (!strncmp (opt, "gid=", 4UL) && !isdigit (opt[4]))
+	if (!strncmp(opt, "gid=", 4UL) && !isdigit(opt[4]))
 	{
-		struct group *gr = getgrnam (opt + 4);
+		struct group *gr = getgrnam(opt + 4);
 
 		if (gr)
 		{
-			xasprintf (&buf, "gid=%u", (unsigned) gr->gr_gid);
+			xasprintf(&buf, "gid=%u", (unsigned) gr->gr_gid);
 			opt = buf;
 		}
 	}
 
 	if (*options)
 	{
-		*options = xrealloc (*options,
-				     strlen (*options) + strlen (opt) + 2);
-		strcat (*options, ",");
-		strcat (*options, opt);
+		*options = xrealloc(*options,
+				    strlen(*options) + strlen(opt) + 2);
+		strcat(*options, ",");
+		strcat(*options, opt);
 	} else
 	{
-		*options = xstrdup (opt);
+		*options = xstrdup(opt);
 	}
 
-	free (buf);
+	free(buf);
 }
 
 static void
-xmount (struct mnt_ent *e)
+xmount(struct mnt_ent *e)
 {
 	if (e->mnt_dir[0] != '/')
-		error (EXIT_FAILURE, EINVAL, "xmount: %s", e->mnt_dir);
+		error(EXIT_FAILURE, EINVAL, "xmount: %s", e->mnt_dir);
 
 	char   *options = 0, *opt;
-	char   *buf = xstrdup (e->mnt_opts);
+	char   *buf = xstrdup(e->mnt_opts);
 	unsigned long flags = MS_MGC_VAL | MS_NOSUID;
 
-	for (opt = strtok (buf, ","); opt; opt = strtok (0, ","))
-		parse_opt (opt, &flags, &options);
+	for (opt = strtok(buf, ","); opt; opt = strtok(0, ","))
+		parse_opt(opt, &flags, &options);
 
-	chdiruid (chroot_path);
-	chdiruid (e->mnt_dir + 1);
-	if (mount (e->mnt_fsname, ".", e->mnt_type, flags, options ? : ""))
-		error (EXIT_FAILURE, errno, "mount: %s", e->mnt_dir);
+	chdiruid(chroot_path);
+	chdiruid(e->mnt_dir + 1);
+	if (mount(e->mnt_fsname, ".", e->mnt_type, flags, options ? : ""))
+		error(EXIT_FAILURE, errno, "mount: %s", e->mnt_dir);
 
-	free (options);
-	free (buf);
+	free(options);
+	free(buf);
 }
 
 static struct mnt_ent **var_fstab;
 unsigned var_fstab_size;
 
 static void
-load_fstab (void)
+load_fstab(void)
 {
 	const char *name = "fstab";
 	struct stat st;
-	int     fd = open (name, O_RDONLY | O_NOFOLLOW | O_NOCTTY);
+	int     fd = open(name, O_RDONLY | O_NOFOLLOW | O_NOCTTY);
 
 	if (fd < 0)
-		error (EXIT_FAILURE, errno, "open: %s", name);
+		error(EXIT_FAILURE, errno, "open: %s", name);
 
-	if (fstat (fd, &st) < 0)
-		error (EXIT_FAILURE, errno, "fstat: %s", name);
+	if (fstat(fd, &st) < 0)
+		error(EXIT_FAILURE, errno, "fstat: %s", name);
 
-	stat_rootok_validator (&st, name);
+	stat_rootok_validator(&st, name);
 
-	if (!S_ISREG (st.st_mode))
-		error (EXIT_FAILURE, 0, "%s: not a regular file", name);
+	if (!S_ISREG(st.st_mode))
+		error(EXIT_FAILURE, 0, "%s: not a regular file", name);
 
 	if (st.st_size > MAX_CONFIG_SIZE)
-		error (EXIT_FAILURE, 0, "%s: file too large: %lu",
-		       name, (unsigned long) st.st_size);
+		error(EXIT_FAILURE, 0, "%s: file too large: %lu",
+		      name, (unsigned long) st.st_size);
 
-	FILE   *fp = fdopen (fd, "r");
+	FILE   *fp = fdopen(fd, "r");
 
 	if (!fp)
-		error (EXIT_FAILURE, errno, "fdopen: %s", name);
+		error(EXIT_FAILURE, errno, "fdopen: %s", name);
 
 	struct mntent *ent;
 
-	while ((ent = getmntent (fp)))
+	while ((ent = getmntent(fp)))
 	{
-		struct mnt_ent *e = xmalloc (sizeof (*e));
+		struct mnt_ent *e = xmalloc(sizeof(*e));
 
-		e->mnt_fsname = xstrdup (ent->mnt_fsname);
-		e->mnt_dir = xstrdup (ent->mnt_dir);
-		e->mnt_type = xstrdup (ent->mnt_type);
-		e->mnt_opts = xstrdup (ent->mnt_opts);
+		e->mnt_fsname = xstrdup(ent->mnt_fsname);
+		e->mnt_dir = xstrdup(ent->mnt_dir);
+		e->mnt_type = xstrdup(ent->mnt_type);
+		e->mnt_opts = xstrdup(ent->mnt_opts);
 
 		var_fstab =
-			xrealloc (var_fstab,
-				  (var_fstab_size + 1) * sizeof (*var_fstab));
+			xrealloc(var_fstab,
+				 (var_fstab_size + 1) * sizeof(*var_fstab));
 		var_fstab[var_fstab_size++] = e;
 	}
 
-	(void) fclose (fp);
+	(void) fclose(fp);
 }
 
 int
-do_mount (void)
+do_mount(void)
 {
 	char   *targets =
-		allowed_mountpoints ? xstrdup (allowed_mountpoints) : 0;
-	char   *target = targets ? strtok (targets, " \t,") : 0;
+		allowed_mountpoints ? xstrdup(allowed_mountpoints) : 0;
+	char   *target = targets ? strtok(targets, " \t,") : 0;
 
-	for (; target; target = strtok (0, " \t,"))
-		if (!strcasecmp (target, mountpoint))
+	for (; target; target = strtok(0, " \t,"))
+		if (!strcasecmp(target, mountpoint))
 			break;
 
 	if (!target)
-		error (EXIT_FAILURE, 0,
-		       "mount: %s: mount point not allowed", mountpoint);
+		error(EXIT_FAILURE, 0,
+		      "mount: %s: mount point not allowed", mountpoint);
 
-	safe_chdir ("/", stat_rootok_validator);
-	safe_chdir ("etc/hasher-priv", stat_rootok_validator);
-	load_fstab ();
-	safe_chdir ("/", stat_rootok_validator);
+	safe_chdir("/", stat_rootok_validator);
+	safe_chdir("etc/hasher-priv", stat_rootok_validator);
+	load_fstab();
+	safe_chdir("/", stat_rootok_validator);
 
 	unsigned i;
 
 	for (i = 0; i < var_fstab_size; ++i)
-		if (!strcmp (target, var_fstab[i]->mnt_dir))
+		if (!strcmp(target, var_fstab[i]->mnt_dir))
 			break;
 
 	if (i < var_fstab_size)
-		xmount (var_fstab[i]);
+		xmount(var_fstab[i]);
 	else
 	{
 		for (i = 0; i < def_fstab_size; ++i)
-			if (!strcmp (target, def_fstab[i].mnt_dir))
+			if (!strcmp(target, def_fstab[i].mnt_dir))
 				break;
 
 		if (i < def_fstab_size)
-			xmount (&def_fstab[i]);
+			xmount(&def_fstab[i]);
 		else
-			error (EXIT_FAILURE, 0,
-			       "mount: %s: mount point not supported",
-			       target);
+			error(EXIT_FAILURE, 0,
+			      "mount: %s: mount point not supported", target);
 	}
 
-	free (targets);
+	free(targets);
 	return 0;
 }

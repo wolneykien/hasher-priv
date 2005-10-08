@@ -37,44 +37,44 @@
 #include "xmalloc.h"
 
 static void
-connect_fds (int pty_fd, int pipe_fd)
+connect_fds(int pty_fd, int pipe_fd)
 {
 	int     fd = use_pty ? pty_fd : pipe_fd;
 
-	if (setsid () < 0)
-		error (EXIT_FAILURE, errno, "setsid");
+	if (setsid() < 0)
+		error(EXIT_FAILURE, errno, "setsid");
 
-	if (ioctl (pty_fd, (unsigned long) TIOCSCTTY, 0) < 0)
-		error (EXIT_FAILURE, errno, "ioctl TIOCSCTTY");
+	if (ioctl(pty_fd, (unsigned long) TIOCSCTTY, 0) < 0)
+		error(EXIT_FAILURE, errno, "ioctl TIOCSCTTY");
 
 	if (use_pty)
 	{
-		if (dup2 (pty_fd, STDIN_FILENO) < 0)
-			error (EXIT_FAILURE, errno, "dup2");
+		if (dup2(pty_fd, STDIN_FILENO) < 0)
+			error(EXIT_FAILURE, errno, "dup2");
 	} else
 	{
 		/* redirect stdin to /dev/null if and only if
 		   use_pty is not set and stdin is a tty */
-		if (isatty (STDIN_FILENO))
-			nullify_stdin ();
+		if (isatty(STDIN_FILENO))
+			nullify_stdin();
 	}
-	if (dup2 (fd, STDOUT_FILENO) < 0 || dup2 (fd, STDERR_FILENO) < 0)
-		error (EXIT_FAILURE, errno, "dup2");
+	if (dup2(fd, STDOUT_FILENO) < 0 || dup2(fd, STDERR_FILENO) < 0)
+		error(EXIT_FAILURE, errno, "dup2");
 
 	if (pty_fd > STDERR_FILENO)
-		close (pty_fd);
+		close(pty_fd);
 	if (pipe_fd > STDERR_FILENO)
-		close (pipe_fd);
+		close(pipe_fd);
 }
 
 static  ssize_t
-read_loop (int fd, char *buffer, size_t count)
+read_loop(int fd, char *buffer, size_t count)
 {
 	ssize_t offset = 0;
 
 	while (count > 0)
 	{
-		ssize_t block = read_retry (fd, &buffer[offset], count);
+		ssize_t block = read_retry(fd, &buffer[offset], count);
 
 		if (block <= 0)
 			return offset ? : block;
@@ -87,107 +87,107 @@ read_loop (int fd, char *buffer, size_t count)
 #define PATH_DEVURANDOM "/dev/urandom"
 
 static char *
-xauth_gen_fake (void)
+xauth_gen_fake(void)
 {
-	int     fd = open (PATH_DEVURANDOM, O_RDONLY);
+	int     fd = open(PATH_DEVURANDOM, O_RDONLY);
 
 	if (fd < 0)
 	{
-		error (EXIT_SUCCESS, errno, "open: %s", PATH_DEVURANDOM);
+		error(EXIT_SUCCESS, errno, "open: %s", PATH_DEVURANDOM);
 		return 0;
 	}
 
-	char   *x11_fake_data = xmalloc (x11_data_len);
+	char   *x11_fake_data = xmalloc(x11_data_len);
 
-	if (read_loop (fd, x11_fake_data, x11_data_len) !=
+	if (read_loop(fd, x11_fake_data, x11_data_len) !=
 	    (ssize_t) x11_data_len)
 	{
-		error (EXIT_SUCCESS, errno, "read: %s", PATH_DEVURANDOM);
-		(void) close (fd);
-		free (x11_fake_data);
+		error(EXIT_SUCCESS, errno, "read: %s", PATH_DEVURANDOM);
+		(void) close(fd);
+		free(x11_fake_data);
 		return 0;
 	}
 
-	(void) close (fd);
+	(void) close(fd);
 
 	/* Replace original x11_key with fake one. */
-	size_t i, key_len = 2 * x11_data_len + 1;
-	char   *new_key = xmalloc (key_len);
+	size_t  i, key_len = 2 * x11_data_len + 1;
+	char   *new_key = xmalloc(key_len);
 
 	for (i = 0; i < x11_data_len; ++i)
-		snprintf (new_key + 2 * i, key_len - 2 * i,
-			  "%02x", (unsigned char) x11_fake_data[i]);
+		snprintf(new_key + 2 * i, key_len - 2 * i,
+			 "%02x", (unsigned char) x11_fake_data[i]);
 	x11_key = new_key;
 
 	return x11_fake_data;
 }
 
 static int
-xauth_add_entry (char *const *env)
+xauth_add_entry(char *const *env)
 {
 	const char *av[] = { "xauth", "add", ":10.0", ".", x11_key, 0 };
 	const char *path = "/usr/X11R6/bin/xauth";
 
-	pid_t   pid = fork ();
+	pid_t   pid = fork();
 
 	if (pid < 0)
 		return EXIT_FAILURE;
 
 	if (!pid)
 	{
-		execve (path, (char *const *) av, env);
-		error (EXIT_SUCCESS, errno, "execve: %s", path);
-		_exit (EXIT_FAILURE);
+		execve(path, (char *const *) av, env);
+		error(EXIT_SUCCESS, errno, "execve: %s", path);
+		_exit(EXIT_FAILURE);
 	} else
 	{
 		int     status = 0;
 
-		if (waitpid (pid, &status, 0) != pid || !WIFEXITED (status))
+		if (waitpid(pid, &status, 0) != pid || !WIFEXITED(status))
 			return 1;
-		return WEXITSTATUS (status);
+		return WEXITSTATUS(status);
 	}
 }
 
 int
-handle_child (char *const *env, int pty_fd, int pipe_fd, int ctl_fd)
+handle_child(char *const *env, int pty_fd, int pipe_fd, int ctl_fd)
 {
 	if (x11_key)
 	{
 		/* Child process doesn't need X11 authentication data. */
-		memset ((char *) x11_key, 0, strlen (x11_key));
-		free ((char *) x11_key);
+		memset((char *) x11_key, 0, strlen(x11_key));
+		free((char *) x11_key);
 		x11_key = 0;
 	}
-	connect_fds (pty_fd, pipe_fd);
+	connect_fds(pty_fd, pipe_fd);
 
-	dfl_signal_handler (SIGHUP);
-	dfl_signal_handler (SIGPIPE);
-	dfl_signal_handler (SIGTERM);
+	dfl_signal_handler(SIGHUP);
+	dfl_signal_handler(SIGPIPE);
+	dfl_signal_handler(SIGTERM);
 
-	if (nice (change_nice) < 0)
-		error (EXIT_FAILURE, errno, "nice");
+	if (nice(change_nice) < 0)
+		error(EXIT_FAILURE, errno, "nice");
 
 	if (ctl_fd >= 0)
 	{
-		int     x11_fd = x11_listen ();
+		int     x11_fd = x11_listen();
 
 		if (x11_fd >= 0)
 		{
 			char   *data;
 
-			if ((data = xauth_gen_fake ())
-			    && xauth_add_entry (env) == EXIT_SUCCESS)
-				fd_send (ctl_fd, x11_fd, data, x11_data_len);
-			(void) close (x11_fd);
-			free (data);
+			if ((data = xauth_gen_fake())
+			    && xauth_add_entry(env) == EXIT_SUCCESS)
+				fd_send(ctl_fd, x11_fd, data, x11_data_len);
+			(void) close(x11_fd);
+			free(data);
 		}
 	}
 
-	umask (change_umask);
+	umask(change_umask);
 
-	block_signal_handler (SIGCHLD, SIG_UNBLOCK);
+	block_signal_handler(SIGCHLD, SIG_UNBLOCK);
 
-	execve (chroot_argv[0], (char *const *) chroot_argv, env);
-	error (EXIT_FAILURE, errno, "chrootuid: execve: %s", chroot_argv[0]);
+	execve(chroot_argv[0], (char *const *) chroot_argv, env);
+	error(EXIT_FAILURE, errno, "chrootuid: execve: %s", chroot_argv[0]);
 	return EXIT_FAILURE;
 }

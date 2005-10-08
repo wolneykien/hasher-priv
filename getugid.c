@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The getugid actions for the hasher-priv program.
 
@@ -27,15 +27,15 @@
 #include "priv.h"
 
 int
-do_getugid1 (void)
+do_getugid1(void)
 {
-	printf ("%u:%u\n", change_uid1, change_gid1);
+	printf("%u:%u\n", change_uid1, change_gid1);
 	return 0;
 }
 
 int
-do_getugid2 (void)
+do_getugid2(void)
 {
-	printf ("%u:%u\n", change_uid2, change_gid2);
+	printf("%u:%u\n", change_uid2, change_gid2);
 	return 0;
 }

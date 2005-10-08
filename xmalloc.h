@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2002  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2002, 2005  Dmitry V. Levin <ldv@altlinux.org>
 
   Dynamic memory allocation with error checking.
 
@@ -23,10 +23,10 @@
 #ifndef __XMALLOC_H__
 #define __XMALLOC_H__
 
-extern void *xmalloc (size_t size);
-extern void *xrealloc (void *ptr, size_t size);
-extern char *xstrdup (const char *s);
-extern char *xasprintf (char **ptr, const char *fmt, ...)
-	__attribute__ ((__format__ (__printf__, 2, 3)));
+extern void *xmalloc(size_t size);
+extern void *xrealloc(void *ptr, size_t size);
+extern char *xstrdup(const char *s);
+extern char *xasprintf(char **ptr, const char *fmt, ...)
+	__attribute__ ((__format__(__printf__, 2, 3)));
 
 #endif /* __XMALLOC_H__ */

@@ -38,14 +38,14 @@
 #endif
 
 static int
-xumount (const char *mpoint)
+xumount(const char *mpoint)
 {
 	if (mpoint[0] != '/')
-		error (EXIT_FAILURE, EINVAL, "xumount: %s", mpoint);
+		error(EXIT_FAILURE, EINVAL, "xumount: %s", mpoint);
 
-	char   *buf = xstrdup (mpoint);
+	char   *buf = xstrdup(mpoint);
 	const char *dir = buf + 1;
-	char   *p = strrchr (dir, '/');
+	char   *p = strrchr(dir, '/');
 	const char *base = p + 1;
 
 	if (!p)
@@ -56,28 +56,28 @@ xumount (const char *mpoint)
 	*p = '\0';
 
 	if (dir[0] == '/' || base[0] == '/')
-		error (EXIT_FAILURE, EINVAL, "xumount: %s", mpoint);
+		error(EXIT_FAILURE, EINVAL, "xumount: %s", mpoint);
 
 	int     unmounted = 0;
 
 	for (;;)
 	{
-		chdiruid (chroot_path);
+		chdiruid(chroot_path);
 		if (dir[0] != '\0')
-			chdiruid (dir);
-		safe_chdir (base, stat_anyok_validator);
+			chdiruid(dir);
+		safe_chdir(base, stat_anyok_validator);
 
-		if (umount2 (".", MNT_DETACH) < 0)
+		if (umount2(".", MNT_DETACH) < 0)
 			break;
 		unmounted = 1;
 	}
 
-	free (buf);
+	free(buf);
 
 	if (unmounted)
 		errno = 0;
 	else if (errno != EINVAL)
-		error (EXIT_SUCCESS, errno, "umount: %s", mpoint);
+		error(EXIT_SUCCESS, errno, "umount: %s", mpoint);
 
 	return unmounted;
 }
@@ -85,53 +85,53 @@ xumount (const char *mpoint)
 #define _PATH_MOUNTS "/proc/mounts"
 
 int
-do_umount (void)
+do_umount(void)
 {
 	if (!allowed_mountpoints)
-		error (EXIT_FAILURE, 0, "umount: no mount points allowed");
+		error(EXIT_FAILURE, 0, "umount: no mount points allowed");
 
-	chdiruid (chroot_path);
+	chdiruid(chroot_path);
 
-	char   *cwd = getcwd (0, 0UL);
+	char   *cwd = getcwd(0, 0UL);
 
 	if (!cwd)
-		error (EXIT_FAILURE, errno, "getcwd");
+		error(EXIT_FAILURE, errno, "getcwd");
 
-	size_t cwd_len = strlen (cwd);
+	size_t  cwd_len = strlen(cwd);
 	unsigned i = 0;
 	char  **v = 0;
 	struct mntent *ent;
-	FILE   *fp = setmntent (_PATH_MOUNTS, "r");
+	FILE   *fp = setmntent(_PATH_MOUNTS, "r");
 
 	if (!fp)
-		error (EXIT_FAILURE, errno, "setmntent: %s", _PATH_MOUNTS);
+		error(EXIT_FAILURE, errno, "setmntent: %s", _PATH_MOUNTS);
 
-	while ((ent = getmntent (fp)))
+	while ((ent = getmntent(fp)))
 	{
-		if (strncmp (ent->mnt_dir, cwd, cwd_len)
+		if (strncmp(ent->mnt_dir, cwd, cwd_len)
 		    || (ent->mnt_dir[cwd_len] != '/'))
 			continue;
 
-		v = xrealloc (v, (i + 1) * sizeof (*v));
-		v[i++] = xstrdup (ent->mnt_dir + cwd_len);
+		v = xrealloc(v, (i + 1) * sizeof(*v));
+		v[i++] = xstrdup(ent->mnt_dir + cwd_len);
 	}
 
-	endmntent (fp);
-	free (cwd);
+	endmntent(fp);
+	free(cwd);
 
 	int     unmounted = 0;
 
 	while (i > 0)
 	{
 		--i;
-		unmounted |= xumount (v[i]);
-		free (v[i]);
+		unmounted |= xumount(v[i]);
+		free(v[i]);
 		v[i] = 0;
 	}
-	free (v);
+	free(v);
 
 	if (!unmounted)
-		error (EXIT_FAILURE, 0, "umount: no file systems mounted");
+		error(EXIT_FAILURE, 0, "umount: no file systems mounted");
 
 	return 0;
 }

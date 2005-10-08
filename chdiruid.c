@@ -44,48 +44,48 @@
 
 /* This function may be executed with root privileges. */
 static void
-ch_uid (uid_t uid, uid_t * save)
+ch_uid(uid_t uid, uid_t * save)
 {
-	uid_t   tmp = setfsuid (uid);
+	uid_t   tmp = setfsuid(uid);
 
 	if (save)
 		*save = tmp;
-	if ((uid_t) setfsuid (uid) != uid)
-		error (EXIT_FAILURE, errno, "change uid: %u", uid);
+	if ((uid_t) setfsuid(uid) != uid)
+		error(EXIT_FAILURE, errno, "change uid: %u", uid);
 }
 
 /* This function may be executed with root privileges. */
 static void
-ch_gid (gid_t gid, gid_t * save)
+ch_gid(gid_t gid, gid_t * save)
 {
-	gid_t   tmp = setfsgid (gid);
+	gid_t   tmp = setfsgid(gid);
 
 	if (save)
 		*save = tmp;
-	if ((gid_t) setfsgid (gid) != gid)
-		error (EXIT_FAILURE, errno, "change gid: %u", gid);
+	if ((gid_t) setfsgid(gid) != gid)
+		error(EXIT_FAILURE, errno, "change gid: %u", gid);
 }
 
 #else /* ! ENABLE_SETFSUGID */
 
 /* This function may be executed with root privileges. */
 static void
-ch_uid (uid_t uid, uid_t * save)
+ch_uid(uid_t uid, uid_t * save)
 {
 	if (save)
-		*save = geteuid ();
-	if (setresuid (-1, uid, 0) < 0)
-		error (EXIT_FAILURE, errno, "change uid: %u", uid);
+		*save = geteuid();
+	if (setresuid(-1, uid, 0) < 0)
+		error(EXIT_FAILURE, errno, "change uid: %u", uid);
 }
 
 /* This function may be executed with root privileges. */
 static void
-ch_gid (gid_t gid, gid_t * save)
+ch_gid(gid_t gid, gid_t * save)
 {
 	if (save)
-		*save = getegid ();
-	if (setresgid (-1, gid, 0) < 0)
-		error (EXIT_FAILURE, errno, "change gid: %u", gid);
+		*save = getegid();
+	if (setresgid(-1, gid, 0) < 0)
+		error(EXIT_FAILURE, errno, "change gid: %u", gid);
 }
 
 #endif /* ENABLE_SETFSUGID */
@@ -97,11 +97,11 @@ ch_gid (gid_t gid, gid_t * save)
 
 /* This function may be executed with caller privileges. */
 static int
-is_not_prefix (const char *prefix, const char *sample)
+is_not_prefix(const char *prefix, const char *sample)
 {
-	size_t len = strlen (prefix);
+	size_t  len = strlen(prefix);
 
-	return strncmp (sample, prefix, len)
+	return strncmp(sample, prefix, len)
 		|| ((sample[len] != '\0') && (sample[len] != '/'));
 }
 
@@ -112,24 +112,24 @@ is_not_prefix (const char *prefix, const char *sample)
 
 /* This function may be executed with root privileges. */
 static void
-chdiruid_simple (const char *path)
+chdiruid_simple(const char *path)
 {
 	/* Change and verify directory. */
-	safe_chdir (path, stat_userok_validator);
+	safe_chdir(path, stat_userok_validator);
 
 	char   *cwd;
 
-	if (!(cwd = getcwd (0, 0UL)))
-		error (EXIT_FAILURE, errno, "getcwd");
+	if (!(cwd = getcwd(0, 0UL)))
+		error(EXIT_FAILURE, errno, "getcwd");
 
 	/* Check for chroot_prefix. */
 	if ((chroot_prefix && *chroot_prefix
-	     && is_not_prefix (chroot_prefix, cwd)))
-		error (EXIT_FAILURE, 0,
-		       "%s: prefix mismatch, working directory should start with %s",
-		       cwd, chroot_prefix);
+	     && is_not_prefix(chroot_prefix, cwd)))
+		error(EXIT_FAILURE, 0,
+		      "%s: prefix mismatch, working directory should start with %s",
+		      cwd, chroot_prefix);
 
-	free (cwd);
+	free(cwd);
 }
 
 /*
@@ -141,39 +141,39 @@ chdiruid_simple (const char *path)
 
 /* This function may be executed with root privileges. */
 void
-chdiruid (const char *path)
+chdiruid(const char *path)
 {
-	uid_t   saved_uid = (uid_t) -1;
-	gid_t   saved_gid = (gid_t) -1;
+	uid_t   saved_uid = (uid_t) - 1;
+	gid_t   saved_gid = (gid_t) - 1;
 
 	if (!path)
-		error (EXIT_FAILURE, 0, "chdiruid: invalid chroot path");
+		error(EXIT_FAILURE, 0, "chdiruid: invalid chroot path");
 
 	/* Set credentials. */
 #ifdef ENABLE_SUPPLEMENTARY_GROUPS
-	if (initgroups (caller_user, caller_gid) < 0)
-		error (EXIT_FAILURE, errno, "initgroups: %s", caller_user);
+	if (initgroups(caller_user, caller_gid) < 0)
+		error(EXIT_FAILURE, errno, "initgroups: %s", caller_user);
 #endif /* ENABLE_SUPPLEMENTARY_GROUPS */
-	ch_gid (caller_gid, &saved_gid);
-	ch_uid (caller_uid, &saved_uid);
+	ch_gid(caller_gid, &saved_gid);
+	ch_uid(caller_uid, &saved_uid);
 
 	/* Change and verify directory, check for chroot_prefix. */
-	if (path[0] == '/' || !strchr (path, '/'))
-		chdiruid_simple (path);
+	if (path[0] == '/' || !strchr(path, '/'))
+		chdiruid_simple(path);
 	else
 	{
-		char   *elem, *p = xstrdup (path);
+		char   *elem, *p = xstrdup(path);
 
-		for (elem = strtok (p, "/"); elem; elem = strtok (0, "/"))
-			chdiruid_simple (elem);
-		free (p);
+		for (elem = strtok(p, "/"); elem; elem = strtok(0, "/"))
+			chdiruid_simple(elem);
+		free(p);
 	}
 
 	/* Restore credentials. */
-	ch_uid (saved_uid, 0);
-	ch_gid (saved_gid, 0);
+	ch_uid(saved_uid, 0);
+	ch_gid(saved_gid, 0);
 #ifdef ENABLE_SUPPLEMENTARY_GROUPS
-	if (setgroups (0UL, 0) < 0)
-		error (EXIT_FAILURE, errno, "setgroups");
+	if (setgroups(0UL, 0) < 0)
+		error(EXIT_FAILURE, errno, "setgroups");
 #endif /* ENABLE_SUPPLEMENTARY_GROUPS */
 }

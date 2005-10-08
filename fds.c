@@ -34,55 +34,55 @@
 
 /* This function may be executed with root privileges. */
 void
-sanitize_fds (void)
+sanitize_fds(void)
 {
 	int     fd, max_fd;
 
 	/* Set safe umask, just in case. */
-	umask (077);
+	umask(077);
 
 	/* Check for stdin, stdout and stderr: they should present. */
 	for (fd = STDIN_FILENO; fd <= STDERR_FILENO; ++fd)
 	{
 		struct stat st;
 
-		if (fstat (fd, &st) < 0)
+		if (fstat(fd, &st) < 0)
 			/* At this stage, we shouldn't even report error. */
-			exit (EXIT_FAILURE);
+			exit(EXIT_FAILURE);
 	}
 
-	max_fd = sysconf (_SC_OPEN_MAX);
+	max_fd = sysconf(_SC_OPEN_MAX);
 	if (max_fd < NR_OPEN)
 		max_fd = NR_OPEN;
 
 	/* Close all the rest. */
 	for (; fd < max_fd; ++fd)
-		(void) close (fd);
+		(void) close(fd);
 
 	errno = 0;
 }
 
 /* This function may be executed with root privileges. */
 void
-cloexec_fds (void)
+cloexec_fds(void)
 {
 	int     fd, max_fd;
 
-	if ((max_fd = sysconf (_SC_OPEN_MAX)) < NR_OPEN)
+	if ((max_fd = sysconf(_SC_OPEN_MAX)) < NR_OPEN)
 		max_fd = NR_OPEN;
 
 	/* Set cloexec flag for all the rest. */
 	for (fd = STDERR_FILENO + 1; fd < max_fd; ++fd)
 	{
-		int     flags = fcntl (fd, F_GETFD, 0);
+		int     flags = fcntl(fd, F_GETFD, 0);
 
 		if (flags < 0)
 			continue;
 
 		int     newflags = flags | FD_CLOEXEC;
 
-		if (flags != newflags && fcntl (fd, F_SETFD, newflags))
-			error (EXIT_FAILURE, errno, "fcntl F_SETFD");
+		if (flags != newflags && fcntl(fd, F_SETFD, newflags))
+			error(EXIT_FAILURE, errno, "fcntl F_SETFD");
 	}
 
 	errno = 0;
@@ -90,59 +90,59 @@ cloexec_fds (void)
 
 /* This function may be executed with caller or child privileges. */
 void
-nullify_stdin (void)
+nullify_stdin(void)
 {
-	int     fd = open (_PATH_DEVNULL, O_RDONLY);
+	int     fd = open(_PATH_DEVNULL, O_RDONLY);
 
 	if (fd < 0)
-		error (EXIT_FAILURE, errno, "open: %s", _PATH_DEVNULL);
+		error(EXIT_FAILURE, errno, "open: %s", _PATH_DEVNULL);
 	if (fd != STDIN_FILENO)
 	{
-		if (dup2 (fd, STDIN_FILENO) != STDIN_FILENO)
-			error (EXIT_FAILURE, errno, "dup2");
-		if (close (fd) < 0)
-			error (EXIT_FAILURE, errno, "close");
+		if (dup2(fd, STDIN_FILENO) != STDIN_FILENO)
+			error(EXIT_FAILURE, errno, "dup2");
+		if (close(fd) < 0)
+			error(EXIT_FAILURE, errno, "close");
 	}
 }
 
 /* This function may be executed with caller privileges. */
 void
-unblock_fd (int fd)
+unblock_fd(int fd)
 {
 	int     flags;
 
-	if ((flags = fcntl (fd, F_GETFL, 0)) < 0)
-		error (EXIT_FAILURE, errno, "fcntl F_GETFL");
+	if ((flags = fcntl(fd, F_GETFL, 0)) < 0)
+		error(EXIT_FAILURE, errno, "fcntl F_GETFL");
 
 	flags |= O_NONBLOCK;
 
-	if (fcntl (fd, F_SETFL, flags) < 0)
-		error (EXIT_FAILURE, errno, "fcntl F_SETFL");
+	if (fcntl(fd, F_SETFL, flags) < 0)
+		error(EXIT_FAILURE, errno, "fcntl F_SETFL");
 }
 
 /* This function may be executed with caller privileges. */
 ssize_t
-read_retry (int fd, void *buf, size_t count)
+read_retry(int fd, void *buf, size_t count)
 {
-	return TEMP_FAILURE_RETRY (read (fd, buf, count));
+	return TEMP_FAILURE_RETRY(read(fd, buf, count));
 }
 
 /* This function may be executed with caller privileges. */
 ssize_t
-write_retry (int fd, const void *buf, size_t count)
+write_retry(int fd, const void *buf, size_t count)
 {
-	return TEMP_FAILURE_RETRY (write (fd, buf, count));
+	return TEMP_FAILURE_RETRY(write(fd, buf, count));
 }
 
 /* This function may be executed with caller privileges. */
 ssize_t
-write_loop (int fd, const char *buffer, size_t count)
+write_loop(int fd, const char *buffer, size_t count)
 {
 	ssize_t offset = 0;
 
 	while (count > 0)
 	{
-		ssize_t block = write_retry (fd, &buffer[offset], count);
+		ssize_t block = write_retry(fd, &buffer[offset], count);
 
 		if (block <= 0)
 			return offset ? : block;

@@ -32,44 +32,44 @@
 #include "xmalloc.h"
 
 void   *
-xmalloc (size_t size)
+xmalloc(size_t size)
 {
-	void   *r = malloc (size);
+	void   *r = malloc(size);
 
 	if (!r)
-		error (EXIT_FAILURE, errno, "malloc");
+		error(EXIT_FAILURE, errno, "malloc");
 	return r;
 }
 
 void   *
-xrealloc (void *ptr, size_t size)
+xrealloc(void *ptr, size_t size)
 {
-	void   *r = realloc (ptr, size);
+	void   *r = realloc(ptr, size);
 
 	if (!r)
-		error (EXIT_FAILURE, errno, "realloc");
+		error(EXIT_FAILURE, errno, "realloc");
 	return r;
 }
 
 char   *
-xstrdup (const char *s)
+xstrdup(const char *s)
 {
-	size_t  len = strlen (s);
-	char   *r = xmalloc (len + 1);
+	size_t  len = strlen(s);
+	char   *r = xmalloc(len + 1);
 
-	memcpy (r, s, len + 1);
+	memcpy(r, s, len + 1);
 	return r;
 }
 
 char   *
-xasprintf (char **ptr, const char *fmt, ...)
+xasprintf(char **ptr, const char *fmt, ...)
 {
 	va_list arg;
 
-	va_start (arg, fmt);
-	if (vasprintf (ptr, fmt, arg) < 0)
-		error (EXIT_FAILURE, errno, "vasprintf");
-	va_end (arg);
+	va_start(arg, fmt);
+	if (vasprintf(ptr, fmt, arg) < 0)
+		error(EXIT_FAILURE, errno, "vasprintf");
+	va_end(arg);
 
 	return *ptr;
 }

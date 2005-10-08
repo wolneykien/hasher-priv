@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The chdir-with-validation module for the hasher-priv program.
 
@@ -33,7 +33,7 @@
 
 /* This function may be executed with root privileges. */
 static const char *
-is_changed (struct stat *st1, struct stat *st2)
+is_changed(struct stat *st1, struct stat *st2)
 {
 	if (st1->st_dev != st2->st_dev)
 		return "device number";
@@ -56,28 +56,28 @@ is_changed (struct stat *st1, struct stat *st2)
 
 /* This function may be executed with root privileges. */
 static void
-safe_chdir_simple (const char *name, VALIDATE_FPTR validator)
+safe_chdir_simple(const char *name, VALIDATE_FPTR validator)
 {
 	struct stat st1, st2;
 	const char *what;
 
-	if (lstat (name, &st1) < 0)
-		error (EXIT_FAILURE, errno, "lstat: %s", name);
+	if (lstat(name, &st1) < 0)
+		error(EXIT_FAILURE, errno, "lstat: %s", name);
 
-	if (!S_ISDIR (st1.st_mode))
-		error (EXIT_FAILURE, ENOTDIR, "%s", name);
+	if (!S_ISDIR(st1.st_mode))
+		error(EXIT_FAILURE, ENOTDIR, "%s", name);
 
-	validator (&st1, name);
+	validator(&st1, name);
 
-	if (chdir (name) < 0)
-		error (EXIT_FAILURE, errno, "chdir: %s", name);
+	if (chdir(name) < 0)
+		error(EXIT_FAILURE, errno, "chdir: %s", name);
 
-	if (lstat (".", &st2) < 0)
-		error (EXIT_FAILURE, errno, "lstat: %s", name);
+	if (lstat(".", &st2) < 0)
+		error(EXIT_FAILURE, errno, "lstat: %s", name);
 
-	if ((what = is_changed (&st1, &st2)))
-		error (EXIT_FAILURE, 0, "%s: %s changed during execution",
-		       name, what);
+	if ((what = is_changed(&st1, &st2)))
+		error(EXIT_FAILURE, 0, "%s: %s changed during execution",
+		      name, what);
 }
 
 /*
@@ -88,17 +88,17 @@ safe_chdir_simple (const char *name, VALIDATE_FPTR validator)
 
 /* This function may be executed with root privileges. */
 void
-safe_chdir (const char *path, VALIDATE_FPTR validator)
+safe_chdir(const char *path, VALIDATE_FPTR validator)
 {
-	if (path[0] == '/' || !strchr (path, '/'))
-		safe_chdir_simple (path, validator);
+	if (path[0] == '/' || !strchr(path, '/'))
+		safe_chdir_simple(path, validator);
 	else
 	{
-		char   *elem, *p = xstrdup (path);
+		char   *elem, *p = xstrdup(path);
 
-		for (elem = strtok (p, "/"); elem; elem = strtok (0, "/"))
-			safe_chdir_simple (elem, validator);
-		free (p);
+		for (elem = strtok(p, "/"); elem; elem = strtok(0, "/"))
+			safe_chdir_simple(elem, validator);
+		free(p);
 	}
 }
 
@@ -110,22 +110,22 @@ safe_chdir (const char *path, VALIDATE_FPTR validator)
 
 /* This function may be executed with caller privileges. */
 void
-stat_userok_validator (struct stat *st, const char *name)
+stat_userok_validator(struct stat *st, const char *name)
 {
 	if (st->st_uid != caller_uid)
-		error (EXIT_FAILURE, 0,
-		       "%s: expected owner %u, found owner %u",
-		       name, caller_uid, st->st_uid);
+		error(EXIT_FAILURE, 0,
+		      "%s: expected owner %u, found owner %u",
+		      name, caller_uid, st->st_uid);
 
 	if (st->st_gid != change_gid1)
-		error (EXIT_FAILURE, 0,
-		       "%s: expected group %u, found group %u",
-		       name, change_gid1, st->st_gid);
+		error(EXIT_FAILURE, 0,
+		      "%s: expected group %u, found group %u",
+		      name, change_gid1, st->st_gid);
 
 	if ((st->st_mode & S_IWOTH)
 	    || ((st->st_mode & S_IWGRP) && !(st->st_mode & S_ISVTX)))
-		error (EXIT_FAILURE, 0,
-		       "%s: bad perms: %o", name, st->st_mode & 07777);
+		error(EXIT_FAILURE, 0,
+		      "%s: bad perms: %o", name, st->st_mode & 07777);
 }
 
 /*
@@ -135,20 +135,20 @@ stat_userok_validator (struct stat *st, const char *name)
 
 /* This function may be executed with root privileges. */
 void
-stat_rootok_validator (struct stat *st, const char *name)
+stat_rootok_validator(struct stat *st, const char *name)
 {
 	if (st->st_uid)
-		error (EXIT_FAILURE, 0, "%s: bad owner: %u", name,
-		       st->st_uid);
+		error(EXIT_FAILURE, 0, "%s: bad owner: %u", name, st->st_uid);
 
 	if (st->st_mode & (S_IWGRP | S_IWOTH))
-		error (EXIT_FAILURE, 0, "%s: bad perms: %o", name,
-		       st->st_mode & 07777);
+		error(EXIT_FAILURE, 0, "%s: bad perms: %o", name,
+		      st->st_mode & 07777);
 }
 
 /* This function may be executed with root privileges. */
 void
-stat_anyok_validator (__attribute__ ((unused)) struct stat *st,
-		      __attribute__ ((unused)) const char *name)
+stat_anyok_validator( __attribute__ ((unused))
+		     struct stat *st, __attribute__ ((unused))
+		     const char *name)
 {
 }

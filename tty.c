@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The chrootuid tty functions for the hasher-priv program.
 
@@ -35,20 +35,20 @@ static int tty_is_saved;
 static struct termios tty_orig;
 
 void
-restore_tty (void)
+restore_tty(void)
 {
 	if (tty_is_saved)
 	{
 		/* restore only once */
 		tty_is_saved = 0;
-		tcsetattr (STDIN_FILENO, TCSAFLUSH, &tty_orig);
+		tcsetattr(STDIN_FILENO, TCSAFLUSH, &tty_orig);
 	}
 }
 
 int
-init_tty (void)
+init_tty(void)
 {
-	if (tcgetattr (STDIN_FILENO, &tty_orig))
+	if (tcgetattr(STDIN_FILENO, &tty_orig))
 		return 0;	/* not a tty */
 
 	if (use_pty)
@@ -56,32 +56,32 @@ init_tty (void)
 		struct termios tty_changed = tty_orig;
 
 		tty_is_saved = 1;
-		if (atexit (restore_tty))
-			error (EXIT_FAILURE, errno, "atexit");
+		if (atexit(restore_tty))
+			error(EXIT_FAILURE, errno, "atexit");
 
-		cfmakeraw (&tty_changed);
+		cfmakeraw(&tty_changed);
 		tty_changed.c_iflag |= IXON;
 		tty_changed.c_cc[VMIN] = 1;
 		tty_changed.c_cc[VTIME] = 0;
 
-		if (tcsetattr (STDIN_FILENO, TCSAFLUSH, &tty_changed))
-			error (EXIT_FAILURE, errno, "tcsetattr");
+		if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &tty_changed))
+			error(EXIT_FAILURE, errno, "tcsetattr");
 
 		return 1;
 	} else
 	{
-		nullify_stdin ();
+		nullify_stdin();
 		return 0;
 	}
 }
 
 int
-tty_copy_winsize (int master_fd, int slave_fd)
+tty_copy_winsize(int master_fd, int slave_fd)
 {
 	int     rc;
 	struct winsize ws;
 
-	if ((rc = ioctl (master_fd, (unsigned long) TIOCGWINSZ, &ws)) < 0)
+	if ((rc = ioctl(master_fd, (unsigned long) TIOCGWINSZ, &ws)) < 0)
 		return rc;
-	return ioctl (slave_fd, (unsigned long) TIOCSWINSZ, &ws);
+	return ioctl(slave_fd, (unsigned long) TIOCSWINSZ, &ws);
 }

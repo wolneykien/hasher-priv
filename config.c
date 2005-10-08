@@ -89,204 +89,203 @@ change_rlimit_t change_rlimit[] = {
 work_limit_t wlimit;
 
 static void __attribute__ ((noreturn))
-bad_option_name (const char *optname, const char *filename)
+bad_option_name(const char *optname, const char *filename)
 {
-	error (EXIT_FAILURE, 0, "%s: unrecognized option: %s", filename,
-	       optname);
-	exit (EXIT_FAILURE);
+	error(EXIT_FAILURE, 0, "%s: unrecognized option: %s", filename,
+	      optname);
+	exit(EXIT_FAILURE);
 }
 
 static void __attribute__ ((noreturn))
-bad_option_value (const char *optname, const char *value,
-		  const char *filename)
+bad_option_value(const char *optname, const char *value, const char *filename)
 {
-	error (EXIT_FAILURE, 0, "%s: invalid value for \"%s\" option: %s",
-	       filename, optname, value);
-	exit (EXIT_FAILURE);
+	error(EXIT_FAILURE, 0, "%s: invalid value for \"%s\" option: %s",
+	      filename, optname, value);
+	exit(EXIT_FAILURE);
 }
 
 static  mode_t
-str2umask (const char *name, const char *value, const char *filename)
+str2umask(const char *name, const char *value, const char *filename)
 {
 	char   *p = 0;
 	unsigned long n;
 
 	if (!*value)
-		bad_option_value (name, value, filename);
+		bad_option_value(name, value, filename);
 
-	n = strtoul (value, &p, 8);
+	n = strtoul(value, &p, 8);
 	if (!p || *p || n > 0777)
-		bad_option_value (name, value, filename);
+		bad_option_value(name, value, filename);
 
 	return n;
 }
 
 static unsigned
-str2nice (const char *name, const char *value, const char *filename)
+str2nice(const char *name, const char *value, const char *filename)
 {
 	char   *p = 0;
 	unsigned long n;
 
 	if (!*value)
-		bad_option_value (name, value, filename);
+		bad_option_value(name, value, filename);
 
-	n = strtoul (value, &p, 10);
+	n = strtoul(value, &p, 10);
 	if (!p || *p || n > 19)
-		bad_option_value (name, value, filename);
+		bad_option_value(name, value, filename);
 
 	return n;
 }
 
 static  rlim_t
-str2rlim (const char *name, const char *value, const char *filename)
+str2rlim(const char *name, const char *value, const char *filename)
 {
 	char   *p = 0;
 	unsigned long long n;
 
 	if (!*value)
-		bad_option_value (name, value, filename);
+		bad_option_value(name, value, filename);
 
-	if (!strcasecmp (value, "inf"))
+	if (!strcasecmp(value, "inf"))
 		return RLIM_INFINITY;
 
 	errno = 0;
-	n = strtoull (value, &p, 10);
+	n = strtoull(value, &p, 10);
 	if (!p || *p || n > ULONG_MAX || (n == ULLONG_MAX && errno == ERANGE))
-		bad_option_value (name, value, filename);
+		bad_option_value(name, value, filename);
 
 	return n;
 }
 
 static void
-set_rlim (const char *name, const char *value, int hard,
-	  const char *optname, const char *filename)
+set_rlim(const char *name, const char *value, int hard,
+	 const char *optname, const char *filename)
 {
 	change_rlimit_t *p;
 
 	for (p = change_rlimit; p->name; ++p)
-		if (!strcasecmp (name, p->name))
+		if (!strcasecmp(name, p->name))
 		{
 			rlim_t **limit = hard ? &(p->hard) : &(p->soft);
 
-			free (*limit);
-			*limit = xmalloc (sizeof (**limit));
-			**limit = str2rlim (optname, value, filename);
+			free(*limit);
+			*limit = xmalloc(sizeof(**limit));
+			**limit = str2rlim(optname, value, filename);
 			return;
 		}
 
-	bad_option_name (optname, filename);
+	bad_option_name(optname, filename);
 }
 
 static void
-parse_rlim (const char *name, const char *value, const char *optname,
-	    const char *filename)
+parse_rlim(const char *name, const char *value, const char *optname,
+	   const char *filename)
 {
 	const char hard_prefix[] = "hard_";
 	const char soft_prefix[] = "soft_";
 
-	if (!strncasecmp (hard_prefix, name, sizeof (hard_prefix) - 1))
-		set_rlim (name + sizeof (hard_prefix) - 1, value, 1,
-			  optname, filename);
-	else if (!strncasecmp (soft_prefix, name, sizeof (soft_prefix) - 1))
-		set_rlim (name + sizeof (soft_prefix) - 1, value, 0,
-			  optname, filename);
+	if (!strncasecmp(hard_prefix, name, sizeof(hard_prefix) - 1))
+		set_rlim(name + sizeof(hard_prefix) - 1, value, 1,
+			 optname, filename);
+	else if (!strncasecmp(soft_prefix, name, sizeof(soft_prefix) - 1))
+		set_rlim(name + sizeof(soft_prefix) - 1, value, 0,
+			 optname, filename);
 	else
-		bad_option_name (optname, filename);
+		bad_option_name(optname, filename);
 }
 
 static unsigned
-str2wlim (const char *name, const char *value, const char *filename)
+str2wlim(const char *name, const char *value, const char *filename)
 {
 	char   *p = 0;
 	unsigned long n;
 
 	if (!*value)
-		bad_option_value (name, value, filename);
+		bad_option_value(name, value, filename);
 
-	n = strtoul (value, &p, 10);
+	n = strtoul(value, &p, 10);
 	if (!p || *p || n > INT_MAX)
-		bad_option_value (name, value, filename);
+		bad_option_value(name, value, filename);
 
 	return n;
 }
 
 static void
-modify_wlim (unsigned *pval, const char *value,
-	     const char *optname, const char *filename)
+modify_wlim(unsigned *pval, const char *value,
+	    const char *optname, const char *filename)
 {
-	unsigned val = str2wlim (optname, value, filename);
+	unsigned val = str2wlim(optname, value, filename);
 
 	if (*pval == 0 || (val > 0 && val < *pval))
 		*pval = val;
 }
 
 static void
-parse_wlim (const char *name, const char *value,
-	    const char *optname, const char *filename)
+parse_wlim(const char *name, const char *value,
+	   const char *optname, const char *filename)
 {
 	unsigned *pval;
 
-	if (!strcasecmp ("time_elapsed", name))
+	if (!strcasecmp("time_elapsed", name))
 		pval = &wlimit.time_elapsed;
-	else if (!strcasecmp ("time_idle", name))
+	else if (!strcasecmp("time_idle", name))
 		pval = &wlimit.time_idle;
-	else if (!strcasecmp ("bytes_written", name))
+	else if (!strcasecmp("bytes_written", name))
 		pval = &wlimit.bytes_written;
 	else
-		bad_option_name (optname, filename);
+		bad_option_name(optname, filename);
 
-	modify_wlim (pval, value, optname, filename);
+	modify_wlim(pval, value, optname, filename);
 }
 
 static void
-parse_mountpoints (const char *value, const char *filename)
+parse_mountpoints(const char *value, const char *filename)
 {
-	char   *targets = xstrdup (value);
-	char   *target = strtok (targets, " \t,");
+	char   *targets = xstrdup(value);
+	char   *target = strtok(targets, " \t,");
 
-	for (; target; target = strtok (0, " \t,"))
+	for (; target; target = strtok(0, " \t,"))
 	{
 		if (target[0] != '/')
-			error (EXIT_FAILURE, 0,
-			       "%s: mount point \"%s\" not supported",
-			       filename, target);
+			error(EXIT_FAILURE, 0,
+			      "%s: mount point \"%s\" not supported",
+			      filename, target);
 	}
 
-	free (targets);
-	allowed_mountpoints = xstrdup (value);
+	free(targets);
+	allowed_mountpoints = xstrdup(value);
 }
 
 static int
-str2bool (const char *name, const char *value, const char *filename)
+str2bool(const char *name, const char *value, const char *filename)
 {
-	if (value[0] == '\0' || !strcasecmp (value, "no")
-	    || !strcasecmp (value, "false") || !strcasecmp (value, "0"))
+	if (value[0] == '\0' || !strcasecmp(value, "no")
+	    || !strcasecmp(value, "false") || !strcasecmp(value, "0"))
 		return 0;
-	if (!strcasecmp (value, "yes") || !strcasecmp (value, "true")
-	    || !strcasecmp (value, "1"))
+	if (!strcasecmp(value, "yes") || !strcasecmp(value, "true")
+	    || !strcasecmp(value, "1"))
 		return 1;
 
-	error (EXIT_FAILURE, 0,
-	       "%s: invalid value \"%s\" for \"%s\" option", filename,
-	       value, name);
+	error(EXIT_FAILURE, 0,
+	      "%s: invalid value \"%s\" for \"%s\" option", filename,
+	      value, name);
 	return 0;
 }
 
 static void
-set_config (const char *name, const char *value, const char *filename)
+set_config(const char *name, const char *value, const char *filename)
 {
 	const char rlim_prefix[] = "rlimit_";
 	const char wlim_prefix[] = "wlimit_";
 
-	if (!strcasecmp ("user1", name))
-		change_user1 = xstrdup (value);
-	else if (!strcasecmp ("user2", name))
-		change_user2 = xstrdup (value);
-	else if (!strcasecmp ("prefix", name))
+	if (!strcasecmp("user1", name))
+		change_user1 = xstrdup(value);
+	else if (!strcasecmp("user2", name))
+		change_user2 = xstrdup(value);
+	else if (!strcasecmp("prefix", name))
 	{
 		char   *prefix =
-			xstrdup (strcmp (value, "~") ? value : caller_home);
-		int     n = strlen (prefix) - 1;
+			xstrdup(strcmp(value, "~") ? value : caller_home);
+		int     n = strlen(prefix) - 1;
 
 		for (; n > 0; --n)
 		{
@@ -296,230 +295,230 @@ set_config (const char *name, const char *value, const char *filename)
 				break;
 		}
 		chroot_prefix = prefix;
-	} else if (!strcasecmp ("umask", name))
-		change_umask = str2umask (name, value, filename);
-	else if (!strcasecmp ("nice", name))
-		change_nice = str2nice (name, value, filename);
-	else if (!strcasecmp ("allowed_mountpoints", name))
-		parse_mountpoints (value, filename);
-	else if (!strcasecmp ("allow_ttydev", name))
-		allow_tty_devices = str2bool (name, value, filename);
-	else if (!strncasecmp (rlim_prefix, name, sizeof (rlim_prefix) - 1))
-		parse_rlim (name + sizeof (rlim_prefix) - 1, value, name,
-			    filename);
-	else if (!strncasecmp (wlim_prefix, name, sizeof (wlim_prefix) - 1))
-		parse_wlim (name + sizeof (wlim_prefix) - 1, value, name,
-			    filename);
+	} else if (!strcasecmp("umask", name))
+		change_umask = str2umask(name, value, filename);
+	else if (!strcasecmp("nice", name))
+		change_nice = str2nice(name, value, filename);
+	else if (!strcasecmp("allowed_mountpoints", name))
+		parse_mountpoints(value, filename);
+	else if (!strcasecmp("allow_ttydev", name))
+		allow_tty_devices = str2bool(name, value, filename);
+	else if (!strncasecmp(rlim_prefix, name, sizeof(rlim_prefix) - 1))
+		parse_rlim(name + sizeof(rlim_prefix) - 1, value, name,
+			   filename);
+	else if (!strncasecmp(wlim_prefix, name, sizeof(wlim_prefix) - 1))
+		parse_wlim(name + sizeof(wlim_prefix) - 1, value, name,
+			   filename);
 	else
-		bad_option_name (name, filename);
+		bad_option_name(name, filename);
 }
 
 static void
-read_config (int fd, const char *name)
+read_config(int fd, const char *name)
 {
-	FILE   *fp = fdopen (fd, "r");
+	FILE   *fp = fdopen(fd, "r");
 	char    buf[BUFSIZ];
 	unsigned line;
 
 	if (!fp)
-		error (EXIT_FAILURE, errno, "fdopen: %s", name);
+		error(EXIT_FAILURE, errno, "fdopen: %s", name);
 
-	for (line = 1; fgets (buf, BUFSIZ, fp); ++line)
+	for (line = 1; fgets(buf, BUFSIZ, fp); ++line)
 	{
 		const char *start, *left;
 		char   *eq, *right, *end;
 
-		for (start = buf; *start && isspace (*start); ++start)
+		for (start = buf; *start && isspace(*start); ++start)
 			;
 
 		if (!*start || '#' == *start)
 			continue;
 
-		if (!(eq = strchr (start, '=')))
-			error (EXIT_FAILURE, 0, "%s: syntax error at line %u",
-			       name, line);
+		if (!(eq = strchr(start, '=')))
+			error(EXIT_FAILURE, 0, "%s: syntax error at line %u",
+			      name, line);
 
 		left = start;
 		right = eq + 1;
 
 		for (; eq > left; --eq)
-			if (!isspace (eq[-1]))
+			if (!isspace(eq[-1]))
 				break;
 
 		if (left == eq)
-			error (EXIT_FAILURE, 0, "%s: syntax error at line %u",
-			       name, line);
+			error(EXIT_FAILURE, 0, "%s: syntax error at line %u",
+			      name, line);
 
 		*eq = '\0';
-		end = right + strlen (right);
+		end = right + strlen(right);
 
 		for (; right < end; ++right)
-			if (!isspace (*right))
+			if (!isspace(*right))
 				break;
 
 		for (; end > right; --end)
-			if (!isspace (end[-1]))
+			if (!isspace(end[-1]))
 				break;
 
 		*end = '\0';
-		set_config (left, right, name);
+		set_config(left, right, name);
 	}
 
-	if (ferror (fp))
-		error (EXIT_FAILURE, errno, "%s", name);
+	if (ferror(fp))
+		error(EXIT_FAILURE, errno, "%s", name);
 }
 
 static void
-load_config (const char *name)
+load_config(const char *name)
 {
 	struct stat st;
-	int     fd = open (name, O_RDONLY | O_NOFOLLOW | O_NOCTTY);
+	int     fd = open(name, O_RDONLY | O_NOFOLLOW | O_NOCTTY);
 
 	if (fd < 0)
-		error (EXIT_FAILURE, errno, "open: %s", name);
+		error(EXIT_FAILURE, errno, "open: %s", name);
 
-	if (fstat (fd, &st) < 0)
-		error (EXIT_FAILURE, errno, "fstat: %s", name);
+	if (fstat(fd, &st) < 0)
+		error(EXIT_FAILURE, errno, "fstat: %s", name);
 
-	stat_rootok_validator (&st, name);
+	stat_rootok_validator(&st, name);
 
-	if (!S_ISREG (st.st_mode))
-		error (EXIT_FAILURE, 0, "%s: not a regular file", name);
+	if (!S_ISREG(st.st_mode))
+		error(EXIT_FAILURE, 0, "%s: not a regular file", name);
 
 	if (st.st_size > MAX_CONFIG_SIZE)
-		error (EXIT_FAILURE, 0, "%s: file too large: %lu",
-		       name, (unsigned long) st.st_size);
+		error(EXIT_FAILURE, 0, "%s: file too large: %lu",
+		      name, (unsigned long) st.st_size);
 
-	read_config (fd, name);
+	read_config(fd, name);
 
-	if (close (fd) < 0)
-		error (EXIT_FAILURE, errno, "close: %s", name);
+	if (close(fd) < 0)
+		error(EXIT_FAILURE, errno, "close: %s", name);
 }
 
 static void
-check_user (const char *user_name, uid_t * user_uid, gid_t * user_gid,
-	    const char *name)
+check_user(const char *user_name, uid_t * user_uid, gid_t * user_gid,
+	   const char *name)
 {
 	struct passwd *pw;
 
 	if (!user_name || !*user_name)
-		error (EXIT_FAILURE, 0, "config: undefined: %s", name);
+		error(EXIT_FAILURE, 0, "config: undefined: %s", name);
 
-	pw = getpwnam (user_name);
+	pw = getpwnam(user_name);
 
 	if (!pw || !pw->pw_name)
-		error (EXIT_FAILURE, 0, "config: %s: %s lookup failure",
-		       name, user_name);
+		error(EXIT_FAILURE, 0, "config: %s: %s lookup failure",
+		      name, user_name);
 
-	if (strcmp (user_name, pw->pw_name))
-		error (EXIT_FAILURE, 0, "config: %s: %s: name mismatch", name,
-		       user_name);
+	if (strcmp(user_name, pw->pw_name))
+		error(EXIT_FAILURE, 0, "config: %s: %s: name mismatch", name,
+		      user_name);
 
 	if (pw->pw_uid < MIN_CHANGE_UID)
-		error (EXIT_FAILURE, 0, "config: %s: %s: invalid uid: %u",
-		       name, user_name, pw->pw_uid);
+		error(EXIT_FAILURE, 0, "config: %s: %s: invalid uid: %u",
+		      name, user_name, pw->pw_uid);
 	*user_uid = pw->pw_uid;
 
 	if (pw->pw_gid < MIN_CHANGE_GID)
-		error (EXIT_FAILURE, 0, "config: %s: %s: invalid gid: %u",
-		       name, user_name, pw->pw_gid);
+		error(EXIT_FAILURE, 0, "config: %s: %s: invalid gid: %u",
+		      name, user_name, pw->pw_gid);
 	*user_gid = pw->pw_gid;
 
-	if (!strcmp (caller_user, user_name))
-		error (EXIT_FAILURE, 0,
-		       "config: %s: %s: name coincides with caller", name,
-		       user_name);
+	if (!strcmp(caller_user, user_name))
+		error(EXIT_FAILURE, 0,
+		      "config: %s: %s: name coincides with caller", name,
+		      user_name);
 
 	if (caller_uid == *user_uid)
-		error (EXIT_FAILURE, 0,
-		       "config: %s: %s: uid coincides with caller", name,
-		       user_name);
+		error(EXIT_FAILURE, 0,
+		      "config: %s: %s: uid coincides with caller", name,
+		      user_name);
 
 	if (caller_gid == *user_gid)
-		error (EXIT_FAILURE, 0,
-		       "config: %s: %s: gid coincides with caller", name,
-		       user_name);
+		error(EXIT_FAILURE, 0,
+		      "config: %s: %s: gid coincides with caller", name,
+		      user_name);
 }
 
 void
-configure (void)
+configure(void)
 {
-	safe_chdir ("/", stat_rootok_validator);
-	safe_chdir ("etc/hasher-priv", stat_rootok_validator);
-	load_config ("system");
+	safe_chdir("/", stat_rootok_validator);
+	safe_chdir("etc/hasher-priv", stat_rootok_validator);
+	load_config("system");
 
-	safe_chdir ("user.d", stat_rootok_validator);
-	load_config (caller_user);
+	safe_chdir("user.d", stat_rootok_validator);
+	load_config(caller_user);
 
 	if (caller_num)
 	{
 		char   *fname;
 
 		/* Discard user1 and user2. */
-		free ((void *) change_user1);
+		free((void *) change_user1);
 		change_user1 = 0;
 
-		free ((void *) change_user2);
+		free((void *) change_user2);
 		change_user2 = 0;
 
-		xasprintf (&fname, "%s:%u", caller_user, caller_num);
-		load_config (fname);
-		free (fname);
+		xasprintf(&fname, "%s:%u", caller_user, caller_num);
+		load_config(fname);
+		free(fname);
 	}
 
-	safe_chdir ("/", stat_rootok_validator);
+	safe_chdir("/", stat_rootok_validator);
 
-	check_user (change_user1, &change_uid1, &change_gid1, "user1");
-	check_user (change_user2, &change_uid2, &change_gid2, "user2");
+	check_user(change_user1, &change_uid1, &change_gid1, "user1");
+	check_user(change_user2, &change_uid2, &change_gid2, "user2");
 
-	if (!strcmp (change_user1, change_user2))
-		error (EXIT_FAILURE, 0, "config: user1 coincides with user2");
+	if (!strcmp(change_user1, change_user2))
+		error(EXIT_FAILURE, 0, "config: user1 coincides with user2");
 
 	if (change_uid1 == change_uid2)
-		error (EXIT_FAILURE, 0,
-		       "config: uid of user1 coincides with uid of user2");
+		error(EXIT_FAILURE, 0,
+		      "config: uid of user1 coincides with uid of user2");
 
 	if (change_gid1 == change_gid2)
-		error (EXIT_FAILURE, 0,
-		       "config: gid of user1 coincides with gid of user2");
+		error(EXIT_FAILURE, 0,
+		      "config: gid of user1 coincides with gid of user2");
 }
 
 void
-parse_env (void)
+parse_env(void)
 {
 	const char *e;
 
-	if ((e = getenv ("wlimit_time_elapsed")) && *e)
-		modify_wlim (&wlimit.time_elapsed, e, "wlimit_time_elapsed",
-			     "environment");
+	if ((e = getenv("wlimit_time_elapsed")) && *e)
+		modify_wlim(&wlimit.time_elapsed, e, "wlimit_time_elapsed",
+			    "environment");
 
-	if ((e = getenv ("wlimit_time_idle")) && *e)
-		modify_wlim (&wlimit.time_idle, e, "wlimit_time_idle",
-			     "environment");
+	if ((e = getenv("wlimit_time_idle")) && *e)
+		modify_wlim(&wlimit.time_idle, e, "wlimit_time_idle",
+			    "environment");
 
-	if ((e = getenv ("wlimit_bytes_written")) && *e)
-		modify_wlim (&wlimit.bytes_written, e, "wlimit_bytes_written",
-			     "environment");
+	if ((e = getenv("wlimit_bytes_written")) && *e)
+		modify_wlim(&wlimit.bytes_written, e, "wlimit_bytes_written",
+			    "environment");
 
-	if ((e = getenv ("use_pty")))
-		use_pty = str2bool ("use_pty", e, "environment");
+	if ((e = getenv("use_pty")))
+		use_pty = str2bool("use_pty", e, "environment");
 
-	if (use_pty && (e = getenv ("TERM")) && *e)
-		term = xstrdup (e);
+	if (use_pty && (e = getenv("TERM")) && *e)
+		term = xstrdup(e);
 
-	if ((e = getenv ("XAUTH_DISPLAY")) && *e)
-		x11_display = xstrdup (e);
+	if ((e = getenv("XAUTH_DISPLAY")) && *e)
+		x11_display = xstrdup(e);
 
-	if ((e = getenv ("XAUTH_KEY")) && *e)
-		x11_key = xstrdup (e);
+	if ((e = getenv("XAUTH_KEY")) && *e)
+		x11_key = xstrdup(e);
 
 	if (x11_display && x11_key)
 	{
-		x11_data_len = strlen (x11_key);
+		x11_data_len = strlen(x11_key);
 		if (x11_data_len & 1)
 		{
-			error (EXIT_SUCCESS, 0,
-			       "Invalid X11 authentication data");
+			error(EXIT_SUCCESS, 0,
+			      "Invalid X11 authentication data");
 			x11_data_len = 0;
 		} else
 		{
@@ -529,8 +528,8 @@ parse_env (void)
 
 	if (x11_data_len == 0)
 	{
-		free ((char *) x11_display);
-		free ((char *) x11_key);
+		free((char *) x11_display);
+		free((char *) x11_key);
 		x11_display = x11_key = 0;
 	}
 }

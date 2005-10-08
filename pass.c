@@ -35,46 +35,46 @@
 /* This function may be executed with child privileges. */
 
 void
-fd_send (int ctl, int pass, const char *data, size_t data_len)
+fd_send(int ctl, int pass, const char *data, size_t data_len)
 {
 	struct iovec vec;
 	struct msghdr msg;
 	struct cmsghdr *cmsg;
-	char    buf[CMSG_SPACE (sizeof pass)];
+	char    buf[CMSG_SPACE(sizeof pass)];
 
-	memset (&msg, 0, sizeof (msg));
+	memset(&msg, 0, sizeof(msg));
 	msg.msg_control = buf;
-	msg.msg_controllen = sizeof (buf);
+	msg.msg_controllen = sizeof(buf);
 	msg.msg_iov = &vec;
 	msg.msg_iovlen = 1;
 
-	cmsg = CMSG_FIRSTHDR (&msg);
+	cmsg = CMSG_FIRSTHDR(&msg);
 	cmsg->cmsg_level = SOL_SOCKET;
 	cmsg->cmsg_type = SCM_RIGHTS;
-	cmsg->cmsg_len = CMSG_LEN (sizeof pass);
+	cmsg->cmsg_len = CMSG_LEN(sizeof pass);
 
-	*(int *) CMSG_DATA (cmsg) = pass;
+	*(int *) CMSG_DATA(cmsg) = pass;
 
 	vec.iov_base = (char *) data;
 	vec.iov_len = data_len;
 
 	ssize_t rc;
 
-	if ((rc = TEMP_FAILURE_RETRY (sendmsg (ctl, &msg, 0))) !=
+	if ((rc = TEMP_FAILURE_RETRY(sendmsg(ctl, &msg, 0))) !=
 	    (ssize_t) data_len)
 	{
 		if (rc < 0)
 		{
-			error (EXIT_FAILURE, errno, "sendmsg");
+			error(EXIT_FAILURE, errno, "sendmsg");
 		} else
 		{
 			if (rc)
-				error (EXIT_FAILURE, 0,
-				       "sendmsg: expected size %u, got %u",
-				       (unsigned) data_len, (unsigned) rc);
+				error(EXIT_FAILURE, 0,
+				      "sendmsg: expected size %u, got %u",
+				      (unsigned) data_len, (unsigned) rc);
 			else
-				error (EXIT_FAILURE, 0,
-				       "sendmsg: unexpected EOF");
+				error(EXIT_FAILURE, 0,
+				      "sendmsg: unexpected EOF");
 		}
 	}
 }
@@ -82,16 +82,16 @@ fd_send (int ctl, int pass, const char *data, size_t data_len)
 /* This function may be executed with caller privileges. */
 
 int
-fd_recv (int ctl, char *data, size_t data_len)
+fd_recv(int ctl, char *data, size_t data_len)
 {
 	struct iovec vec;
 	struct msghdr msg;
 	struct cmsghdr *cmsg;
-	char    buf[CMSG_SPACE (sizeof (int))];
+	char    buf[CMSG_SPACE(sizeof(int))];
 
-	memset (&msg, 0, sizeof (msg));
+	memset(&msg, 0, sizeof(msg));
 	msg.msg_control = buf;
-	msg.msg_controllen = sizeof (buf);
+	msg.msg_controllen = sizeof(buf);
 	msg.msg_iov = &vec;
 	msg.msg_iovlen = 1;
 
@@ -100,38 +100,38 @@ fd_recv (int ctl, char *data, size_t data_len)
 
 	ssize_t rc;
 
-	if ((rc = TEMP_FAILURE_RETRY (recvmsg (ctl, &msg, 0))) !=
+	if ((rc = TEMP_FAILURE_RETRY(recvmsg(ctl, &msg, 0))) !=
 	    (ssize_t) data_len)
 	{
 		if (rc < 0)
 		{
-			error (EXIT_SUCCESS, errno, "recvmsg");
-			fputc ('\r', stderr);
+			error(EXIT_SUCCESS, errno, "recvmsg");
+			fputc('\r', stderr);
 		} else
 		{
 			if (rc)
-				error (EXIT_SUCCESS, 0,
-				       "recvmsg: expected size %u, got %u\r",
-				       (unsigned) data_len, (unsigned) rc);
+				error(EXIT_SUCCESS, 0,
+				      "recvmsg: expected size %u, got %u\r",
+				      (unsigned) data_len, (unsigned) rc);
 			else
-				error (EXIT_SUCCESS, 0,
-				       "recvmsg: unexpected EOF\r");
+				error(EXIT_SUCCESS, 0,
+				      "recvmsg: unexpected EOF\r");
 		}
 		return -1;
 	}
 
-	if (!(cmsg = CMSG_FIRSTHDR (&msg)))
+	if (!(cmsg = CMSG_FIRSTHDR(&msg)))
 	{
-		error (EXIT_SUCCESS, 0, "recvmsg: no message header\r");
+		error(EXIT_SUCCESS, 0, "recvmsg: no message header\r");
 		return -1;
 	}
 
 	if (cmsg->cmsg_type != SCM_RIGHTS)
 	{
-		error (EXIT_SUCCESS, 0, "recvmsg: expected type %u, got %u\r",
-		       SCM_RIGHTS, cmsg->cmsg_type);
+		error(EXIT_SUCCESS, 0, "recvmsg: expected type %u, got %u\r",
+		      SCM_RIGHTS, cmsg->cmsg_type);
 		return -1;
 	}
 
-	return *(int *) CMSG_DATA (cmsg);
+	return *(int *) CMSG_DATA(cmsg);
 }

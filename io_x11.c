@@ -46,7 +46,7 @@ static io_x11_t *io_x11_list;
 static unsigned io_x11_count;
 
 static  io_x11_t
-io_x11_new (int master_fd, int slave_fd)
+io_x11_new(int master_fd, int slave_fd)
 {
 	unsigned i;
 
@@ -56,22 +56,22 @@ io_x11_new (int master_fd, int slave_fd)
 
 	if (i == io_x11_count)
 		io_x11_list =
-			xrealloc (io_x11_list,
-				  (++io_x11_count) * sizeof (*io_x11_list));
+			xrealloc(io_x11_list,
+				 (++io_x11_count) * sizeof(*io_x11_list));
 
-	io_x11_t io = io_x11_list[i] = xmalloc (sizeof (*io_x11_list[i]));
+	io_x11_t io = io_x11_list[i] = xmalloc(sizeof(*io_x11_list[i]));
 
-	memset (io, 0, sizeof (*io));
+	memset(io, 0, sizeof(*io));
 	io->master_fd = master_fd;
 	io->slave_fd = slave_fd;
-	unblock_fd (master_fd);
-	unblock_fd (slave_fd);
+	unblock_fd(master_fd);
+	unblock_fd(slave_fd);
 
 	return io;
 }
 
 static void
-io_x11_free (io_x11_t io)
+io_x11_free(io_x11_t io)
 {
 	unsigned i;
 
@@ -79,49 +79,49 @@ io_x11_free (io_x11_t io)
 		if (io_x11_list[i] == io)
 			break;
 	if (i == io_x11_count)
-		error (EXIT_FAILURE, 0,
-		       "io_x11_free: entry %p not found, count=%u\n", io,
-		       io_x11_count);
+		error(EXIT_FAILURE, 0,
+		      "io_x11_free: entry %p not found, count=%u\n", io,
+		      io_x11_count);
 	io_x11_list[i] = 0;
 
-	(void) close (io->master_fd);
-	(void) close (io->slave_fd);
-	memset (io, 0, sizeof (*io));
-	free (io);
+	(void) close(io->master_fd);
+	(void) close(io->slave_fd);
+	memset(io, 0, sizeof(*io));
+	free(io);
 }
 
 void
-prepare_x11_new (int *x11_fd, int *max_fd, fd_set *read_fds)
+prepare_x11_new(int *x11_fd, int *max_fd, fd_set * read_fds)
 {
 	if (*x11_fd < 0)
 		return;
 
-	FD_SET (*x11_fd, read_fds);
+	FD_SET(*x11_fd, read_fds);
 	if (*x11_fd > *max_fd)
 		*max_fd = *x11_fd;
 }
 
 void
-handle_x11_new (int *x11_fd, fd_set *read_fds)
+handle_x11_new(int *x11_fd, fd_set * read_fds)
 {
-	if (*x11_fd < 0 || !FD_ISSET (*x11_fd, read_fds))
+	if (*x11_fd < 0 || !FD_ISSET(*x11_fd, read_fds))
 		return;
 
-	int     accept_fd = x11_accept (*x11_fd);
+	int     accept_fd = x11_accept(*x11_fd);
 
 	if (accept_fd < 0)
 		return;
 
-	int     connect_fd = x11_connect ();
+	int     connect_fd = x11_connect();
 
 	if (connect_fd >= 0)
-		io_x11_new (connect_fd, accept_fd);
+		io_x11_new(connect_fd, accept_fd);
 	else
-		(void) close (accept_fd);
+		(void) close(accept_fd);
 }
 
 void
-prepare_x11_select (int *max_fd, fd_set *read_fds, fd_set *write_fds)
+prepare_x11_select(int *max_fd, fd_set * read_fds, fd_set * write_fds)
 {
 	unsigned i;
 
@@ -134,24 +134,24 @@ prepare_x11_select (int *max_fd, fd_set *read_fds, fd_set *write_fds)
 
 		if (io->slave_avail)
 		{
-			FD_SET (io->master_fd, write_fds);
+			FD_SET(io->master_fd, write_fds);
 			if (io->master_fd > *max_fd)
 				*max_fd = io->master_fd;
 		} else
 		{
-			FD_SET (io->slave_fd, read_fds);
+			FD_SET(io->slave_fd, read_fds);
 			if (io->slave_fd > *max_fd)
 				*max_fd = io->slave_fd;
 		}
 
 		if (io->master_avail)
 		{
-			FD_SET (io->slave_fd, write_fds);
+			FD_SET(io->slave_fd, write_fds);
 			if (io->slave_fd > *max_fd)
 				*max_fd = io->slave_fd;
 		} else
 		{
-			FD_SET (io->master_fd, read_fds);
+			FD_SET(io->master_fd, read_fds);
 			if (io->master_fd > *max_fd)
 				*max_fd = io->master_fd;
 		}
@@ -159,8 +159,8 @@ prepare_x11_select (int *max_fd, fd_set *read_fds, fd_set *write_fds)
 }
 
 static void
-io_check_auth_data (io_x11_t io, const char *x11_saved_data,
-		    const char *x11_fake_data)
+io_check_auth_data(io_x11_t io, const char *x11_saved_data,
+		   const char *x11_fake_data)
 {
 	if (io->authenticated)
 		return;
@@ -170,9 +170,9 @@ io_check_auth_data (io_x11_t io, const char *x11_saved_data,
 
 	if (avail < expected)
 	{
-		error (EXIT_SUCCESS, 0,
-		       "Initial X11 packet too short, expected length = %u\r",
-		       expected);
+		error(EXIT_SUCCESS, 0,
+		      "Initial X11 packet too short, expected length = %u\r",
+		      expected);
 		return;
 	}
 	unsigned proto_len = 0, data_len = 0;
@@ -188,9 +188,9 @@ io_check_auth_data (io_x11_t io, const char *x11_saved_data,
 		data_len = p[8] + 256 * p[9];
 	} else
 	{
-		error (EXIT_SUCCESS, 0,
-		       "Initial X11 packet contains unrecognized order byte: %#x\r",
-		       p[0]);
+		error(EXIT_SUCCESS, 0,
+		      "Initial X11 packet contains unrecognized order byte: %#x\r",
+		      p[0]);
 		return;
 	}
 
@@ -199,28 +199,28 @@ io_check_auth_data (io_x11_t io, const char *x11_saved_data,
 		((data_len + 3) & (unsigned) ~3);
 	if (avail < expected)
 	{
-		error (EXIT_SUCCESS, 0,
-		       "Initial X11 packet too short, expected length = %u\r",
-		       expected);
+		error(EXIT_SUCCESS, 0,
+		      "Initial X11 packet too short, expected length = %u\r",
+		      expected);
 		return;
 	}
 
 	if (data_len != x11_data_len ||
-	    memcmp (p + 12 + ((proto_len + 3) & (unsigned) ~3),
-		    x11_fake_data, x11_data_len) != 0)
+	    memcmp(p + 12 + ((proto_len + 3) & (unsigned) ~3),
+		   x11_fake_data, x11_data_len) != 0)
 	{
-		error (EXIT_SUCCESS, 0,
-		       "X11 auth data does not match fake data\r");
+		error(EXIT_SUCCESS, 0,
+		      "X11 auth data does not match fake data\r");
 		return;
 	}
 
-	memcpy (p + 12 + ((proto_len + 3) & (unsigned) ~3),
-		x11_saved_data, x11_data_len);
+	memcpy(p + 12 + ((proto_len + 3) & (unsigned) ~3),
+	       x11_saved_data, x11_data_len);
 }
 
 void
-handle_x11_select (fd_set *read_fds, fd_set *write_fds,
-		   const char *x11_saved_data, const char *x11_fake_data)
+handle_x11_select(fd_set * read_fds, fd_set * write_fds,
+		  const char *x11_saved_data, const char *x11_fake_data)
 {
 	unsigned i;
 	ssize_t n;
@@ -232,71 +232,69 @@ handle_x11_select (fd_set *read_fds, fd_set *write_fds,
 		if (!(io = io_x11_list[i]))
 			continue;
 
-		if (io->master_avail && FD_ISSET (io->slave_fd, write_fds))
+		if (io->master_avail && FD_ISSET(io->slave_fd, write_fds))
 		{
-			n = write_loop (io->slave_fd,
-					io->master_buf, io->master_avail);
+			n = write_loop(io->slave_fd,
+				       io->master_buf, io->master_avail);
 			if (n <= 0)
 			{
-				io_x11_free (io);
+				io_x11_free(io);
 				continue;
 			}
 
 			if ((size_t) n < io->master_avail)
 			{
-				memmove (io->master_buf,
-					 io->master_buf + n,
-					 io->master_avail - n);
+				memmove(io->master_buf,
+					io->master_buf + n,
+					io->master_avail - n);
 			}
 			io->master_avail -= n;
 		}
 
-		if (!io->master_avail && FD_ISSET (io->master_fd, read_fds))
+		if (!io->master_avail && FD_ISSET(io->master_fd, read_fds))
 		{
-			n = read_retry (io->master_fd,
-					io->master_buf,
-					sizeof io->master_buf);
+			n = read_retry(io->master_fd,
+				       io->master_buf, sizeof io->master_buf);
 			if (n <= 0)
 			{
-				io_x11_free (io);
+				io_x11_free(io);
 				continue;
 			}
 
 			io->master_avail = n;
 		}
 
-		if (io->slave_avail && FD_ISSET (io->master_fd, write_fds))
+		if (io->slave_avail && FD_ISSET(io->master_fd, write_fds))
 		{
-			n = write_loop (io->master_fd,
-					io->slave_buf, io->slave_avail);
+			n = write_loop(io->master_fd,
+				       io->slave_buf, io->slave_avail);
 			if (n <= 0)
 			{
-				io_x11_free (io);
+				io_x11_free(io);
 				continue;
 			}
 
 			if ((size_t) n < io->slave_avail)
 			{
-				memmove (io->slave_buf,
-					 io->slave_buf + n,
-					 io->slave_avail - n);
+				memmove(io->slave_buf,
+					io->slave_buf + n,
+					io->slave_avail - n);
 			}
 			io->slave_avail -= n;
 		}
 
-		if (!io->slave_avail && FD_ISSET (io->slave_fd, read_fds))
+		if (!io->slave_avail && FD_ISSET(io->slave_fd, read_fds))
 		{
-			n = read_retry (io->slave_fd,
-					io->slave_buf, sizeof io->slave_buf);
+			n = read_retry(io->slave_fd,
+				       io->slave_buf, sizeof io->slave_buf);
 			if (n <= 0)
 			{
-				io_x11_free (io);
+				io_x11_free(io);
 				continue;
 			}
 
 			io->slave_avail = n;
-			io_check_auth_data (io, x11_saved_data,
-					    x11_fake_data);
+			io_check_auth_data(io, x11_saved_data, x11_fake_data);
 		}
 	}
 }

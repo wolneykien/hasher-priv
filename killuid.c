@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The killuid actions for the hasher-priv program.
 
@@ -39,33 +39,33 @@
 extern int __libc_enable_secure;
 
 static int
-killuid (uid_t uid)
+killuid(uid_t uid)
 {
-	if (uid < MIN_CHANGE_UID || uid == getuid ())
-		error (EXIT_FAILURE, 0, "killuid: invalid uid: %u", uid);
+	if (uid < MIN_CHANGE_UID || uid == getuid())
+		error(EXIT_FAILURE, 0, "killuid: invalid uid: %u", uid);
 
-	if (prctl (PR_SET_DUMPABLE, 0) && !__libc_enable_secure)
-		error (EXIT_FAILURE, errno, "killuid: prctl PR_SET_DUMPABLE");
+	if (prctl(PR_SET_DUMPABLE, 0) && !__libc_enable_secure)
+		error(EXIT_FAILURE, errno, "killuid: prctl PR_SET_DUMPABLE");
 
-	if (setuid (uid) < 0)
-		error (EXIT_FAILURE, errno, "killuid: setuid");
+	if (setuid(uid) < 0)
+		error(EXIT_FAILURE, errno, "killuid: setuid");
 
-	if (kill (-1, SIGKILL))
-		error (EXIT_FAILURE, errno, "killuid: kill");
+	if (kill(-1, SIGKILL))
+		error(EXIT_FAILURE, errno, "killuid: kill");
 
-	purge_ipc (uid);
+	purge_ipc(uid);
 
 	return 0;
 };
 
 int
-do_killuid1 (void)
+do_killuid1(void)
 {
-	return killuid (change_uid1);
+	return killuid(change_uid1);
 }
 
 int
-do_killuid2 (void)
+do_killuid2(void)
 {
-	return killuid (change_uid2);
+	return killuid(change_uid2);
 }
