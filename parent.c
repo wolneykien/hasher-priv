@@ -301,13 +301,18 @@ handle_io(io_std_t io)
 		n = read_retry(io->slave_read_out_fd,
 			       io->slave_buf, sizeof io->slave_buf);
 		if (n <= 0)
-			return EXIT_FAILURE;
+		{
+			io->slave_read_out_fd = -1;
+		} else
+		{
 
-		if (write_loop
-		    (io->master_write_out_fd, io->slave_buf, (size_t) n) != n)
-			error(EXIT_FAILURE, errno, "write");
+			if (write_loop
+			    (io->master_write_out_fd, io->slave_buf,
+			     (size_t) n) != n)
+				error(EXIT_FAILURE, errno, "write");
 
-		total_bytes_written += n;
+			total_bytes_written += n;
+		}
 	}
 
 	if (io->slave_read_err_fd >= 0
@@ -317,14 +322,22 @@ handle_io(io_std_t io)
 		n = read_retry(io->slave_read_err_fd,
 			       io->slave_buf, sizeof io->slave_buf);
 		if (n <= 0)
-			return EXIT_FAILURE;
+		{
+			io->slave_read_err_fd = -1;
+		} else
+		{
 
-		if (write_loop
-		    (io->master_write_err_fd, io->slave_buf, (size_t) n) != n)
-			error(EXIT_FAILURE, errno, "write");
+			if (write_loop
+			    (io->master_write_err_fd, io->slave_buf,
+			     (size_t) n) != n)
+				error(EXIT_FAILURE, errno, "write");
 
-		total_bytes_written += n;
+			total_bytes_written += n;
+		}
 	}
+
+	if (io->slave_read_out_fd < 0 && io->slave_read_err_fd < 0)
+		return EXIT_FAILURE;
 
 	if (!child_pid)
 		return EXIT_SUCCESS;
