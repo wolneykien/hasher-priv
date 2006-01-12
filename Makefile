@@ -1,6 +1,6 @@
 #
 # $Id$
-# Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+# Copyright (C) 2003-2006  Dmitry V. Levin <ldv@altlinux.org>
 # 
 # Makefile for the hasher-priv project.
 #
@@ -20,7 +20,7 @@
 #
 
 PROJECT = hasher-priv
-VERSION = $(shell grep ^Version: hasher-priv.spec |head -1 |awk '{print $$2}')
+VERSION = $(shell sed '/^Version: */!d;s///;q' hasher-priv.spec)
 SCRIPTS = getugid1.sh chrootuid1.sh getugid2.sh chrootuid2.sh makedev.sh maketty.sh
 MAN5PAGES = $(PROJECT).conf.5
 MAN8PAGES = $(PROJECT).8 hasher-useradd.8
