@@ -1,7 +1,7 @@
 
 /*
   $Id$
-  Copyright (C) 2004-2005  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2004-2006  Dmitry V. Levin <ldv@altlinux.org>
 
   The chrootuid child handler for the hasher-priv program.
 
@@ -126,9 +126,6 @@ xauth_gen_fake(void)
 static int
 xauth_add_entry(char *const *env)
 {
-	const char *av[] = { "xauth", "add", ":10.0", ".", x11_key, 0 };
-	const char *path = "/usr/X11R6/bin/xauth";
-
 	pid_t   pid = fork();
 
 	if (pid < 0)
@@ -136,8 +133,21 @@ xauth_add_entry(char *const *env)
 
 	if (!pid)
 	{
-		execve(path, (char *const *) av, env);
-		error(EXIT_SUCCESS, errno, "execve: %s", path);
+		const char *av[] =
+			{ "xauth", "add", ":10.0", ".", x11_key, 0 };
+		const char *paths[] =
+			{ "/usr/bin/xauth", "/usr/X11R6/bin/xauth" };
+		size_t  i, paths_size = sizeof(paths) / sizeof(paths[0]);
+		int     errors[paths_size];
+
+		for (i = 0; i < paths_size; ++i)
+		{
+			execve(paths[i], (char *const *) av, env);
+			errors[i] = errno;
+		}
+		for (i = 0; i < paths_size; ++i)
+			error(EXIT_SUCCESS, errors[i], "execve: %s",
+			      paths[i]);
 		_exit(EXIT_FAILURE);
 	} else
 	{
