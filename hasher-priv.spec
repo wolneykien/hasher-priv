@@ -1,7 +1,7 @@
 # $Id$
 
 Name: hasher-priv
-Version: 1.2.2
+Version: 1.2.3
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -32,7 +32,7 @@ required by hasher utilities.
 %setup -q
 
 %build
-%make_build CFLAGS="$RPM_OPT_FLAGS" libexecdir=%_libexecdir
+%make_build CFLAGS="%optflags" libexecdir=%_libexecdir
 
 %install
 %makeinstall
@@ -62,6 +62,10 @@ fi
 %doc DESIGN
 
 %changelog
+* Sat Jan 21 2006 Dmitry V. Levin <ldv@altlinux.org> 1.2.3-alt1
+- Makefile: corrected LFS_CFLAGS.
+- child.c: Reworked xauth_add_entry() to support various xauth locations.
+
 * Sun Oct 09 2005 Dmitry V. Levin <ldv@altlinux.org> 1.2.2-alt1
 - If use_pty is not set, handle child's stdout and stderr separately.
 - In makedev mode, create few devices available to root only (mouse@).
