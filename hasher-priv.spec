@@ -1,7 +1,7 @@
 # $Id$
 
 Name: hasher-priv
-Version: 1.2.3
+Version: 1.2.4
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -62,8 +62,14 @@ fi
 %doc DESIGN
 
 %changelog
+* Sat Mar 18 2006 Dmitry V. Levin <ldv@altlinux.org> 1.2.4-alt1
+- makeconsole: New mode, creates console-specific root-only
+  devices initially introduced by 1.2.2's makedev.
+- makedev.sh: In addition to makedev, call makeconsole
+  if enabled by $makedev_console.
+
 * Sat Jan 21 2006 Dmitry V. Levin <ldv@altlinux.org> 1.2.3-alt1
-- Makefile: corrected LFS_CFLAGS.
+- Makefile: Corrected LFS_CFLAGS.
 - child.c: Reworked xauth_add_entry() to support various xauth locations.
 
 * Sun Oct 09 2005 Dmitry V. Levin <ldv@altlinux.org> 1.2.2-alt1
@@ -72,8 +78,8 @@ fi
 
 * Mon Aug 15 2005 Dmitry V. Levin <ldv@altlinux.org> 1.2.1-alt1
 - hasher-priv: Do not lowercase mount points (at@).
-- chrootuid1.sh: synced with chrootuid2.sh.
-- DESIGN: fixed typo (at@).
+- chrootuid1.sh: Synced with chrootuid2.sh.
+- DESIGN: Fixed typo (at@).
 
 * Sat Jul 16 2005 Dmitry V. Levin <ldv@altlinux.org> 1.2.0-alt1
 - Implemented X11 authentication spoofing.
