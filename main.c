@@ -84,6 +84,8 @@ main(int ac, const char *av[])
 			return do_makedev();
 		case TASK_MAKETTY:
 			return do_maketty();
+		case TASK_MAKECONSOLE:
+			return do_makeconsole();
 		case TASK_MOUNT:
 			return do_mount();
 		case TASK_UMOUNT:

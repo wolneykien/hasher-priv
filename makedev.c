@@ -57,6 +57,20 @@ do_makedev(void)
 	xmknod("zero", "/dev/zero", S_IFCHR | 0666, 1, 5);
 	xmknod("urandom", "/dev/urandom", S_IFCHR | 0644, 1, 9);
 	xmknod("random", "/dev/urandom", S_IFCHR | 0644, 1, 9);	/* pseudo random. */
+	umask(m);
+
+	return 0;
+}
+
+int
+do_makeconsole(void)
+{
+	mode_t  m;
+
+	chdiruid(chroot_path);
+	chdiruid("dev");
+
+	m = umask(0);
 	xmknod("console", "/dev/console", S_IFCHR | 0600, 5, 1);
 	xmknod("tty0", "/dev/tty0", S_IFCHR | 0600, 4, 0);
 	xmknod("fb0", "/dev/fb0", S_IFCHR | 0600, 29, 0);

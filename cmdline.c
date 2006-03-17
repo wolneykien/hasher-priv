@@ -77,6 +77,8 @@ print_help(void)
 	       "       make essential devices in given chroot;\n"
 	       "maketty <chroot path>:\n"
 	       "       make tty devices in given chroot;\n"
+	       "makeconsole <chroot path>:\n"
+	       "       make console devices in given chroot;\n"
 	       "mount <chroot path> <mount point>:\n"
 	       "       mount appropriate file system to the given mount point;\n"
 	       "umount <chroot path>:\n"
@@ -194,6 +196,12 @@ parse_cmdline(int argc, const char *argv[])
 			show_usage("%s: invalid usage", av[0]);
 		chroot_path = av[1];
 		return TASK_MAKETTY;
+	} else if (!strcmp("makeconsole", av[0]))
+	{
+		if (ac != 2)
+			show_usage("%s: invalid usage", av[0]);
+		chroot_path = av[1];
+		return TASK_MAKECONSOLE;
 	} else if (!strcmp("mount", av[0]))
 	{
 		if (ac != 3)

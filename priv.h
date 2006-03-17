@@ -42,6 +42,7 @@ typedef enum
 	TASK_CHROOTUID2,
 	TASK_MAKEDEV,
 	TASK_MAKETTY,
+	TASK_MAKECONSOLE,
 	TASK_MOUNT,
 	TASK_UMOUNT
 } task_t;
@@ -109,6 +110,7 @@ int     do_chrootuid1(void);
 int     do_getugid2(void);
 int     do_killuid2(void);
 int     do_chrootuid2(void);
+int     do_makeconsole(void);
 int     do_makedev(void);
 int     do_maketty(void);
 int     do_mount(void);
