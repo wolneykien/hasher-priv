@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 #
 # $Id$
 # Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
@@ -26,4 +26,9 @@ if [ -n "$1" -a -z "${1##-*}" ]; then
 	shift
 fi
 
-exec @helper@ $n makedev "$@"
+@helper@ $n makedev "$@"
+case "$makedev_console" in
+	1|[Yy]|[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn])
+		exec @helper@ $n makeconsole "$@"
+		;;
+esac
