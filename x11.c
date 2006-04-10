@@ -1,6 +1,5 @@
 
 /*
-  $Id$
   Copyright (C) 2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The X11 forwarding support_str for the hasher-priv program.

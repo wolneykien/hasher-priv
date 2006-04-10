@@ -1,6 +1,5 @@
 
 /*
-  $Id$
   Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The killuid actions for the hasher-priv program.

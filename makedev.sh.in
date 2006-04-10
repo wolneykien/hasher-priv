@@ -1,7 +1,6 @@
 #!/bin/sh -e
 #
-# $Id$
-# Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+# Copyright (C) 2003, 2004, 2006  Dmitry V. Levin <ldv@altlinux.org>
 # 
 # The makedev helper for the hasher-priv project
 #

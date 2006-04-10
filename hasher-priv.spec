@@ -1,5 +1,3 @@
-# $Id$
-
 Name: hasher-priv
 Version: 1.2.4
 Release: alt1

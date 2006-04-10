@@ -1,7 +1,6 @@
 
 /*
-  $Id$
-  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2006  Dmitry V. Levin <ldv@altlinux.org>
 
   The entry function for the hasher-priv program.
 

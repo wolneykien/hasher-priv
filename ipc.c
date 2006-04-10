@@ -1,6 +1,5 @@
 
 /*
-  $Id$
   Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
 
   Purge all SYSV IPC objects for given uid.

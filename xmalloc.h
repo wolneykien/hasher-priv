@@ -1,6 +1,5 @@
 
 /*
-  $Id$
   Copyright (C) 2002, 2005  Dmitry V. Levin <ldv@altlinux.org>
 
   Dynamic memory allocation with error checking.

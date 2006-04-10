@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-# $Id$
 # Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
 # 
 # The maketty helper for the hasher-priv project

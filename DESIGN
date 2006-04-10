@@ -1,4 +1,3 @@
-$Id$
 
 Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
 + sanitize file descriptors

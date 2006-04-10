@@ -1,6 +1,5 @@
 
 /*
-  $Id$
   Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
 
   Configuration support module for the hasher-priv program.

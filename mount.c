@@ -1,6 +1,5 @@
 
 /*
-  $Id$
   Copyright (C) 2004, 2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The mount action for the hasher-priv program.

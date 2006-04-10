@@ -1,6 +1,5 @@
 
 /*
-  $Id$
   Copyright (C) 2005  Dmitry V. Levin <ldv@altlinux.org>
 
   The chrootuid parent X11 I/O handler for the hasher-priv program.

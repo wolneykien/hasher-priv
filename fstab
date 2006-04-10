@@ -1,4 +1,3 @@
-# $Id$
 # Information about mount points for the hasher-priv(8) helper program.
 # See fstab(5) for details.
 

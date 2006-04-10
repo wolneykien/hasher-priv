@@ -1,6 +1,5 @@
 #!/bin/sh -e
 #
-# $Id$
 # Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
 # 
 # The useradd wrapper for the hasher-priv project
