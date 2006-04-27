@@ -1,1 +1,2 @@
-tar: .
+spec: hasher-priv/hasher-priv.spec
+tar: hasher-priv
