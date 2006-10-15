@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 1.2.4
+Version: 1.2.5
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -60,6 +60,9 @@ fi
 %doc DESIGN
 
 %changelog
+* Sun Oct 15 2006 Dmitry V. Levin <ldv@altlinux.org> 1.2.5-alt1
+- Fixed build with -D_FORTIFY_SOURCE=2 -Werror.
+
 * Sat Mar 18 2006 Dmitry V. Levin <ldv@altlinux.org> 1.2.4-alt1
 - makeconsole: New mode, creates console-specific root-only
   devices initially introduced by 1.2.2's makedev.
