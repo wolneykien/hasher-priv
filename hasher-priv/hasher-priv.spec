@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 1.2.5
+Version: 1.2.6
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -60,6 +60,9 @@ fi
 %doc DESIGN
 
 %changelog
+* Wed Oct 18 2006 Dmitry V. Levin <ldv@altlinux.org> 1.2.6-alt1
+- Allowed "user.d" configs to override wlimits defined in "system" config.
+
 * Sun Oct 15 2006 Dmitry V. Levin <ldv@altlinux.org> 1.2.5-alt1
 - Fixed build with -D_FORTIFY_SOURCE=2 -Werror.
 
