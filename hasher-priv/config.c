@@ -210,11 +210,11 @@ str2wlim(const char *name, const char *value, const char *filename)
 
 static void
 modify_wlim(unsigned *pval, const char *value,
-	    const char *optname, const char *filename)
+	    const char *optname, const char *filename, int is_system)
 {
 	unsigned val = str2wlim(optname, value, filename);
 
-	if (*pval == 0 || (val > 0 && val < *pval))
+	if (is_system || *pval == 0 || (val > 0 && val < *pval))
 		*pval = val;
 }
 
@@ -233,7 +233,7 @@ parse_wlim(const char *name, const char *value,
 	else
 		bad_option_name(optname, filename);
 
-	modify_wlim(pval, value, optname, filename);
+	modify_wlim(pval, value, optname, filename, 1);
 }
 
 static void
@@ -489,15 +489,15 @@ parse_env(void)
 
 	if ((e = getenv("wlimit_time_elapsed")) && *e)
 		modify_wlim(&wlimit.time_elapsed, e, "wlimit_time_elapsed",
-			    "environment");
+			    "environment", 0);
 
 	if ((e = getenv("wlimit_time_idle")) && *e)
 		modify_wlim(&wlimit.time_idle, e, "wlimit_time_idle",
-			    "environment");
+			    "environment", 0);
 
 	if ((e = getenv("wlimit_bytes_written")) && *e)
 		modify_wlim(&wlimit.bytes_written, e, "wlimit_bytes_written",
-			    "environment");
+			    "environment", 0);
 
 	if ((e = getenv("use_pty")))
 		use_pty = str2bool("use_pty", e, "environment");
