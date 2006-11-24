@@ -84,8 +84,13 @@ indent:
 
 %.sh: %.sh.in Makefile
 	sed -e 's|@helper@|$(helperdir)/$(PROJECT)|g' <$< >$@
+	chmod --reference=$< $@
 
 %.5: %.5.in
+	sed -e 's/@VERSION@/$(VERSION)/g' <$< >$@
+	chmod --reference=$< $@
+
+hasher-useradd: hasher-useradd.in
 	sed -e 's/@VERSION@/$(VERSION)/g' <$< >$@
 	chmod --reference=$< $@
 

@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+# Copyright (C) 2003-2006  Dmitry V. Levin <ldv@altlinux.org>
 # 
 # The useradd wrapper for the hasher-priv project
 #
@@ -49,12 +49,11 @@ EOF
 
 print_version()
 {
-	local revision=`printf %s '$Revision$' |sed -ne 's/^\$Revision: \+\([^ ]\+\).*/\1/p'` ||:
 	cat <<EOF
-hasher-useradd version $revision
+hasher-useradd version @VERSION@
 Written by Dmitry V. Levin <ldv@altlinux.org>
 
-Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+Copyright (C) 2003-2006  Dmitry V. Levin <ldv@altlinux.org>
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 EOF
@@ -131,12 +130,10 @@ fi
 /usr/sbin/useradd -M -c "hasher satellite for $caller" -d /dev/null -s /dev/null "$user2" ||
 	Fatal "error creating satellite user $user2"
 
-# Add caller to hashman group and first satellite group.
-glist="$((id -Gn "$caller" |tr ' ' '\n' && id -gn "$user1" && id -gn "$user2" && echo hashman) |
-	sort -u |
-	xargs echo |
-	tr ' ' ,)"
-/usr/sbin/usermod -G "$glist" "$caller" ||
+# Add caller to hashman and satellite groups.
+gpasswd -a "$caller" "$(id -gn "$user1")" &&
+gpasswd -a "$caller" "$(id -gn "$user2")" &&
+gpasswd -a "$caller" hashman ||
 	Fatal "error updating groups for user $caller"
 
 # Create config.
