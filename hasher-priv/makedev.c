@@ -54,6 +54,7 @@ do_makedev(void)
 	m = umask(0);
 	xmknod("null", "/dev/null", S_IFCHR | 0666, 1, 3);
 	xmknod("zero", "/dev/zero", S_IFCHR | 0666, 1, 5);
+	xmknod("full", "/dev/full", S_IFCHR | 0666, 1, 7);
 	xmknod("urandom", "/dev/urandom", S_IFCHR | 0644, 1, 9);
 	xmknod("random", "/dev/urandom", S_IFCHR | 0644, 1, 9);	/* pseudo random. */
 	umask(m);

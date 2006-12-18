@@ -84,11 +84,11 @@ Following operation modes have medium security implications:
 .TP
 .B makedev
 Create essential device files available for all users:
-\fInull\fR, \fIzero\fR and \fIurandom\fR.
+\fInull\fR, \fIzero\fR, \fIfull\fR and \fIurandom\fR.
 Using this operation mode, caller user may populate file system with
-these devices.  While \fInull\fR and \fIzero\fR cause no harm for OS,
-pseudousers may abuse \fIurandom\fR to cause host system randomness
-starvation.
+these devices.  While \fInull\fR, \fIzero\fR and \fIfull\fR cause no
+harm for OS, pseudousers may abuse \fIurandom\fR to cause host system
+randomness starvation.
 .PP
 Following operation modes have high security implications:
 .TP
