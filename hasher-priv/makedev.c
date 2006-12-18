@@ -34,13 +34,15 @@ static void
 xmknod(const char *name, const char *devpath, mode_t mode, unsigned major,
        unsigned minor)
 {
-	if (link(devpath, name) == 0)
+	gid_t   saved_gid = (gid_t) - 1;
+
+	if (!link(devpath, name))
 		return;
 
-	if (mknod(name, mode, makedev(major, minor)) == 0)
-		return;
-
-	error(EXIT_FAILURE, errno, "mknod: %s", name);
+	ch_gid(0, &saved_gid);
+	if (mknod(name, mode, makedev(major, minor)))
+		error(EXIT_FAILURE, errno, "mknod: %s", name);
+	ch_gid(saved_gid, 0);
 }
 
 int
