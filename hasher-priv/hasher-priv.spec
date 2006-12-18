@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 1.2.6
+Version: 1.2.7
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -60,6 +60,11 @@ fi
 %doc DESIGN
 
 %changelog
+* Mon Dec 18 2006 Dmitry V. Levin <ldv@altlinux.org> 1.2.7-alt1
+- makedev: Create /dev/full device file.
+- makedev: Switch fs gid to 0 during device file creation.
+- hasher-useradd: Use gpasswd for better group names handling (#10305).
+
 * Wed Oct 18 2006 Dmitry V. Levin <ldv@altlinux.org> 1.2.6-alt1
 - Allowed "user.d" configs to override wlimits defined in "system" config.
 
