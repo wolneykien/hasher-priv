@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2006  Dmitry V. Levin <ldv@altlinux.org>
 
   The switch-user-and-chdir-with-validation module for the hasher-priv program.
 
@@ -21,73 +21,14 @@
 
 #include <errno.h>
 #include <error.h>
-#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <pwd.h>
 #include <grp.h>
 
 #include "priv.h"
 #include "xmalloc.h"
-
-#ifdef ENABLE_SETFSUGID
-#include <sys/fsuid.h>
-
-/*
- * Two setfsuid() in a row - stupid, but
- * how the hell am I supposed to check
- * whether setfsuid() succeeded or not?
- */
-
-/* This function may be executed with root privileges. */
-static void
-ch_uid(uid_t uid, uid_t * save)
-{
-	uid_t   tmp = setfsuid(uid);
-
-	if (save)
-		*save = tmp;
-	if ((uid_t) setfsuid(uid) != uid)
-		error(EXIT_FAILURE, errno, "change uid: %u", uid);
-}
-
-/* This function may be executed with root privileges. */
-static void
-ch_gid(gid_t gid, gid_t * save)
-{
-	gid_t   tmp = setfsgid(gid);
-
-	if (save)
-		*save = tmp;
-	if ((gid_t) setfsgid(gid) != gid)
-		error(EXIT_FAILURE, errno, "change gid: %u", gid);
-}
-
-#else /* ! ENABLE_SETFSUGID */
-
-/* This function may be executed with root privileges. */
-static void
-ch_uid(uid_t uid, uid_t * save)
-{
-	if (save)
-		*save = geteuid();
-	if (setresuid(-1, uid, 0) < 0)
-		error(EXIT_FAILURE, errno, "change uid: %u", uid);
-}
-
-/* This function may be executed with root privileges. */
-static void
-ch_gid(gid_t gid, gid_t * save)
-{
-	if (save)
-		*save = getegid();
-	if (setresgid(-1, gid, 0) < 0)
-		error(EXIT_FAILURE, errno, "change gid: %u", gid);
-}
-
-#endif /* ENABLE_SETFSUGID */
 
 /*
  * Check whether the file path PREFIX is prefix of the file path SAMPLE.

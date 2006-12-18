@@ -49,9 +49,9 @@ CPPFLAGS = -std=gnu99 $(WARNINGS) -D_GNU_SOURCE $(CHDIRUID_FLAGS) \
 CFLAGS = -pipe -O2
 LDLIBS = -lutil
 
-SRC = caller.c chdir.c chdiruid.c child.c chrootuid.c cmdline.c config.c \
-	fds.c getugid.c ipc.c killuid.c io_x11.c main.c makedev.c mount.c \
-	parent.c pass.c signal.c tty.c umount.c xmalloc.c x11.c
+SRC = caller.c chdir.c chdiruid.c chid.c child.c chrootuid.c cmdline.c \
+	config.c fds.c getugid.c ipc.c killuid.c io_x11.c main.c makedev.c \
+	mount.c parent.c pass.c signal.c tty.c umount.c xmalloc.c x11.c
 OBJ = $(SRC:.c=.o)
 DEP = $(SRC:.c=.d)
 

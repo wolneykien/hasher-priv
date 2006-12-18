@@ -77,6 +77,8 @@ task_t  parse_cmdline(int ac, const char *av[]);
 void    init_caller_data(void);
 void    parse_env(void);
 void    configure(void);
+void    ch_uid(uid_t uid, uid_t *save);
+void    ch_gid(gid_t gid, gid_t *save);
 void    chdiruid(const char *path);
 void    purge_ipc(uid_t uid);
 int     handle_child(char *const *env, int pty_fd, int pipe_out, int pipe_err, int ctl_fd);
