@@ -26,7 +26,7 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
     + caller_uid must be valid uid
   + caller_gid initialized here from getgid()
     + caller_gid must be valid gid
-  + caller_user initialized here from getpenam(LOGNAME)->pw_name or
+  + caller_user initialized here from getpwnam(LOGNAME)->pw_name or
     getpwuid(caller_uid)->pw_name
     + must be true: caller_uid == pw->pw_uid
     + must be true: caller_gid == pw->pw_gid
