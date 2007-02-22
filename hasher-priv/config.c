@@ -81,6 +81,26 @@ change_rlimit_t change_rlimit[] = {
 /* Maximum number of file locks.  */
 	{"locks", RLIMIT_LOCKS, 0, 0},
 
+#ifdef RLIMIT_SIGPENDING
+/* Maximum number of pending signals.  */
+	{"sigpending", RLIMIT_SIGPENDING, 0, 0},
+#endif
+
+#ifdef RLIMIT_MSGQUEUE
+/* Maximum number of bytes in POSIX mqueues.  */
+	{"msgqueue", RLIMIT_MSGQUEUE, 0, 0},
+#endif
+
+#ifdef RLIMIT_NICE
+/* Maximum nice priority allowed to raise to.  */
+	{"nice", RLIMIT_NICE, 0, 0},
+#endif
+
+#ifdef RLIMIT_RTPRIO
+/* Maximum realtime priority.  */
+	{"rtprio", RLIMIT_RTPRIO, 0, 0},
+#endif
+
 /* End of limits.  */
 	{0, 0, 0, 0}
 };
