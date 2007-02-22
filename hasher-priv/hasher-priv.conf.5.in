@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004, 2005  Dmitry V. Levin <ldv@altlinux.org>
+.\" Copyright (C) 2004-2007  Dmitry V. Levin <ldv@altlinux.org>
 .\" 
 .\" Documentation for the hasher-priv configuration.
 .\"
@@ -70,7 +70,7 @@ Default: 022
 Add specified value to the nice value for child process.  This value
 should not exceed OS limitation (19).
 
-Default: 10
+Default: 8
 .TP
 .BR rlimit_hard_cpu ", " rlimit_soft_cpu
 Per-process CPU limit, in seconds.

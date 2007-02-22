@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2007  Dmitry V. Levin <ldv@altlinux.org>
 
   Configuration support module for the hasher-priv program.
 
@@ -43,7 +43,7 @@ const char *x11_display, *x11_key;
 uid_t   change_uid1, change_uid2;
 gid_t   change_gid1, change_gid2;
 mode_t  change_umask = 022;
-int     change_nice = 10;
+int     change_nice = 8;
 int     allow_tty_devices, use_pty;
 size_t  x11_data_len;
 change_rlimit_t change_rlimit[] = {
