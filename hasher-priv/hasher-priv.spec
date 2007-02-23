@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 1.2.7
+Version: 1.2.8
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -60,6 +60,11 @@ fi
 %doc DESIGN
 
 %changelog
+* Fri Feb 23 2007 Dmitry V. Levin <ldv@altlinux.org> 1.2.8-alt1
+- Changed default nice change value from 10 to 8.
+- Added support for new RLIMIT_* types:
+  sigpending, msgqueue, nice, rtprio.
+
 * Mon Dec 18 2006 Dmitry V. Levin <ldv@altlinux.org> 1.2.7-alt1
 - makedev: Create /dev/full device file.
 - makedev: Switch fs gid to 0 during device file creation.
