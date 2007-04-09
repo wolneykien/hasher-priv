@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 1.2.8
+Version: 1.2.9
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -60,6 +60,10 @@ fi
 %doc DESIGN
 
 %changelog
+* Mon Apr 09 2007 Dmitry V. Levin <ldv@altlinux.org> 1.2.9-alt1
+- hasher-useradd: When creating satellite users for a system user,
+  make them system users, too (#11416).
+
 * Fri Feb 23 2007 Dmitry V. Levin <ldv@altlinux.org> 1.2.8-alt1
 - Changed default nice change value from 10 to 8.
 - Added support for new RLIMIT_* types:
