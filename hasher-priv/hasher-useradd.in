@@ -123,11 +123,21 @@ else
 	user2="$caller"_b
 fi
 
-id "$caller" >/dev/null
+caller_id="$(id "$caller")"
+caller_uid="$(printf %s "$caller_id" |sed -ne 's/^uid=\([0-9]\+\)(.*/\1/p')"
+[ "$caller_uid" -gt 0 ] ||
+	Fatal "user \""$caller"\" is too privileged"
+
 ! id "$user1" >/dev/null 2>&1 ||
 	Fatal "error creating satellite users: $user1 already exists"
 ! id "$user2" >/dev/null 2>&1 ||
 	Fatal "error creating satellite users: $user2 already exists"
+
+min_uid="$(sed -ne 's/^UID_MIN[[:space:]]\+\([1-9][0-9]*\)[[:space:]]*$/\1/p' /etc/login.defs)"
+[ -n "$min_uid" ] || min_uid=500
+[ "$caller_uid" -ge "$min_uid" ] &&
+	useradd_system_option= ||
+	useradd_system_option=-r
 
 cd /etc/hasher-priv/user.d
 
@@ -141,11 +151,13 @@ fi
 	Fatal "config file '$config' for user '$caller' already exists"
 
 # First satellite.
-/usr/sbin/useradd -M -c "hasher satellite for $caller" -d /dev/null -s /dev/null "$user1" ||
+useradd $useradd_system_option -M -d /dev/null -s /dev/null \
+	-c "1st hasher satellite for $caller" "$user1" ||
 	Fatal "error creating satellite user $user1"
 
 # Second satellite.
-/usr/sbin/useradd -M -c "hasher satellite for $caller" -d /dev/null -s /dev/null "$user2" ||
+useradd $useradd_system_option -M -d /dev/null -s /dev/null \
+	-c "2nd hasher satellite for $caller" "$user2" ||
 	Fatal "error creating satellite user $user2"
 
 # Add caller to hashman and satellite groups.
