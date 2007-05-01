@@ -16,7 +16,7 @@
 .\" along with this program; if not, write to the Free Software
 .\" Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 .\" 
-.TH "HASHER-PRIV configuration" "3" "January 2005" "hasher-priv version @VERSION@" "ALT Linux"
+.TH "HASHER-PRIV configuration" "5" "January 2005" "hasher-priv version @VERSION@" "ALT Linux"
 .SH NAME
 /etc/hasher\-priv/ \- configuration for the hasher\-priv program
 .SH DESCRIPTION
