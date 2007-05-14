@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2003-2006  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2007  Dmitry V. Levin <ldv@altlinux.org>
 
   Main include header for the hasher-priv project.
 
