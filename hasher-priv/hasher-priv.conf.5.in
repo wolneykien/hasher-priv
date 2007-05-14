@@ -157,7 +157,8 @@ This option specifies name of the second pseudouser.
 Default: (none)
 .TP
 .B prefix
-This option specifies allowed prefix for build chroot.  It affects all
+This option specifies colon-separated list of prefixes allowed for build chroot.
+It affects all
 .BR hasher\-priv (8)
 modes which accept chroot parameter.
 

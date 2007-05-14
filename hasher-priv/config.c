@@ -35,7 +35,8 @@
 #include "priv.h"
 #include "xmalloc.h"
 
-const char *chroot_prefix;
+const char *const *chroot_prefix_list;
+const char *chroot_prefix_path;
 const char *allowed_mountpoints;
 const char *change_user1, *change_user2;
 const char *term;
@@ -296,7 +297,7 @@ parse_prefix(const char *name, const char *value, const char *filename)
 	char   *prefix = xstrdup(strcmp(value, "~") ? value : caller_home);
 	int     n = strlen(prefix) - 1;
 
-	for (; n > 0; --n)
+	for (; n >= 0; --n)
 	{
 		if (prefix[n] == '/')
 			prefix[n] = '\0';
@@ -313,6 +314,27 @@ parse_prefix(const char *name, const char *value, const char *filename)
 	return 0;
 }
 
+static const char *const *
+parse_prefix_list(const char *name, const char *value, const char *filename)
+{
+	char   *paths = xstrdup(value);
+	char   *path = strtok(paths, ":");
+	const char **list = 0;
+	size_t  size = 0;
+
+	for (; path; path = strtok(0, ":"))
+	{
+		path = parse_prefix(name, path, filename);
+		list = xrealloc(list, (size + 2) * sizeof(*list));
+		list[size++] = path;
+		list[size] = 0;
+	}
+
+	free(paths);
+	chroot_prefix_path = xstrdup(value);
+	return list;
+}
+
 static void
 set_config(const char *name, const char *value, const char *filename)
 {
@@ -324,7 +346,7 @@ set_config(const char *name, const char *value, const char *filename)
 	else if (!strcasecmp("user2", name))
 		change_user2 = xstrdup(value);
 	else if (!strcasecmp("prefix", name))
-		chroot_prefix = parse_prefix(name, value, filename);
+		chroot_prefix_list = parse_prefix_list(name, value, filename);
 	else if (!strcasecmp("umask", name))
 		change_umask = str2umask(name, value, filename);
 	else if (!strcasecmp("nice", name))

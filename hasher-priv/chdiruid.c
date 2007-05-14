@@ -37,20 +37,20 @@
 
 /* This function may be executed with caller privileges. */
 static int
-is_not_prefix(const char *prefix, const char *sample)
+is_prefix(const char *prefix, const char *sample)
 {
 	size_t  len = strlen(prefix);
 
-	return strncmp(sample, prefix, len)
-		|| ((sample[len] != '\0') && (sample[len] != '/'));
+	return !strncmp(sample, prefix, len)
+		&& ((sample[len] == '\0') || (sample[len] == '/'));
 }
 
 /*
  * Change the current work directory to the given path.
- * If chroot_prefix is set, ensure that it is prefix of the given path.
+ * If chroot prefix path is set, ensure that it matches given path.
  */
 
-/* This function may be executed with root privileges. */
+/* This function may be executed with caller privileges. */
 static void
 chdiruid_simple(const char *path)
 {
@@ -62,12 +62,23 @@ chdiruid_simple(const char *path)
 	if (!(cwd = getcwd(0, 0UL)))
 		error(EXIT_FAILURE, errno, "getcwd");
 
-	/* Check for chroot_prefix. */
-	if ((chroot_prefix && *chroot_prefix
-	     && is_not_prefix(chroot_prefix, cwd)))
+	/* Check for chroot prefix path. */
+	const char *const *prefix;
+	int invalid = !!chroot_prefix_list;
+
+	for (prefix = chroot_prefix_list; prefix && *prefix; ++prefix)
+	{
+		if (is_prefix(*prefix, cwd))
+		{
+			invalid = 0;
+			break;
+		}
+	}
+
+	if (invalid)
 		error(EXIT_FAILURE, 0,
-		      "%s: prefix mismatch, working directory should start with %s",
-		      cwd, chroot_prefix);
+		      "%s: prefix mismatch, working directory should start with one of directories listed in colon-separated prefix list (%s)",
+		      cwd, chroot_prefix_path);
 
 	free(cwd);
 }
@@ -76,7 +87,7 @@ chdiruid_simple(const char *path)
  * Change the current work directory to the given path.
  * Temporary change credentials to caller_user during this operation.
  * If the path is relative, chdir to each path element sequentially.
- * If chroot_prefix is set, ensure that it is prefix of the given path.
+ * If chroot prefix path is set, ensure that it matches given path.
  */
 
 /* This function may be executed with root privileges. */
@@ -97,7 +108,7 @@ chdiruid(const char *path)
 	ch_gid(caller_gid, &saved_gid);
 	ch_uid(caller_uid, &saved_uid);
 
-	/* Change and verify directory, check for chroot_prefix. */
+	/* Change and verify directory, check for chroot prefix path. */
 	if (path[0] == '/' || !strchr(path, '/'))
 		chdiruid_simple(path);
 	else
