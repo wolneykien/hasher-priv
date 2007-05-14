@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-# Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+# Copyright (C) 2003-2007  Dmitry V. Levin <ldv@altlinux.org>
 # 
-# The getugid2 helper for the hasher-priv project
+# The getugid@N@ helper for the hasher-priv project.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,4 +25,4 @@ if [ -n "$1" -a -z "${1##-*}" ]; then
 	shift
 fi
 
-exec @helper@ $n getugid2
+exec @helper@ $n getugid@N@

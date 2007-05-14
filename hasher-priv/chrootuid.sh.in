@@ -1,8 +1,8 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2003, 2004  Dmitry V. Levin <ldv@altlinux.org>
+# Copyright (C) 2003-2007  Dmitry V. Levin <ldv@altlinux.org>
 # 
-# The chrootuid1 helper for the hasher-priv project
+# The chrootuid@N@ helper for the hasher-priv project.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ rm_ttydev=
 
 killuid()
 {
-	@helper@ $n killuid1
+	@helper@ $n killuid@N@
 }
 
 exit_handler()
@@ -73,4 +73,4 @@ if [ -n "$need_maketty" ]; then
 		exit
 fi
 
-@helper@ $n chrootuid1 "$@"
+@helper@ $n chrootuid@N@ "$@"

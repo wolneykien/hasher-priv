@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2003-2006  Dmitry V. Levin <ldv@altlinux.org>
+# Copyright (C) 2003-2007  Dmitry V. Levin <ldv@altlinux.org>
 # 
 # Makefile for the hasher-priv project.
 #
@@ -81,6 +81,14 @@ clean:
 
 indent:
 	indent *.h *.c
+
+%1.sh: %.sh.in Makefile
+	sed -e 's|@N@|1|g' -e 's|@helper@|$(helperdir)/$(PROJECT)|g' <$< >$@
+	chmod --reference=$< $@
+
+%2.sh: %.sh.in Makefile
+	sed -e 's|@N@|2|g' -e 's|@helper@|$(helperdir)/$(PROJECT)|g' <$< >$@
+	chmod --reference=$< $@
 
 %.sh: %.sh.in Makefile
 	sed -e 's|@helper@|$(helperdir)/$(PROJECT)|g' <$< >$@
