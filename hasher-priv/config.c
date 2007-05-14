@@ -290,6 +290,29 @@ str2bool(const char *name, const char *value, const char *filename)
 	return 0;
 }
 
+static char *
+parse_prefix(const char *name, const char *value, const char *filename)
+{
+	char   *prefix = xstrdup(strcmp(value, "~") ? value : caller_home);
+	int     n = strlen(prefix) - 1;
+
+	for (; n > 0; --n)
+	{
+		if (prefix[n] == '/')
+			prefix[n] = '\0';
+		else
+			break;
+	}
+
+	if (prefix[0] == '\0' || prefix[0] == '/')
+		return prefix;
+
+	error(EXIT_FAILURE, 0,
+	      "%s: invalid value \"%s\" for \"%s\" option", filename,
+	      value, name);
+	return 0;
+}
+
 static void
 set_config(const char *name, const char *value, const char *filename)
 {
@@ -301,20 +324,8 @@ set_config(const char *name, const char *value, const char *filename)
 	else if (!strcasecmp("user2", name))
 		change_user2 = xstrdup(value);
 	else if (!strcasecmp("prefix", name))
-	{
-		char   *prefix =
-			xstrdup(strcmp(value, "~") ? value : caller_home);
-		int     n = strlen(prefix) - 1;
-
-		for (; n > 0; --n)
-		{
-			if (prefix[n] == '/')
-				prefix[n] = '\0';
-			else
-				break;
-		}
-		chroot_prefix = prefix;
-	} else if (!strcasecmp("umask", name))
+		chroot_prefix = parse_prefix(name, value, filename);
+	else if (!strcasecmp("umask", name))
 		change_umask = str2umask(name, value, filename);
 	else if (!strcasecmp("nice", name))
 		change_nice = str2nice(name, value, filename);
