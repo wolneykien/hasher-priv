@@ -20,10 +20,10 @@
 
 PROJECT = hasher-priv
 VERSION = $(shell sed '/^Version: */!d;s///;q' hasher-priv.spec)
-SCRIPTS = getugid1.sh chrootuid1.sh getugid2.sh chrootuid2.sh makedev.sh maketty.sh
+HELPERS = getugid1.sh chrootuid1.sh getugid2.sh chrootuid2.sh makedev.sh maketty.sh
 MAN5PAGES = $(PROJECT).conf.5
 MAN8PAGES = $(PROJECT).8 hasher-useradd.8
-TARGETS = $(PROJECT) $(SCRIPTS) $(MAN5PAGES) $(MAN8PAGES)
+TARGETS = $(PROJECT) hasher-useradd $(HELPERS) $(MAN5PAGES) $(MAN8PAGES)
 
 sysconfdir = /etc
 libexecdir = /usr/lib
@@ -68,7 +68,7 @@ install: all
 	$(INSTALL) -p -m640 system.conf $(DESTDIR)$(configdir)/system
 	$(MKDIR_P) -m750 $(DESTDIR)$(helperdir)
 	$(INSTALL) -p -m700 $(PROJECT) $(DESTDIR)$(helperdir)/
-	$(INSTALL) -p -m755 $(SCRIPTS) $(DESTDIR)$(helperdir)/
+	$(INSTALL) -p -m755 $(HELPERS) $(DESTDIR)$(helperdir)/
 	$(MKDIR_P) -m755 $(DESTDIR)$(sbindir)
 	$(INSTALL) -p -m755 hasher-useradd $(DESTDIR)$(sbindir)/
 	$(MKDIR_P) -m755 $(DESTDIR)$(man5dir)
