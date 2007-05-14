@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 1.2.9
+Version: 1.2.10
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -48,8 +48,8 @@ fi
 %_sbindir/hasher-useradd
 %_mandir/man?/*
 # config
-%attr(710,root,hashman) %dir %configdir
-%attr(710,root,hashman) %dir %configdir/user.d
+%attr(750,root,hashman) %dir %configdir
+%attr(750,root,hashman) %dir %configdir/user.d
 %attr(640,root,hashman) %config(noreplace) %configdir/fstab
 %attr(640,root,hashman) %config(noreplace) %configdir/system
 # helpers
@@ -60,6 +60,14 @@ fi
 %doc DESIGN
 
 %changelog
+* Mon May 14 2007 Dmitry V. Levin <ldv@altlinux.org> 1.2.10-alt1
+- Fixed hasher-priv.conf man section number (#11613).
+- Changed "prefix" option meaning from allowed prefix to
+  colon-separated list of allowed prefixes.
+- Changed system.conf prefix value from "~" to "~:/tmp/.private".
+- Made %configdir directory tree not only traversable but also
+  readable by "hashman" group members.
+
 * Mon Apr 09 2007 Dmitry V. Levin <ldv@altlinux.org> 1.2.9-alt1
 - hasher-useradd: When creating satellite users for a system user,
   make them system users, too (#11416).
