@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2007  Dmitry V. Levin <ldv@altlinux.org>
 
   The chrootuid parent handler for the hasher-priv program.
 
@@ -416,8 +416,7 @@ handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_out, int pipe_err,
 	block_signal_handler(SIGCHLD, SIG_UNBLOCK);
 	signal(SIGPIPE, SIG_IGN);
 
-	io = xmalloc(sizeof(*io));
-	memset(io, 0, sizeof(*io));
+	io = xcalloc(1UL, sizeof(*io));
 	io->master_read_fd = use_pty ? STDIN_FILENO : -1;
 	io->master_write_out_fd = STDOUT_FILENO;
 	io->master_write_err_fd = use_pty ? -1 : STDERR_FILENO;
