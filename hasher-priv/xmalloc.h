@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2002, 2005  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2002-2007  Dmitry V. Levin <ldv@altlinux.org>
 
   Dynamic memory allocation with error checking.
 
@@ -24,7 +24,7 @@
 
 extern void *xmalloc(size_t size);
 extern void *xcalloc(size_t nmemb, size_t size);
-extern void *xrealloc(void *ptr, size_t size);
+extern void *xrealloc(void *ptr, size_t nmemb, size_t size);
 extern char *xstrdup(const char *s);
 extern char *xasprintf(char **ptr, const char *fmt, ...)
 	__attribute__ ((__format__(__printf__, 2, 3)))

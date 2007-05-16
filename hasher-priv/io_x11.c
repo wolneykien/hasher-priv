@@ -42,12 +42,12 @@ struct io_x11
 typedef struct io_x11 *io_x11_t;
 
 static io_x11_t *io_x11_list;
-static unsigned io_x11_count;
+static size_t io_x11_count;
 
 static  io_x11_t
 io_x11_new(int master_fd, int slave_fd)
 {
-	unsigned i;
+	size_t i;
 
 	for (i = 0; i < io_x11_count; ++i)
 		if (!io_x11_list[i])
@@ -56,7 +56,7 @@ io_x11_new(int master_fd, int slave_fd)
 	if (i == io_x11_count)
 		io_x11_list =
 			xrealloc(io_x11_list,
-				 (++io_x11_count) * sizeof(*io_x11_list));
+				 ++io_x11_count, sizeof(*io_x11_list));
 
 	io_x11_t io = io_x11_list[i] = xcalloc(1UL, sizeof(*io_x11_list[i]));
 
@@ -71,15 +71,15 @@ io_x11_new(int master_fd, int slave_fd)
 static void
 io_x11_free(io_x11_t io)
 {
-	unsigned i;
+	size_t i;
 
 	for (i = 0; i < io_x11_count; ++i)
 		if (io_x11_list[i] == io)
 			break;
 	if (i == io_x11_count)
 		error(EXIT_FAILURE, 0,
-		      "io_x11_free: entry %p not found, count=%u\n", io,
-		      io_x11_count);
+		      "io_x11_free: entry %p not found, count=%lu\n", io,
+		      (unsigned long) io_x11_count);
 	io_x11_list[i] = 0;
 
 	(void) close(io->master_fd);
@@ -121,7 +121,7 @@ handle_x11_new(int *x11_fd, fd_set * read_fds)
 void
 prepare_x11_select(int *max_fd, fd_set * read_fds, fd_set * write_fds)
 {
-	unsigned i;
+	size_t i;
 
 	for (i = 0; i < io_x11_count; ++i)
 	{
@@ -220,7 +220,7 @@ void
 handle_x11_select(fd_set * read_fds, fd_set * write_fds,
 		  const char *x11_saved_data, const char *x11_fake_data)
 {
-	unsigned i;
+	size_t i;
 	ssize_t n;
 
 	for (i = 0; i < io_x11_count; ++i)

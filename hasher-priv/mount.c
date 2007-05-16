@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2004, 2005  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2004-2007  Dmitry V. Levin <ldv@altlinux.org>
 
   The mount action for the hasher-priv program.
 
@@ -138,7 +138,7 @@ parse_opt(const char *opt, unsigned long *flags, char **options)
 
 	if (*options)
 	{
-		*options = xrealloc(*options,
+		*options = xrealloc(*options, 1UL,
 				    strlen(*options) + strlen(opt) + 2);
 		strcat(*options, ",");
 		strcat(*options, opt);
@@ -173,7 +173,7 @@ xmount(struct mnt_ent *e)
 }
 
 static struct mnt_ent **var_fstab;
-unsigned var_fstab_size;
+size_t var_fstab_size;
 
 static void
 load_fstab(void)
@@ -215,7 +215,7 @@ load_fstab(void)
 
 		var_fstab =
 			xrealloc(var_fstab,
-				 (var_fstab_size + 1) * sizeof(*var_fstab));
+				 var_fstab_size + 1, sizeof(*var_fstab));
 		var_fstab[var_fstab_size++] = e;
 	}
 
@@ -242,7 +242,7 @@ do_mount(void)
 	load_fstab();
 	safe_chdir("/", stat_rootok_validator);
 
-	unsigned i;
+	size_t i;
 
 	for (i = 0; i < var_fstab_size; ++i)
 		if (!strcmp(target, var_fstab[i]->mnt_dir))

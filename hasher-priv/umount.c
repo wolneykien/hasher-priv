@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2004, 2005  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2004-2007  Dmitry V. Levin <ldv@altlinux.org>
 
   The umount action for the hasher-priv program.
 
@@ -97,7 +97,7 @@ do_umount(void)
 		error(EXIT_FAILURE, errno, "getcwd");
 
 	size_t  cwd_len = strlen(cwd);
-	unsigned i = 0;
+	size_t i = 0;
 	char  **v = 0;
 	struct mntent *ent;
 	FILE   *fp = setmntent(_PATH_MOUNTS, "r");
@@ -111,7 +111,7 @@ do_umount(void)
 		    || (ent->mnt_dir[cwd_len] != '/'))
 			continue;
 
-		v = xrealloc(v, (i + 1) * sizeof(*v));
+		v = xrealloc(v, i + 1, sizeof(*v));
 		v[i++] = xstrdup(ent->mnt_dir + cwd_len);
 	}
 

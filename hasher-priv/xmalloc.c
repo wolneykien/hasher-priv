@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2002-2005  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2002-2007  Dmitry V. Levin <ldv@altlinux.org>
 
   Dynamic memory allocation with error checking.
 
@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <error.h>
+#include <limits.h>
 
 #include "xmalloc.h"
 
@@ -36,7 +37,8 @@ xmalloc(size_t size)
 	void   *r = malloc(size);
 
 	if (!r)
-		error(EXIT_FAILURE, errno, "malloc");
+		error(EXIT_FAILURE, errno, "malloc: allocating %lu bytes",
+		      (unsigned long) size);
 	return r;
 }
 
@@ -46,17 +48,23 @@ xcalloc(size_t nmemb, size_t size)
 	void   *r = calloc(nmemb, size);
 
 	if (!r)
-		error(EXIT_FAILURE, errno, "calloc");
+		error(EXIT_FAILURE, errno, "calloc: allocating %lu*%lu bytes",
+		      (unsigned long) nmemb, (unsigned long) size);
 	return r;
 }
 
 void   *
-xrealloc(void *ptr, size_t size)
+xrealloc(void *ptr, size_t nmemb, size_t elem_size)
 {
+	if (nmemb && ULONG_MAX / nmemb < elem_size)
+		error(EXIT_FAILURE, 0, "realloc: nmemb*size > ULONG_MAX");
+
+	size_t  size = nmemb * elem_size;
 	void   *r = realloc(ptr, size);
 
 	if (!r)
-		error(EXIT_FAILURE, errno, "realloc");
+		error(EXIT_FAILURE, errno, "realloc: allocating %lu*%lu bytes",
+		      (unsigned long) nmemb, (unsigned long) elem_size);
 	return r;
 }
 

@@ -326,7 +326,7 @@ parse_prefix_list(const char *name, const char *value, const char *filename)
 	for (; path; path = strtok(0, ":"))
 	{
 		path = parse_prefix(name, path, filename);
-		list = xrealloc(list, (size + 2) * sizeof(*list));
+		list = xrealloc(list, size + 2, sizeof(*list));
 		list[size++] = path;
 	}
 
