@@ -272,6 +272,7 @@ parse_mountpoints(const char *value, const char *filename)
 	}
 
 	free(targets);
+	free((char *) allowed_mountpoints);
 	allowed_mountpoints = xstrdup(value);
 }
 
@@ -314,7 +315,7 @@ parse_prefix(const char *name, const char *value, const char *filename)
 	return 0;
 }
 
-static const char *const *
+static void
 parse_prefix_list(const char *name, const char *value, const char *filename)
 {
 	char   *paths = xstrdup(value);
@@ -327,12 +328,27 @@ parse_prefix_list(const char *name, const char *value, const char *filename)
 		path = parse_prefix(name, path, filename);
 		list = xrealloc(list, (size + 2) * sizeof(*list));
 		list[size++] = path;
-		list[size] = 0;
 	}
 
 	free(paths);
+	if (size)
+		list[size] = 0;
+
+	free((char *) chroot_prefix_path);
 	chroot_prefix_path = xstrdup(value);
-	return list;
+
+	if (chroot_prefix_list)
+	{
+		char  **prefix = (char **) chroot_prefix_list;
+
+		for (; prefix && *prefix; ++prefix)
+		{
+			free(*prefix);
+			*prefix = 0;
+		}
+		free((char **) chroot_prefix_list);
+	}
+	chroot_prefix_list = list;
 }
 
 static void
@@ -342,11 +358,15 @@ set_config(const char *name, const char *value, const char *filename)
 	const char wlim_prefix[] = "wlimit_";
 
 	if (!strcasecmp("user1", name))
+	{
+		free((char *) change_user1);
 		change_user1 = xstrdup(value);
-	else if (!strcasecmp("user2", name))
+	} else if (!strcasecmp("user2", name))
+	{
+		free((char *) change_user2);
 		change_user2 = xstrdup(value);
-	else if (!strcasecmp("prefix", name))
-		chroot_prefix_list = parse_prefix_list(name, value, filename);
+	} else if (!strcasecmp("prefix", name))
+		parse_prefix_list(name, value, filename);
 	else if (!strcasecmp("umask", name))
 		change_umask = str2umask(name, value, filename);
 	else if (!strcasecmp("nice", name))
