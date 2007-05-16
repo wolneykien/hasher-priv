@@ -41,6 +41,16 @@ xmalloc(size_t size)
 }
 
 void   *
+xcalloc(size_t nmemb, size_t size)
+{
+	void   *r = calloc(nmemb, size);
+
+	if (!r)
+		error(EXIT_FAILURE, errno, "calloc");
+	return r;
+}
+
+void   *
 xrealloc(void *ptr, size_t size)
 {
 	void   *r = realloc(ptr, size);
