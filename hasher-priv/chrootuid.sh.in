@@ -43,11 +43,11 @@ exit_handler()
 	trap - EXIT
 	if [ -n "$chroot_prefix" -a -n "$mounted" ]; then
 		@helper@ $n umount "$chroot_prefix" ||
-			[ rc = 0 ] || rc=1
+			[ $rc = 0 ] || rc=1
 	fi
 	if [ -n "$rm_ttydev" ]; then
 		rm -f "$chroot_prefix/dev/tty" "$chroot_prefix/dev/ptmx" ||
-			[ rc = 0 ] || rc=1
+			[ $rc = 0 ] || rc=1
 	fi
 	killuid
 	exit $rc
