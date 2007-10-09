@@ -33,6 +33,7 @@
 typedef enum
 {
 	TASK_NONE = 0,
+	TASK_GETCONF,
 	TASK_GETUGID1,
 	TASK_KILLUID1,
 	TASK_CHROOTUID1,
@@ -105,6 +106,7 @@ void    handle_x11_select(fd_set * read_fds, fd_set * write_fds,
 			  const char *x11_saved_data,
 			  const char *x11_fake_data);
 
+int     do_getconf(void);
 int     do_getugid1(void);
 int     do_killuid1(void);
 int     do_chrootuid1(void);

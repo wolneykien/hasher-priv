@@ -11,6 +11,7 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
   + parse arguments, abort if wrong
     + chroot_path and chroot_argv are initialized here
     + valid arguments are:
+      getconf
       getugid1
       killuid1
       chrootuid1 <chroot path> <program> [program args]
@@ -57,6 +58,7 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
   + change_uid1 and change_gid1 initialized from change_user1
   + change_uid2 and change_gid2 initialized from change_user2
 + execute choosen task
+  + getconf: print config file /etc/hasher-priv/user.d/caller_user[:caller_num]
   + getugid1: print change_uid1:change_gid1 pair
   + getugid2: print change_uid2:change_gid2 pair
   + killuid1/killuid2

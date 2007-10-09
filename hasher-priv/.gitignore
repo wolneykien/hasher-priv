@@ -1,5 +1,6 @@
 chrootuid1.sh
 chrootuid2.sh
+getconf.sh
 getugid1.sh
 getugid2.sh
 hasher-priv

@@ -20,7 +20,7 @@
 
 PROJECT = hasher-priv
 VERSION = $(shell sed '/^Version: */!d;s///;q' hasher-priv.spec)
-HELPERS = getugid1.sh chrootuid1.sh getugid2.sh chrootuid2.sh makedev.sh maketty.sh
+HELPERS = getconf.sh getugid1.sh chrootuid1.sh getugid2.sh chrootuid2.sh makedev.sh maketty.sh
 MAN5PAGES = $(PROJECT).conf.5
 MAN8PAGES = $(PROJECT).8 hasher-useradd.8
 TARGETS = $(PROJECT) hasher-useradd $(HELPERS) $(MAN5PAGES) $(MAN8PAGES)
@@ -50,8 +50,9 @@ CFLAGS = -pipe -O2
 LDLIBS = -lutil
 
 SRC = caller.c chdir.c chdiruid.c chid.c child.c chrootuid.c cmdline.c \
-	config.c fds.c getugid.c ipc.c killuid.c io_x11.c main.c makedev.c \
-	mount.c parent.c pass.c signal.c tty.c umount.c xmalloc.c x11.c
+	config.c fds.c getconf.c getugid.c ipc.c killuid.c io_x11.c \
+	main.c makedev.c mount.c parent.c pass.c signal.c tty.c umount.c \
+	xmalloc.c x11.c
 OBJ = $(SRC:.c=.o)
 DEP = $(SRC:.c=.d)
 

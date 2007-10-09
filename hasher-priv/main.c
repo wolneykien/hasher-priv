@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2003-2006  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2007  Dmitry V. Levin <ldv@altlinux.org>
 
   The entry function for the hasher-priv program.
 
@@ -67,6 +67,8 @@ main(int ac, const char *av[])
 	/* Finally, execute choosen task. */
 	switch (task)
 	{
+		case TASK_GETCONF:
+			return do_getconf();
 		case TASK_GETUGID1:
 			return do_getugid1();
 		case TASK_KILLUID1:

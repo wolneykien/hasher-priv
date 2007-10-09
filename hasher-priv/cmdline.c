@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2003-2006  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2007  Dmitry V. Levin <ldv@altlinux.org>
 
   Command line parser for the hasher-priv program.
 
@@ -60,6 +60,8 @@ print_help(void)
 	       "  -h or --help:\n"
 	       "       print this help text and exit.\n"
 	       "\nValid args are any of:\n\n"
+	       "getconf:\n"
+	       "       print config file name;\n"
 	       "getugid1:\n"
 	       "       print uid:gid pair for user1;\n"
 	       "killuid1:\n"
@@ -90,7 +92,7 @@ static void __attribute__ ((noreturn))
 print_version(void)
 {
 	printf("hasher-priv version %s\n"
-	       "\nCopyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>\n"
+	       "\nCopyright (C) 2003-2007  Dmitry V. Levin <ldv@altlinux.org>\n"
 	       "\nThis is free software; see the source for copying conditions.\n"
 	       "There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
 	       "\nWritten by Dmitry V. Levin <ldv@altlinux.org>\n",
@@ -149,7 +151,12 @@ parse_cmdline(int argc, const char *argv[])
 	if (ac < 1)
 		show_usage("insufficient arguments");
 
-	if (!strcmp("getugid1", av[0]))
+	if (!strcmp("getconf", av[0]))
+	{
+		if (ac != 1)
+			show_usage("%s: invalid usage", av[0]);
+		return TASK_GETCONF;
+	} else if (!strcmp("getugid1", av[0]))
 	{
 		if (ac != 1)
 			show_usage("%s: invalid usage", av[0]);
