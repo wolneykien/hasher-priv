@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 1.2.10
+Version: 1.2.11
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -60,6 +60,10 @@ fi
 %doc DESIGN
 
 %changelog
+* Wed Oct 10 2007 Dmitry V. Levin <ldv@altlinux.org> 1.2.11-alt1
+- chrootuid.sh.in (exit_handler): Fixed exit status check (at@).
+- Implemented "hasher-priv getconf" mode.
+
 * Mon May 14 2007 Dmitry V. Levin <ldv@altlinux.org> 1.2.10-alt1
 - Fixed hasher-priv.conf man section number (#11613).
 - Changed "prefix" option meaning from allowed prefix to
