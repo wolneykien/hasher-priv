@@ -40,7 +40,7 @@ INSTALL = install
 HELP2MAN8 = help2man -N -s8
 LFS_CFLAGS = $(shell getconf LFS_CFLAGS)
 CHDIRUID_FLAGS = -DENABLE_SETFSUGID -DENABLE_SUPPLEMENTARY_GROUPS
-WARNINGS = -Wall -W -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings \
+WARNINGS = -Wall -W -Wshadow -Wpointer-arith -Wwrite-strings \
 	-Wconversion -Waggregate-return -Wstrict-prototypes -Werror \
 	-Wmissing-prototypes -Wmissing-declarations -Wmissing-noreturn \
 	-Wmissing-format-attribute -Wredundant-decls -Wdisabled-optimization
