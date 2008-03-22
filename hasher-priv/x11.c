@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2005, 2006  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2005-2008  Dmitry V. Levin <ldv@altlinux.org>
 
   The X11 forwarding support_str for the hasher-priv program.
 
@@ -42,17 +42,17 @@ static x11_connect_method_t x11_connect_method;
 static const char *x11_connect_name;
 static unsigned long x11_connect_port;
 
-/* This function may be executed with child privileges. */
+/* This function may be executed with caller or child privileges. */
 
-int
-x11_listen(void)
+static int
+unix_listen(const char *dir_name, const char *file_name)
 {
 	struct sockaddr_un sun;
 
 	memset(&sun, 0, sizeof(sun));
 	sun.sun_family = AF_UNIX;
 	snprintf(sun.sun_path, sizeof sun.sun_path, "%s/%s",
-		 X11_UNIX_DIR, "X10");
+		 dir_name, file_name);
 
 	if (unlink(sun.sun_path) && errno != ENOENT)
 	{
@@ -60,9 +60,9 @@ x11_listen(void)
 		return -1;
 	}
 
-	if (mkdir(X11_UNIX_DIR, 0700) && errno != EEXIST)
+	if (mkdir(dir_name, 0700) && errno != EEXIST)
 	{
-		error(EXIT_SUCCESS, errno, "mkdir: %s", X11_UNIX_DIR);
+		error(EXIT_SUCCESS, errno, "mkdir: %s", dir_name);
 		return -1;
 	}
 
@@ -89,6 +89,31 @@ x11_listen(void)
 	}
 
 	return fd;
+}
+
+/* This function may be executed with caller privileges. */
+
+int
+log_listen(void)
+{
+	int     fd = unix_listen("/dev", "log");
+
+	if (chmod("/dev/log", 0622))
+	{
+		error(EXIT_SUCCESS, errno, "chmod: %s", "/dev/log");
+		(void) close(fd);
+		fd = -1;
+	}
+
+	return fd;
+}
+
+/* This function may be executed with child privileges. */
+
+int
+x11_listen(void)
+{
+	return unix_listen(X11_UNIX_DIR, "X10");
 }
 
 static int x11_dir_fd = -1;
