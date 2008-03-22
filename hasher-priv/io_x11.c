@@ -105,7 +105,7 @@ handle_x11_new(int *x11_fd, fd_set * read_fds)
 	if (*x11_fd < 0 || !FD_ISSET(*x11_fd, read_fds))
 		return;
 
-	int     accept_fd = x11_accept(*x11_fd);
+	int     accept_fd = unix_accept(*x11_fd);
 
 	if (accept_fd < 0)
 		return;

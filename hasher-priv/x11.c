@@ -243,7 +243,7 @@ x11_connect(void)
 /* This function may be executed with caller privileges. */
 
 int
-x11_accept(int fd)
+unix_accept(int fd)
 {
 	struct sockaddr_un sun;
 	socklen_t len = sizeof(sun);
