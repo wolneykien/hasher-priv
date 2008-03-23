@@ -38,14 +38,41 @@
 static volatile pid_t child_pid;
 
 static int
-select_retry(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
-	     struct timeval *timeout)
+select_retry(int n, fd_set *readfds, fd_set *writefds,
+	     const unsigned long timeout)
 {
+	struct timespec tmout;
+	sigset_t set_old, set_check, set_select;
 	int     rc = -1;
 
+	tmout.tv_sec = timeout;
+	tmout.tv_nsec = 0;
+
+	if (sigprocmask(SIG_SETMASK, 0, &set_old) < 0)
+		error(EXIT_FAILURE, errno, "sigprocmask");
+
+	memcpy(&set_check, &set_old, sizeof(set_old));
+	sigaddset(&set_check, SIGCHLD);
+
+	memcpy(&set_select, &set_old, sizeof(set_old));
+	sigaddset(&set_select, SIGWINCH);
+
 	errno = EINTR;
-	while (rc < 0 && errno == EINTR && child_pid)
-		rc = select(n, readfds, writefds, exceptfds, timeout);
+	while (rc < 0 && errno == EINTR)
+	{
+		if (sigprocmask(SIG_SETMASK, &set_check, 0) < 0)
+			error(EXIT_FAILURE, errno, "sigprocmask");
+		if (!child_pid)
+		{
+			if (sigprocmask(SIG_SETMASK, &set_old, 0) < 0)
+				error(EXIT_FAILURE, errno, "sigprocmask");
+			break;
+		}
+		rc = pselect(n, readfds, writefds, NULL,
+			     (timeout ? &tmout : 0), &set_select);
+		if (sigprocmask(SIG_SETMASK, &set_old, 0) < 0)
+			error(EXIT_FAILURE, errno, "sigprocmask");
+	}
 	return rc;
 }
 
@@ -242,9 +269,6 @@ handle_io(io_std_t io)
 	/* select only if child is running */
 	if (child_pid)
 	{
-		struct timeval tmout;
-		int     rc;
-
 		if (io->master_avail)
 			fds_add_fd(&write_fds, &max_fd, io->slave_write_fd);
 		else
@@ -255,11 +279,9 @@ handle_io(io_std_t io)
 		fds_add_fd(&read_fds, &max_fd, x11_fd);
 		fds_add_x11(&read_fds, &write_fds, &max_fd);
 
-		tmout.tv_sec = wlimit.time_idle;
-		tmout.tv_usec = 0;
-
+		int     rc;
 		rc = select_retry(max_fd + 1, &read_fds, &write_fds,
-				  0, wlimit.time_idle ? &tmout : 0);
+				  wlimit.time_idle);
 		if (!rc)
 			limit_exceeded
 				("idle time limit (%u seconds) exceeded",
