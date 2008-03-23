@@ -209,14 +209,28 @@ handle_x11_ctl(void)
 }
 
 static int
+xselect(int nfds, fd_set *read_fds, fd_set *write_fds,
+	const unsigned long timeout)
+{
+	struct timespec tmout;
+	sigset_t mask;
+
+	tmout.tv_sec = timeout;
+	tmout.tv_nsec = 0;
+
+	sigemptyset(&mask);
+
+	return pselect(nfds, read_fds, write_fds, NULL,
+		       (timeout ? &tmout : 0), &mask);
+}
+
+static int
 handle_io(io_std_t io)
 {
 	ssize_t n;
 	int     rc;
 	int     max_fd = 0;
 	fd_set  read_fds, write_fds;
-	struct timespec tmout;
-	sigset_t set;
 
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
@@ -252,13 +266,7 @@ handle_io(io_std_t io)
 			return EXIT_FAILURE;
 	}
 
-	tmout.tv_sec = wlimit.time_idle;
-	tmout.tv_nsec = 0;
-
-	sigemptyset(&set);
-
-	rc = pselect(max_fd + 1, &read_fds, &write_fds, NULL,
-		     (wlimit.time_idle ? &tmout : 0), &set);
+	rc = xselect(max_fd + 1, &read_fds, &write_fds, wlimit.time_idle);
 	if (!rc)
 		limit_exceeded("idle time limit (%u seconds) exceeded",
 			       wlimit.time_idle);
