@@ -82,8 +82,15 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
     + fork
       + in parent:
         + setgid/setuid to caller user
+        + install CHLD signal handler
+        + unblock master pty and pipe descriptors
+        + if use_pty is enabled, initialize tty and install WINCH signal handler
         + listen to "/dev/log"
-        + handle child input/output
+        + while work limits are not exceeded, handle child input/output
+        + close master pty descriptor, thus sending HUP to child session
+        + wait for child process termination
+        + remove CHLD signal handler
+        + return child proccess exit code
       + in child:
         + setgid/setuid to specified user
         + setsid
