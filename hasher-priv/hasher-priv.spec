@@ -40,9 +40,9 @@ if getent group pkg-build >/dev/null; then
 	groupmod -n hashman pkg-build
 fi
 if [ -d %_sysconfdir/pkg-build-priv -a ! -d %configdir ]; then
-	%__mv %_sysconfdir/pkg-build-priv %configdir
+	mv %_sysconfdir/pkg-build-priv %configdir
 fi
-/usr/sbin/groupadd -r -f hashman
+groupadd -r -f hashman
 
 %files
 %_sbindir/hasher-useradd
