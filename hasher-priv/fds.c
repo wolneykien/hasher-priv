@@ -162,3 +162,10 @@ fds_add_fd(fd_set *fds, int *max_fd, const int fd)
 	if (fd > *max_fd)
 		*max_fd = fd;
 }
+
+/* This function may be executed with caller privileges. */
+int
+fds_isset(fd_set *fds, const int fd)
+{
+	return (fd >= 0) && FD_ISSET(fd, fds);
+}

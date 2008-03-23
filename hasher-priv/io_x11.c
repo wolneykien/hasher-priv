@@ -91,7 +91,7 @@ io_x11_free(io_x11_t io)
 void
 x11_handle_new(const int x11_fd, fd_set *read_fds)
 {
-	if (x11_fd < 0 || !FD_ISSET(x11_fd, read_fds))
+	if (!fds_isset(read_fds, x11_fd))
 		return;
 
 	int     accept_fd = unix_accept(x11_fd);
@@ -205,7 +205,7 @@ x11_handle_select(fd_set *read_fds, fd_set *write_fds,
 		if (!(io = io_x11_list[i]))
 			continue;
 
-		if (io->master_avail && FD_ISSET(io->slave_fd, write_fds))
+		if (io->master_avail && fds_isset(write_fds, io->slave_fd))
 		{
 			n = write_loop(io->slave_fd,
 				       io->master_buf, io->master_avail);
@@ -224,7 +224,7 @@ x11_handle_select(fd_set *read_fds, fd_set *write_fds,
 			io->master_avail -= n;
 		}
 
-		if (!io->master_avail && FD_ISSET(io->master_fd, read_fds))
+		if (!io->master_avail && fds_isset(read_fds, io->master_fd))
 		{
 			n = read_retry(io->master_fd,
 				       io->master_buf, sizeof io->master_buf);
@@ -237,7 +237,7 @@ x11_handle_select(fd_set *read_fds, fd_set *write_fds,
 			io->master_avail = n;
 		}
 
-		if (io->slave_avail && FD_ISSET(io->master_fd, write_fds))
+		if (io->slave_avail && fds_isset(write_fds, io->master_fd))
 		{
 			n = write_loop(io->master_fd,
 				       io->slave_buf, io->slave_avail);
@@ -256,7 +256,7 @@ x11_handle_select(fd_set *read_fds, fd_set *write_fds,
 			io->slave_avail -= n;
 		}
 
-		if (!io->slave_avail && FD_ISSET(io->slave_fd, read_fds))
+		if (!io->slave_avail && fds_isset(read_fds, io->slave_fd))
 		{
 			n = read_retry(io->slave_fd,
 				       io->slave_buf, sizeof io->slave_buf);

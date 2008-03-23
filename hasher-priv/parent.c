@@ -268,8 +268,7 @@ handle_io(io_std_t io)
 			return EXIT_FAILURE;
 	}
 
-	if (io->slave_read_out_fd >= 0
-	    && FD_ISSET(io->slave_read_out_fd, &read_fds))
+	if (fds_isset(&read_fds, io->slave_read_out_fd))
 	{
 		/* handle child stdout */
 		n = read_retry(io->slave_read_out_fd,
@@ -284,8 +283,7 @@ handle_io(io_std_t io)
 		}
 	}
 
-	if (io->slave_read_err_fd >= 0
-	    && FD_ISSET(io->slave_read_err_fd, &read_fds))
+	if (fds_isset(&read_fds, io->slave_read_err_fd))
 	{
 		/* handle child stderr */
 		n = read_retry(io->slave_read_err_fd,
@@ -306,8 +304,7 @@ handle_io(io_std_t io)
 	if (!child_pid)
 		return EXIT_SUCCESS;
 
-	if (io->slave_write_fd >= 0 && io->master_avail
-	    && FD_ISSET(io->slave_write_fd, &write_fds))
+	if (io->master_avail && fds_isset(&write_fds, io->slave_write_fd))
 	{
 		/* handle child input */
 		n = write_loop(io->slave_write_fd,
@@ -325,8 +322,7 @@ handle_io(io_std_t io)
 		io->master_avail -= n;
 	}
 
-	if (io->master_read_fd >= 0 && !io->master_avail
-	    && FD_ISSET(io->master_read_fd, &read_fds))
+	if (!io->master_avail && fds_isset(&read_fds, io->master_read_fd))
 	{
 		/* handle tty input */
 		n = read_retry(io->master_read_fd,
@@ -348,7 +344,7 @@ handle_io(io_std_t io)
 	log_handle_select(&read_fds);
 	log_handle_new(log_fd, &read_fds);
 
-	if (ctl_fd >= 0 && FD_ISSET(ctl_fd, &read_fds))
+	if (fds_isset(&read_fds, ctl_fd))
 	{
 		if ((x11_fd = handle_x11_ctl()) < 0)
 		{

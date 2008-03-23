@@ -74,10 +74,8 @@ fd_free(const int fd)
 void
 log_handle_new(const int fd, fd_set *fds)
 {
-	if (fd < 0 || !FD_ISSET(fd, fds))
-		return;
-
-	fd_new(unix_accept(fd));
+	if (fds_isset(fds, fd))
+		fd_new(unix_accept(fd));
 }
 
 void
@@ -121,10 +119,6 @@ log_handle_select(fd_set *fds)
 	size_t  i;
 
 	for (i = 0; i < fd_count; ++i)
-	{
-		int     fd = fd_list[i];
-
-		if (fd >= 0 && FD_ISSET(fd, fds))
-			copy_log(fd);
-	}
+		if (fds_isset(fds, fd_list[i]))
+			copy_log(fd_list[i]);
 }
