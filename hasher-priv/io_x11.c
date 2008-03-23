@@ -89,7 +89,7 @@ io_x11_free(io_x11_t io)
 }
 
 void
-handle_x11_new(const int x11_fd, fd_set *read_fds)
+x11_handle_new(const int x11_fd, fd_set *read_fds)
 {
 	if (x11_fd < 0 || !FD_ISSET(x11_fd, read_fds))
 		return;
@@ -108,7 +108,7 @@ handle_x11_new(const int x11_fd, fd_set *read_fds)
 }
 
 void
-prepare_x11_select(int *max_fd, fd_set *read_fds, fd_set *write_fds)
+fds_add_x11(fd_set *read_fds, fd_set *write_fds, int *max_fd)
 {
 	size_t i;
 
@@ -192,7 +192,7 @@ io_check_auth_data(io_x11_t io, const char *x11_saved_data,
 }
 
 void
-handle_x11_select(fd_set *read_fds, fd_set *write_fds,
+x11_handle_select(fd_set *read_fds, fd_set *write_fds,
 		  const char *x11_saved_data, const char *x11_fake_data)
 {
 	size_t i;

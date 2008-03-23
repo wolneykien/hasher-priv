@@ -237,7 +237,7 @@ handle_io(io_std_t io)
 
 	fds_add_fd(&read_fds, &max_fd, io->slave_read_out_fd);
 	fds_add_fd(&read_fds, &max_fd, io->slave_read_err_fd);
-	prepare_log_select(&max_fd, &read_fds);
+	fds_add_log(&read_fds, &max_fd);
 
 	/* select only if child is running */
 	if (child_pid)
@@ -245,18 +245,15 @@ handle_io(io_std_t io)
 		struct timeval tmout;
 		int     rc;
 
-		if (!io->master_avail)
-			fds_add_fd(&read_fds, &max_fd, io->master_read_fd);
-
 		if (io->master_avail)
 			fds_add_fd(&write_fds, &max_fd, io->slave_write_fd);
-
-		fds_add_fd(&read_fds, &max_fd, ctl_fd);
-
-		fds_add_fd(&read_fds, &max_fd, x11_fd);
-		prepare_x11_select(&max_fd, &read_fds, &write_fds);
+		else
+			fds_add_fd(&read_fds, &max_fd, io->master_read_fd);
 
 		fds_add_fd(&read_fds, &max_fd, log_fd);
+		fds_add_fd(&read_fds, &max_fd, ctl_fd);
+		fds_add_fd(&read_fds, &max_fd, x11_fd);
+		fds_add_x11(&read_fds, &write_fds, &max_fd);
 
 		tmout.tv_sec = wlimit.time_idle;
 		tmout.tv_usec = 0;
@@ -344,12 +341,12 @@ handle_io(io_std_t io)
 			io->master_read_fd = -1;
 	}
 
-	handle_x11_select(&read_fds, &write_fds, x11_saved_data,
+	x11_handle_select(&read_fds, &write_fds, x11_saved_data,
 			  x11_fake_data);
-	handle_x11_new(x11_fd, &read_fds);
+	x11_handle_new(x11_fd, &read_fds);
 
-	handle_log_select(&read_fds);
-	handle_log_new(log_fd, &read_fds);
+	log_handle_select(&read_fds);
+	log_handle_new(log_fd, &read_fds);
 
 	if (ctl_fd >= 0 && FD_ISSET(ctl_fd, &read_fds))
 	{

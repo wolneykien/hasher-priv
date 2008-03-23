@@ -102,13 +102,13 @@ int     x11_listen(void);
 int     x11_connect(void);
 int     x11_check_listen(int fd);
 
-void    handle_log_new(const int log_fd, fd_set *read_fds);
-void    prepare_log_select(int *max_fd, fd_set *read_fds);
-void    handle_log_select(fd_set *read_fds);
+void    log_handle_new(const int log_fd, fd_set *read_fds);
+void    fds_add_log(fd_set *read_fds, int *max_fd);
+void    log_handle_select(fd_set *read_fds);
 
-void    handle_x11_new(const int x11_fd, fd_set *read_fds);
-void    prepare_x11_select(int *max_fd, fd_set *read_fds, fd_set *write_fds);
-void    handle_x11_select(fd_set *read_fds, fd_set *write_fds,
+void    x11_handle_new(const int x11_fd, fd_set *read_fds);
+void    fds_add_x11(fd_set *read_fds, fd_set *write_fds, int *max_fd);
+void    x11_handle_select(fd_set *read_fds, fd_set *write_fds,
 			  const char *x11_saved_data,
 			  const char *x11_fake_data);
 

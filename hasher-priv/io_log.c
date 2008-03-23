@@ -72,7 +72,7 @@ fd_free(const int fd)
 }
 
 void
-handle_log_new(const int fd, fd_set *fds)
+log_handle_new(const int fd, fd_set *fds)
 {
 	if (fd < 0 || !FD_ISSET(fd, fds))
 		return;
@@ -81,7 +81,7 @@ handle_log_new(const int fd, fd_set *fds)
 }
 
 void
-prepare_log_select(int *max_fd, fd_set *fds)
+fds_add_log(fd_set *fds, int *max_fd)
 {
 	size_t  i;
 
@@ -116,7 +116,7 @@ copy_log(const int fd)
 
 
 void
-handle_log_select(fd_set *fds)
+log_handle_select(fd_set *fds)
 {
 	size_t  i;
 
