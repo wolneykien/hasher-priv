@@ -89,23 +89,12 @@ io_x11_free(io_x11_t io)
 }
 
 void
-prepare_x11_new(int *x11_fd, int *max_fd, fd_set * read_fds)
+handle_x11_new(const int x11_fd, fd_set *read_fds)
 {
-	if (*x11_fd < 0)
+	if (x11_fd < 0 || !FD_ISSET(x11_fd, read_fds))
 		return;
 
-	FD_SET(*x11_fd, read_fds);
-	if (*x11_fd > *max_fd)
-		*max_fd = *x11_fd;
-}
-
-void
-handle_x11_new(int *x11_fd, fd_set * read_fds)
-{
-	if (*x11_fd < 0 || !FD_ISSET(*x11_fd, read_fds))
-		return;
-
-	int     accept_fd = unix_accept(*x11_fd);
+	int     accept_fd = unix_accept(x11_fd);
 
 	if (accept_fd < 0)
 		return;
@@ -119,7 +108,7 @@ handle_x11_new(int *x11_fd, fd_set * read_fds)
 }
 
 void
-prepare_x11_select(int *max_fd, fd_set * read_fds, fd_set * write_fds)
+prepare_x11_select(int *max_fd, fd_set *read_fds, fd_set *write_fds)
 {
 	size_t i;
 
@@ -131,28 +120,14 @@ prepare_x11_select(int *max_fd, fd_set * read_fds, fd_set * write_fds)
 			continue;
 
 		if (io->slave_avail)
-		{
-			FD_SET(io->master_fd, write_fds);
-			if (io->master_fd > *max_fd)
-				*max_fd = io->master_fd;
-		} else
-		{
-			FD_SET(io->slave_fd, read_fds);
-			if (io->slave_fd > *max_fd)
-				*max_fd = io->slave_fd;
-		}
+			fds_add_fd(write_fds, max_fd, io->master_fd);
+		else
+			fds_add_fd(read_fds, max_fd, io->slave_fd);
 
 		if (io->master_avail)
-		{
-			FD_SET(io->slave_fd, write_fds);
-			if (io->slave_fd > *max_fd)
-				*max_fd = io->slave_fd;
-		} else
-		{
-			FD_SET(io->master_fd, read_fds);
-			if (io->master_fd > *max_fd)
-				*max_fd = io->master_fd;
-		}
+			fds_add_fd(write_fds, max_fd, io->slave_fd);
+		else
+			fds_add_fd(read_fds, max_fd, io->master_fd);
 	}
 }
 
@@ -217,7 +192,7 @@ io_check_auth_data(io_x11_t io, const char *x11_saved_data,
 }
 
 void
-handle_x11_select(fd_set * read_fds, fd_set * write_fds,
+handle_x11_select(fd_set *read_fds, fd_set *write_fds,
 		  const char *x11_saved_data, const char *x11_fake_data)
 {
 	size_t i;

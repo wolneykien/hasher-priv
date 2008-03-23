@@ -150,3 +150,15 @@ write_loop(int fd, const char *buffer, size_t count)
 	}
 	return offset;
 }
+
+/* This function may be executed with caller privileges. */
+void
+fds_add_fd(fd_set *fds, int *max_fd, const int fd)
+{
+	if (fd < 0)
+		return;
+
+	FD_SET(fd, fds);
+	if (fd > *max_fd)
+		*max_fd = fd;
+}

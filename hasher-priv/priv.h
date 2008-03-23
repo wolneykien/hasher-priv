@@ -68,9 +68,11 @@ void    sanitize_fds(void);
 void    cloexec_fds(void);
 void    nullify_stdin(void);
 void    unblock_fd(int fd);
+void    fds_add_fd(fd_set *fds, int *max_fd, const int fd);
 ssize_t read_retry(int fd, void *buf, size_t count);
 ssize_t write_retry(int fd, const void *buf, size_t count);
 ssize_t write_loop(int fd, const char *buffer, size_t count);
+void    xwrite_all(int fd, const char *buffer, size_t count);
 int     init_tty(void);
 void    restore_tty(void);
 int     tty_copy_winsize(int master_fd, int slave_fd);
@@ -99,11 +101,14 @@ void    x11_closedir(void);
 int     x11_listen(void);
 int     x11_connect(void);
 int     x11_check_listen(int fd);
-void    prepare_x11_new(int *x11_fd, int *max_fd, fd_set * read_fds);
-void    handle_x11_new(int *x11_fd, fd_set * read_fds);
-void    prepare_x11_select(int *max_fd, fd_set * read_fds,
-			   fd_set * write_fds);
-void    handle_x11_select(fd_set * read_fds, fd_set * write_fds,
+
+void    handle_log_new(const int log_fd, fd_set *read_fds);
+void    prepare_log_select(int *max_fd, fd_set *read_fds);
+void    handle_log_select(fd_set *read_fds);
+
+void    handle_x11_new(const int x11_fd, fd_set *read_fds);
+void    prepare_x11_select(int *max_fd, fd_set *read_fds, fd_set *write_fds);
+void    handle_x11_select(fd_set *read_fds, fd_set *write_fds,
 			  const char *x11_saved_data,
 			  const char *x11_fake_data);
 

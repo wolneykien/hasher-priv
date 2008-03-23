@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2003-2007  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2008  Dmitry V. Levin <ldv@altlinux.org>
 
   The chrootuid parent handler for the hasher-priv program.
 
@@ -38,7 +38,7 @@
 static volatile pid_t child_pid;
 
 static int
-select_retry(int n, fd_set * readfds, fd_set * writefds, fd_set * exceptfds,
+select_retry(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
 	     struct timeval *timeout)
 {
 	int     rc = -1;
@@ -169,7 +169,7 @@ struct io_std
 
 typedef struct io_std *io_std_t;
 
-static int pty_fd = -1, ctl_fd = -1, x11_fd = -1;
+static int pty_fd = -1, ctl_fd = -1, x11_fd = -1, log_fd = -1;
 static unsigned long total_bytes_read, total_bytes_written;
 
 static char *x11_saved_data, *x11_fake_data;
@@ -235,19 +235,9 @@ handle_io(io_std_t io)
 		(void) tty_copy_winsize(STDIN_FILENO, pty_fd);
 	}
 
-	if (io->slave_read_out_fd >= 0)
-	{
-		FD_SET(io->slave_read_out_fd, &read_fds);
-		if (io->slave_read_out_fd > max_fd)
-			max_fd = io->slave_read_out_fd;
-	}
-
-	if (io->slave_read_err_fd >= 0)
-	{
-		FD_SET(io->slave_read_err_fd, &read_fds);
-		if (io->slave_read_err_fd > max_fd)
-			max_fd = io->slave_read_err_fd;
-	}
+	fds_add_fd(&read_fds, &max_fd, io->slave_read_out_fd);
+	fds_add_fd(&read_fds, &max_fd, io->slave_read_err_fd);
+	prepare_log_select(&max_fd, &read_fds);
 
 	/* select only if child is running */
 	if (child_pid)
@@ -255,30 +245,18 @@ handle_io(io_std_t io)
 		struct timeval tmout;
 		int     rc;
 
-		if (io->master_read_fd >= 0 && !io->master_avail)
-		{
-			FD_SET(io->master_read_fd, &read_fds);
-			if (io->master_read_fd > max_fd)
-				max_fd = io->master_read_fd;
-		}
+		if (!io->master_avail)
+			fds_add_fd(&read_fds, &max_fd, io->master_read_fd);
 
-		if (io->slave_write_fd >= 0 && io->master_avail)
-		{
-			FD_SET(io->slave_write_fd, &write_fds);
-			if (io->slave_write_fd > max_fd)
-				max_fd = io->slave_write_fd;
-		}
+		if (io->master_avail)
+			fds_add_fd(&write_fds, &max_fd, io->slave_write_fd);
 
-		if (ctl_fd >= 0)
-		{
-			FD_SET(ctl_fd, &read_fds);
-			if (ctl_fd > max_fd)
-				max_fd = ctl_fd;
-		}
+		fds_add_fd(&read_fds, &max_fd, ctl_fd);
 
-		prepare_x11_new(&x11_fd, &max_fd, &read_fds);
-
+		fds_add_fd(&read_fds, &max_fd, x11_fd);
 		prepare_x11_select(&max_fd, &read_fds, &write_fds);
+
+		fds_add_fd(&read_fds, &max_fd, log_fd);
 
 		tmout.tv_sec = wlimit.time_idle;
 		tmout.tv_usec = 0;
@@ -304,13 +282,8 @@ handle_io(io_std_t io)
 			io->slave_read_out_fd = -1;
 		} else
 		{
-
-			if (write_loop
-			    (io->master_write_out_fd, io->slave_buf,
-			     (size_t) n) != n)
-				error(EXIT_FAILURE, errno, "write");
-
-			total_bytes_written += n;
+			xwrite_all(io->master_write_out_fd, io->slave_buf,
+				   (size_t) n);
 		}
 	}
 
@@ -325,13 +298,8 @@ handle_io(io_std_t io)
 			io->slave_read_err_fd = -1;
 		} else
 		{
-
-			if (write_loop
-			    (io->master_write_err_fd, io->slave_buf,
-			     (size_t) n) != n)
-				error(EXIT_FAILURE, errno, "write");
-
-			total_bytes_written += n;
+			xwrite_all(io->master_write_err_fd, io->slave_buf,
+				   (size_t) n);
 		}
 	}
 
@@ -378,8 +346,10 @@ handle_io(io_std_t io)
 
 	handle_x11_select(&read_fds, &write_fds, x11_saved_data,
 			  x11_fake_data);
+	handle_x11_new(x11_fd, &read_fds);
 
-	handle_x11_new(&x11_fd, &read_fds);
+	handle_log_select(&read_fds);
+	handle_log_new(log_fd, &read_fds);
 
 	if (ctl_fd >= 0 && FD_ISSET(ctl_fd, &read_fds))
 	{
@@ -393,6 +363,15 @@ handle_io(io_std_t io)
 	}
 
 	return EXIT_SUCCESS;
+}
+
+void
+xwrite_all(int fd, const char *buffer, size_t count)
+{
+	if (write_loop(fd, buffer, count) != (ssize_t) count)
+		error(EXIT_FAILURE, errno, "write");
+
+	total_bytes_written += count;
 }
 
 int
@@ -440,6 +419,8 @@ handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_out, int pipe_err,
 		if (sigaction(SIGWINCH, &act, 0))
 			error(EXIT_FAILURE, errno, "sigaction");
 	}
+
+	log_fd = log_listen();
 
 	while (work_limits_ok(total_bytes_read, total_bytes_written))
 		if (handle_io(io) != EXIT_SUCCESS)
