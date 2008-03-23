@@ -37,45 +37,6 @@
 
 static volatile pid_t child_pid;
 
-static int
-select_retry(int n, fd_set *readfds, fd_set *writefds,
-	     const unsigned long timeout)
-{
-	struct timespec tmout;
-	sigset_t set_old, set_check, set_select;
-	int     rc = -1;
-
-	tmout.tv_sec = timeout;
-	tmout.tv_nsec = 0;
-
-	if (sigprocmask(SIG_SETMASK, 0, &set_old) < 0)
-		error(EXIT_FAILURE, errno, "sigprocmask");
-
-	memcpy(&set_check, &set_old, sizeof(set_old));
-	sigaddset(&set_check, SIGCHLD);
-
-	memcpy(&set_select, &set_old, sizeof(set_old));
-	sigaddset(&set_select, SIGWINCH);
-
-	errno = EINTR;
-	while (rc < 0 && errno == EINTR)
-	{
-		if (sigprocmask(SIG_SETMASK, &set_check, 0) < 0)
-			error(EXIT_FAILURE, errno, "sigprocmask");
-		if (!child_pid)
-		{
-			if (sigprocmask(SIG_SETMASK, &set_old, 0) < 0)
-				error(EXIT_FAILURE, errno, "sigprocmask");
-			break;
-		}
-		rc = pselect(n, readfds, writefds, NULL,
-			     (timeout ? &tmout : 0), &set_select);
-		if (sigprocmask(SIG_SETMASK, &set_old, 0) < 0)
-			error(EXIT_FAILURE, errno, "sigprocmask");
-	}
-	return rc;
-}
-
 static volatile sig_atomic_t sigwinch_arrived;
 
 static void
@@ -137,6 +98,7 @@ wait_child(void)
 {
 	unsigned i;
 
+	block_signal_handler(SIGCHLD, SIG_UNBLOCK);
 	for (i = 0; i < 10; ++i)
 		if (child_pid)
 			usleep(100000);
@@ -250,8 +212,11 @@ static int
 handle_io(io_std_t io)
 {
 	ssize_t n;
+	int     rc;
 	int     max_fd = 0;
 	fd_set  read_fds, write_fds;
+	struct timespec tmout;
+	sigset_t set;
 
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
@@ -262,13 +227,17 @@ handle_io(io_std_t io)
 		(void) tty_copy_winsize(STDIN_FILENO, pty_fd);
 	}
 
+	/* Select child output, error, log and x11 descriptors
+	   even after child process completion. */
 	fds_add_fd(&read_fds, &max_fd, io->slave_read_out_fd);
 	fds_add_fd(&read_fds, &max_fd, io->slave_read_err_fd);
 	fds_add_log(&read_fds, &max_fd);
+	fds_add_x11(&read_fds, &write_fds, &max_fd);
 
-	/* select only if child is running */
 	if (child_pid)
 	{
+		/* Select child input, tty input and listeners
+		   only if child process is alive. */
 		if (io->master_avail)
 			fds_add_fd(&write_fds, &max_fd, io->slave_write_fd);
 		else
@@ -277,18 +246,24 @@ handle_io(io_std_t io)
 		fds_add_fd(&read_fds, &max_fd, log_fd);
 		fds_add_fd(&read_fds, &max_fd, ctl_fd);
 		fds_add_fd(&read_fds, &max_fd, x11_fd);
-		fds_add_x11(&read_fds, &write_fds, &max_fd);
-
-		int     rc;
-		rc = select_retry(max_fd + 1, &read_fds, &write_fds,
-				  wlimit.time_idle);
-		if (!rc)
-			limit_exceeded
-				("idle time limit (%u seconds) exceeded",
-				 wlimit.time_idle);
-		else if (rc < 0)
+	} else {
+		/* No child process and no descriptors to handle? */
+		if (max_fd <= 1)
 			return EXIT_FAILURE;
 	}
+
+	tmout.tv_sec = wlimit.time_idle;
+	tmout.tv_nsec = 0;
+
+	sigemptyset(&set);
+
+	rc = pselect(max_fd + 1, &read_fds, &write_fds, NULL,
+		     (wlimit.time_idle ? &tmout : 0), &set);
+	if (!rc)
+		limit_exceeded("idle time limit (%u seconds) exceeded",
+			       wlimit.time_idle);
+	else if (rc < 0)
+		return (errno == EINTR) ? EXIT_SUCCESS : EXIT_FAILURE;
 
 	if (fds_isset(&read_fds, io->slave_read_out_fd))
 	{
@@ -319,12 +294,6 @@ handle_io(io_std_t io)
 				   (size_t) n);
 		}
 	}
-
-	if (io->slave_read_out_fd < 0 && io->slave_read_err_fd < 0)
-		return EXIT_FAILURE;
-
-	if (!child_pid)
-		return EXIT_SUCCESS;
 
 	if (io->master_avail && fds_isset(&write_fds, io->slave_write_fd))
 	{
@@ -407,7 +376,6 @@ handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_out, int pipe_err,
 	if (sigaction(SIGCHLD, &act, 0))
 		error(EXIT_FAILURE, errno, "sigaction");
 
-	block_signal_handler(SIGCHLD, SIG_UNBLOCK);
 	signal(SIGPIPE, SIG_IGN);
 
 	io = xcalloc(1UL, sizeof(*io));
@@ -428,6 +396,7 @@ handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_out, int pipe_err,
 	/* redirect standard descriptors, init tty if necessary */
 	if (init_tty() && tty_copy_winsize(STDIN_FILENO, pty_fd) == 0)
 	{
+		block_signal_handler(SIGWINCH, SIG_BLOCK);
 		act.sa_handler = sigwinch_handler;
 		sigemptyset(&act.sa_mask);
 		act.sa_flags = SA_RESTART;
@@ -441,7 +410,10 @@ handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_out, int pipe_err,
 		if (handle_io(io) != EXIT_SUCCESS)
 			break;
 
+	/* Close master pty descriptor, thus sending HUP to child session. */
 	(void) close(pty_fd);
+
+	dfl_signal_handler(SIGWINCH);
 	wait_child();
 	dfl_signal_handler(SIGCHLD);
 	forget_child();
