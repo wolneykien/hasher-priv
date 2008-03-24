@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 1.2.11
+Version: 1.3.0
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -60,6 +60,13 @@ groupadd -r -f hashman
 %doc DESIGN
 
 %changelog
+* Mon Mar 24 2008 Dmitry V. Levin <ldv@altlinux.org> 1.3.0-alt1
+- Changed parent I/O loop: parent process no longer closes master
+  pty descriptor when child closes all its output descriptors;
+  parent process now waits for child process termination or timeout.
+- DESIGN: Described "handle child input/output" control flow
+- Implemented /dev/log listener.
+
 * Wed Oct 10 2007 Dmitry V. Levin <ldv@altlinux.org> 1.2.11-alt1
 - chrootuid.sh.in (exit_handler): Fixed exit status check (at@).
 - Implemented "hasher-priv getconf" mode.
