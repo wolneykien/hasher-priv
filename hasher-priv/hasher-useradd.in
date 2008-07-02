@@ -119,8 +119,8 @@ if [ -n "$names" ]; then
 		Fatal "invalid names for satellite users: $names"
 	fi
 else
-	user1="$caller"_a
-	user2="$caller"_b
+	user1="${caller}_a$number"
+	user2="${caller}_b$number"
 fi
 
 caller_id="$(id "$caller")"
