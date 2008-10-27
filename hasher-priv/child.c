@@ -79,7 +79,7 @@ read_loop(int fd, char *buffer, size_t count)
 		if (block <= 0)
 			return offset ? : block;
 		offset += block;
-		count -= block;
+		count -= (size_t) block;
 	}
 	return offset;
 }
