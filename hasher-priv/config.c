@@ -296,12 +296,13 @@ static char *
 parse_prefix(const char *name, const char *value, const char *filename)
 {
 	char   *prefix = xstrdup(strcmp(value, "~") ? value : caller_home);
-	int     n = strlen(prefix) - 1;
+	size_t  n = strlen(prefix);
 
-	for (; n >= 0; --n)
+	/* Strip trailing slashes. */
+	for (; n > 0; --n)
 	{
-		if (prefix[n] == '/')
-			prefix[n] = '\0';
+		if (prefix[n - 1] == '/')
+			prefix[n - 1] = '\0';
 		else
 			break;
 	}
