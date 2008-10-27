@@ -44,7 +44,7 @@ const char *x11_display, *x11_key;
 uid_t   change_uid1, change_uid2;
 gid_t   change_gid1, change_gid2;
 mode_t  change_umask = 022;
-int     change_nice = 8;
+int change_nice = 8;
 int     allow_tty_devices, use_pty;
 size_t  x11_data_len;
 change_rlimit_t change_rlimit[] = {
@@ -137,10 +137,10 @@ str2umask(const char *name, const char *value, const char *filename)
 	if (!p || *p || n > 0777)
 		bad_option_value(name, value, filename);
 
-	return n;
+	return (mode_t) n;
 }
 
-static unsigned
+static int
 str2nice(const char *name, const char *value, const char *filename)
 {
 	char   *p = 0;
@@ -153,7 +153,7 @@ str2nice(const char *name, const char *value, const char *filename)
 	if (!p || *p || n > 19)
 		bad_option_value(name, value, filename);
 
-	return n;
+	return (int) n;
 }
 
 static  rlim_t
@@ -226,7 +226,7 @@ str2wlim(const char *name, const char *value, const char *filename)
 	if (!p || *p || n > INT_MAX)
 		bad_option_value(name, value, filename);
 
-	return n;
+	return (unsigned) n;
 }
 
 static void
