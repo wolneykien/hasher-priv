@@ -45,12 +45,12 @@ static sigjmp_buf jmpbuf;
 
 static int
 xselect(int nfds, fd_set *read_fds, fd_set *write_fds,
-	const unsigned long timeout)
+	const unsigned int timeout)
 {
 	struct timeval tmout;
 	sigset_t savemask, sigmask;
 
-	tmout.tv_sec = timeout;
+	tmout.tv_sec = (time_t) timeout;
 	tmout.tv_usec = 0;
 	sigemptyset(&sigmask);
 
@@ -231,7 +231,7 @@ handle_x11_ctl(void)
 			x11_saved_data = 0;
 			return -1;
 		}
-		x11_saved_data[i] = value;
+		x11_saved_data[i] = (char) value;
 	}
 
 	x11_fake_data = xmalloc(x11_data_len);
@@ -300,8 +300,7 @@ handle_io(io_std_t io)
 			return EXIT_FAILURE;
 	}
 
-	rc = xselect(max_fd + 1, &read_fds, &write_fds,
-		     (unsigned long) wlimit.time_idle);
+	rc = xselect(max_fd + 1, &read_fds, &write_fds, wlimit.time_idle);
 	if (!rc)
 		limit_exceeded("idle time limit (%u seconds) exceeded",
 			       wlimit.time_idle);
@@ -349,11 +348,12 @@ handle_io(io_std_t io)
 		if ((size_t) n < io->master_avail)
 		{
 			memmove(io->master_buf,
-				io->master_buf + n, io->master_avail - n);
+				io->master_buf + (size_t) n,
+				io->master_avail - (size_t) n);
 		}
 
 		total_bytes_read += io->master_avail;
-		io->master_avail -= n;
+		io->master_avail -= (size_t) n;
 	}
 
 	if (!io->master_avail && fds_isset(&read_fds, io->master_read_fd))
@@ -362,7 +362,7 @@ handle_io(io_std_t io)
 		n = read_retry(io->master_read_fd,
 			       io->master_buf, sizeof io->master_buf);
 		if (n > 0)
-			io->master_avail = n;
+			io->master_avail = (size_t) n;
 		else if (n == 0)
 		{
 			io->master_buf[0] = 4;
@@ -415,7 +415,7 @@ handle_parent(pid_t a_child_pid, int a_pty_fd, int pipe_out, int pipe_err,
 
 	act.sa_handler = sigchld_handler;
 	sigemptyset(&act.sa_mask);
-	act.sa_flags = SA_NOCLDSTOP | SA_RESETHAND;
+	act.sa_flags = (int) (SA_NOCLDSTOP | SA_RESETHAND);
 	if (sigaction(SIGCHLD, &act, 0))
 		error(EXIT_FAILURE, errno, "sigaction");
 
