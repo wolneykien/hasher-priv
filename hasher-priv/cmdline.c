@@ -118,7 +118,7 @@ get_caller_num(const char *str)
 	if (!p || *p || !n || n > INT_MAX)
 		show_usage("-%s: invalid option", str);
 
-	return n;
+	return (unsigned) n;
 }
 
 /* Parse command line arguments. */
