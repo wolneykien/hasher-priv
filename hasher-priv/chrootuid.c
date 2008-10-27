@@ -174,7 +174,7 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 			"SHELL=/bin/sh", 0
 		};
 
-		return handle_child((char *const *) env, slave,
+		handle_child((char *const *) env, slave,
 				    pipe_out[1], pipe_err[1], ctl[1]);
 	}
 }

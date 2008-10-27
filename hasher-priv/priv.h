@@ -85,7 +85,7 @@ void    ch_uid(uid_t uid, uid_t *save);
 void    ch_gid(gid_t gid, gid_t *save);
 void    chdiruid(const char *path);
 void    purge_ipc(uid_t uid);
-int     handle_child(char *const *env, int pty_fd, int pipe_out, int pipe_err, int ctl_fd);
+void    handle_child(char *const *env, int pty_fd, int pipe_out, int pipe_err, int ctl_fd) __attribute__ ((noreturn));
 int     handle_parent(pid_t pid, int pty_fd, int pipe_out, int pipe_err, int ctl_fd);
 void    block_signal_handler(int no, int what);
 void    dfl_signal_handler(int no);

@@ -158,7 +158,7 @@ xauth_add_entry(char *const *env)
 	}
 }
 
-int
+void
 handle_child(char *const *env, int pty_fd, int pipe_out, int pipe_err,
 	     int ctl_fd)
 {
@@ -200,5 +200,5 @@ handle_child(char *const *env, int pty_fd, int pipe_out, int pipe_err,
 
 	execve(chroot_argv[0], (char *const *) chroot_argv, env);
 	error(EXIT_FAILURE, errno, "chrootuid: execve: %s", chroot_argv[0]);
-	return EXIT_FAILURE;
+	exit(EXIT_FAILURE);
 }
