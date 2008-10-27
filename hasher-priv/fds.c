@@ -146,7 +146,7 @@ write_loop(int fd, const char *buffer, size_t count)
 		if (block <= 0)
 			return offset ? : block;
 		offset += block;
-		count -= block;
+		count -= (size_t) block;
 	}
 	return offset;
 }
