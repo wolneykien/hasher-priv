@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2003-2007  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2008  Dmitry V. Levin <ldv@altlinux.org>
 
   Configuration support module for the hasher-priv program.
 

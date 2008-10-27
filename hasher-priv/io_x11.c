@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2005-2007  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2005-2008  Dmitry V. Levin <ldv@altlinux.org>
 
   The chrootuid parent X11 I/O handler for the hasher-priv program.
 
