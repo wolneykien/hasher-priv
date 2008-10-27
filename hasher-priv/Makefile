@@ -44,9 +44,10 @@ WARNINGS = -Wall -W -Wshadow -Wpointer-arith -Wwrite-strings \
 	-Wconversion -Waggregate-return -Wstrict-prototypes -Werror \
 	-Wmissing-prototypes -Wmissing-declarations -Wmissing-noreturn \
 	-Wmissing-format-attribute -Wredundant-decls -Wdisabled-optimization
-CPPFLAGS = -std=gnu99 $(WARNINGS) -D_GNU_SOURCE $(CHDIRUID_FLAGS) \
+CPPFLAGS = -std=gnu99 -D_GNU_SOURCE $(CHDIRUID_FLAGS) \
 	$(LFS_CFLAGS) -DPROJECT_VERSION=\"$(VERSION)\"
 CFLAGS = -pipe -O2
+override CFLAGS += $(WARNINGS)
 LDLIBS = -lutil
 
 SRC = caller.c chdir.c chdiruid.c chid.c child.c chrootuid.c cmdline.c \
