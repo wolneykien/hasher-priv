@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 1.3.0
+Version: 1.3.1
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -30,7 +30,7 @@ required by hasher utilities.
 %setup -q
 
 %build
-%make_build CFLAGS="%optflags" libexecdir=%_libexecdir
+%make_build CC="%__cc" CFLAGS="%optflags" libexecdir="%_libexecdir"
 
 %install
 %makeinstall
@@ -60,6 +60,10 @@ groupadd -r -f hashman
 %doc DESIGN
 
 %changelog
+* Mon Oct 27 2008 Dmitry V. Levin <ldv@altlinux.org> 1.3.1-alt1
+- hasher-useradd: Include subconfig number to default satellite user names.
+- Fixed build with fresh gcc.
+
 * Mon Mar 24 2008 Dmitry V. Levin <ldv@altlinux.org> 1.3.0-alt1
 - Changed parent I/O loop: parent process no longer closes master
   pty descriptor when child closes all its output descriptors;
