@@ -28,14 +28,31 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <linux/limits.h>
+#include <limits.h>
 
 #include "priv.h"
+
+/* This function may be executed with root privileges. */
+static int
+get_open_max(void)
+{
+	long int i;
+
+	i = sysconf(_SC_OPEN_MAX);
+	if (i < NR_OPEN)
+		i = NR_OPEN;
+	if (i > INT_MAX)
+		i = INT_MAX;
+
+	return (int) i;
+}
+
 
 /* This function may be executed with root privileges. */
 void
 sanitize_fds(void)
 {
-	int     fd, max_fd;
+	int     fd, max_fd = get_open_max();
 
 	/* Set safe umask, just in case. */
 	umask(077);
@@ -50,9 +67,7 @@ sanitize_fds(void)
 			exit(EXIT_FAILURE);
 	}
 
-	max_fd = sysconf(_SC_OPEN_MAX);
-	if (max_fd < NR_OPEN)
-		max_fd = NR_OPEN;
+	max_fd = get_open_max();
 
 	/* Close all the rest. */
 	for (; fd < max_fd; ++fd)
@@ -65,10 +80,7 @@ sanitize_fds(void)
 void
 cloexec_fds(void)
 {
-	int     fd, max_fd;
-
-	if ((max_fd = sysconf(_SC_OPEN_MAX)) < NR_OPEN)
-		max_fd = NR_OPEN;
+	int     fd, max_fd = get_open_max();
 
 	/* Set cloexec flag for all the rest. */
 	for (fd = STDERR_FILENO + 1; fd < max_fd; ++fd)
