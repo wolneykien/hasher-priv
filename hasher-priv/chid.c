@@ -40,7 +40,7 @@
 void
 ch_uid(uid_t uid, uid_t *save)
 {
-	uid_t   tmp = setfsuid(uid);
+	uid_t   tmp = (uid_t) setfsuid(uid);
 
 	if (save)
 		*save = tmp;
@@ -52,7 +52,7 @@ ch_uid(uid_t uid, uid_t *save)
 void
 ch_gid(gid_t gid, gid_t *save)
 {
-	gid_t   tmp = setfsgid(gid);
+	gid_t   tmp = (gid_t) setfsgid(gid);
 
 	if (save)
 		*save = tmp;
