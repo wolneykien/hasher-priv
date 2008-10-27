@@ -139,26 +139,26 @@ io_check_auth_data(io_x11_t io, const char *x11_saved_data,
 		return;
 	io->authenticated = 1;
 
-	unsigned avail = io->slave_avail, expected = 12;
+	size_t avail = io->slave_avail, expected = 12;
 
 	if (avail < expected)
 	{
 		error(EXIT_SUCCESS, 0,
-		      "Initial X11 packet too short, expected length = %u\r",
-		      expected);
+		      "Initial X11 packet too short, expected length = %lu\r",
+		      (unsigned long) expected);
 		return;
 	}
 	unsigned proto_len = 0, data_len = 0;
-	char   *p = io->slave_buf;
+	unsigned char *p = (unsigned char *) io->slave_buf;
 
 	if (p[0] == 0x42)
 	{			/* Byte order MSB first. */
-		proto_len = 256 * p[6] + p[7];
-		data_len = 256 * p[8] + p[9];
+		proto_len = (unsigned) (p[7] | (p[6] << 8));
+		data_len = (unsigned) (p[9] | (p[8] << 8));
 	} else if (p[0] == 0x6c)
 	{			/* Byte order LSB first. */
-		proto_len = p[6] + 256 * p[7];
-		data_len = p[8] + 256 * p[9];
+		proto_len = (unsigned) (p[6] | (p[7] << 8));
+		data_len = (unsigned) (p[8] | (p[9] << 8));
 	} else
 	{
 		error(EXIT_SUCCESS, 0,
@@ -173,8 +173,8 @@ io_check_auth_data(io_x11_t io, const char *x11_saved_data,
 	if (avail < expected)
 	{
 		error(EXIT_SUCCESS, 0,
-		      "Initial X11 packet too short, expected length = %u\r",
-		      expected);
+		      "Initial X11 packet too short, expected length = %lu\r",
+		      (unsigned long) expected);
 		return;
 	}
 
@@ -218,10 +218,10 @@ x11_handle_select(fd_set *read_fds, fd_set *write_fds,
 			if ((size_t) n < io->master_avail)
 			{
 				memmove(io->master_buf,
-					io->master_buf + n,
-					io->master_avail - n);
+					io->master_buf + (size_t) n,
+					io->master_avail - (size_t) n);
 			}
-			io->master_avail -= n;
+			io->master_avail -= (size_t) n;
 		}
 
 		if (!io->master_avail && fds_isset(read_fds, io->master_fd))
@@ -234,7 +234,7 @@ x11_handle_select(fd_set *read_fds, fd_set *write_fds,
 				continue;
 			}
 
-			io->master_avail = n;
+			io->master_avail = (size_t) n;
 		}
 
 		if (io->slave_avail && fds_isset(write_fds, io->master_fd))
@@ -250,10 +250,10 @@ x11_handle_select(fd_set *read_fds, fd_set *write_fds,
 			if ((size_t) n < io->slave_avail)
 			{
 				memmove(io->slave_buf,
-					io->slave_buf + n,
-					io->slave_avail - n);
+					io->slave_buf + (size_t) n,
+					io->slave_avail - (size_t) n);
 			}
-			io->slave_avail -= n;
+			io->slave_avail -= (size_t) n;
 		}
 
 		if (!io->slave_avail && fds_isset(read_fds, io->slave_fd))
@@ -266,7 +266,7 @@ x11_handle_select(fd_set *read_fds, fd_set *write_fds,
 				continue;
 			}
 
-			io->slave_avail = n;
+			io->slave_avail = (size_t) n;
 			io_check_auth_data(io, x11_saved_data, x11_fake_data);
 		}
 	}
