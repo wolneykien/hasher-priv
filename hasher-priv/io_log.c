@@ -90,18 +90,19 @@ fds_add_log(fd_set *fds, int *max_fd)
 static void
 copy_log(const int fd)
 {
-	ssize_t n;
+	ssize_t i;
 	char    buf[BUFSIZ];
 
-	n = read_retry(fd, buf, sizeof(buf) - 2);
-	if (n <= 0)
+	i = read_retry(fd, buf, sizeof(buf) - 2);
+	if (i <= 0)
 	{
 		fd_free(fd);
 		return;
 	}
 
-	buf[n] = '\0';
-	n = strlen(buf);
+	buf[i] = '\0';
+
+	size_t  n = strlen(buf);
 
 	if (n > 0 && buf[n - 1] != '\n')
 	{
@@ -109,7 +110,7 @@ copy_log(const int fd)
 		buf[n++] = '\n';
 	}
 
-	xwrite_all(STDERR_FILENO, buf, (size_t) n);
+	xwrite_all(STDERR_FILENO, buf, n);
 }
 
 
