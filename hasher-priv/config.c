@@ -213,27 +213,28 @@ parse_rlim(const char *name, const char *value, const char *optname,
 		bad_option_name(optname, filename);
 }
 
-static unsigned
+static unsigned long
 str2wlim(const char *name, const char *value, const char *filename)
 {
 	char   *p = 0;
-	unsigned long n;
+	unsigned long long n;
 
 	if (!*value)
 		bad_option_value(name, value, filename);
 
-	n = strtoul(value, &p, 10);
-	if (!p || *p || n > INT_MAX)
+	errno = 0;
+	n = strtoull(value, &p, 10);
+	if (!p || *p || n > ULONG_MAX || (n == ULLONG_MAX && errno == ERANGE))
 		bad_option_value(name, value, filename);
 
-	return (unsigned) n;
+	return (unsigned long) n;
 }
 
 static void
-modify_wlim(unsigned *pval, const char *value,
+modify_wlim(unsigned long *pval, const char *value,
 	    const char *optname, const char *filename, int is_system)
 {
-	unsigned val = str2wlim(optname, value, filename);
+	unsigned long val = str2wlim(optname, value, filename);
 
 	if (is_system || *pval == 0 || (val > 0 && val < *pval))
 		*pval = val;
@@ -243,7 +244,7 @@ static void
 parse_wlim(const char *name, const char *value,
 	   const char *optname, const char *filename)
 {
-	unsigned *pval;
+	unsigned long *pval;
 
 	if (!strcasecmp("time_elapsed", name))
 		pval = &wlimit.time_elapsed;

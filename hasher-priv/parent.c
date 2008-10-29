@@ -45,7 +45,7 @@ static sigjmp_buf jmpbuf;
 
 static int
 xselect(int nfds, fd_set *read_fds, fd_set *write_fds,
-	const unsigned int timeout)
+	const unsigned long int timeout)
 {
 	struct timeval tmout;
 	sigset_t savemask, sigmask;
@@ -154,7 +154,7 @@ wait_child(void)
 }
 
 static void __attribute__ ((noreturn, format(printf, 1, 0)))
-limit_exceeded(const char *fmt, unsigned limit)
+limit_exceeded(const char *fmt, unsigned long limit)
 {
 	forget_child();
 	restore_tty();
@@ -168,12 +168,12 @@ work_limits_ok(unsigned long bytes_read, unsigned long bytes_written)
 {
 	if (wlimit.bytes_read
 	    && bytes_read >= (unsigned long) wlimit.bytes_read)
-		limit_exceeded("bytes read limit (%u bytes) exceeded",
+		limit_exceeded("bytes read limit (%lu bytes) exceeded",
 			       wlimit.bytes_read);
 
 	if (wlimit.bytes_written
 	    && bytes_written >= (unsigned long) wlimit.bytes_written)
-		limit_exceeded("bytes written limit (%u bytes) exceeded",
+		limit_exceeded("bytes written limit (%lu bytes) exceeded",
 			       wlimit.bytes_written);
 
 	if (wlimit.time_elapsed)
@@ -189,7 +189,7 @@ work_limits_ok(unsigned long bytes_read, unsigned long bytes_written)
 			time(&t_now);
 			if (t_start + (time_t) wlimit.time_elapsed <= t_now)
 				limit_exceeded
-					("time elapsed limit (%u seconds) exceeded",
+					("time elapsed limit (%lu seconds) exceeded",
 					 wlimit.time_elapsed);
 		}
 	}
@@ -302,7 +302,7 @@ handle_io(io_std_t io)
 
 	rc = xselect(max_fd + 1, &read_fds, &write_fds, wlimit.time_idle);
 	if (!rc)
-		limit_exceeded("idle time limit (%u seconds) exceeded",
+		limit_exceeded("idle time limit (%lu seconds) exceeded",
 			       wlimit.time_idle);
 	else if (rc < 0)
 		return (errno == EINTR) ? EXIT_SUCCESS : EXIT_FAILURE;

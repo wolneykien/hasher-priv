@@ -56,10 +56,10 @@ typedef struct
 
 typedef struct
 {
-	unsigned time_elapsed;
-	unsigned time_idle;
-	unsigned bytes_read;
-	unsigned bytes_written;
+	unsigned long time_elapsed;
+	unsigned long time_idle;
+	unsigned long bytes_read;
+	unsigned long bytes_written;
 } work_limit_t;
 
 typedef void VALIDATE_FPTR(struct stat *, const char *);
