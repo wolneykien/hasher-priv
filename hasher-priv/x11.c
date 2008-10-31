@@ -98,7 +98,7 @@ log_listen(void)
 {
 	int     fd = unix_listen("/dev", "log");
 
-	if (chmod("/dev/log", 0622))
+	if (fd >= 0 && chmod("/dev/log", 0622))
 	{
 		error(EXIT_SUCCESS, errno, "chmod: %s", "/dev/log");
 		(void) close(fd);
