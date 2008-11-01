@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 1.3.1
+Version: 1.3.2
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -60,6 +60,10 @@ groupadd -r -f hashman
 %doc DESIGN
 
 %changelog
+* Fri Oct 31 2008 Dmitry V. Levin <ldv@altlinux.org> 1.3.2-alt1
+- Changed work limits type to unsigned long.
+- If bind to /dev/log failed, do not attempt to chmod it.
+
 * Mon Oct 27 2008 Dmitry V. Levin <ldv@altlinux.org> 1.3.1-alt1
 - hasher-useradd: Include subconfig number to default satellite user names.
 - Fixed build with fresh gcc.
