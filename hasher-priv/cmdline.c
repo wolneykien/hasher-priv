@@ -115,7 +115,7 @@ get_caller_num(const char *str)
 		show_usage("-%s: invalid option", str);
 
 	n = strtoul(str, &p, 10);
-	if (!p || *p || !n || n > INT_MAX)
+	if (!p || *p || n > INT_MAX)
 		show_usage("-%s: invalid option", str);
 
 	return (unsigned) n;
