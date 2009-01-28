@@ -1,9 +1,9 @@
 Name: hasher-priv
-Version: 1.3.2
+Version: 1.3.3
 Release: alt1
 
 Summary: A privileged helper for the hasher project
-License: GPL
+License: GPLv2+
 Group: Development/Other
 Packager: Dmitry V. Levin <ldv@altlinux.org>
 
@@ -60,6 +60,10 @@ groupadd -r -f hashman
 %doc DESIGN
 
 %changelog
+* Wed Jan 28 2009 Dmitry V. Levin <ldv@altlinux.org> 1.3.3-alt1
+- Extended command options syntax to allow zero subconfig
+  identifier and treat it as no subconfig identifier.
+
 * Fri Oct 31 2008 Dmitry V. Levin <ldv@altlinux.org> 1.3.2-alt1
 - Changed work limits type to unsigned long.
 - If bind to /dev/log failed, do not attempt to chmod it.
