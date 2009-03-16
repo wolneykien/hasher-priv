@@ -162,7 +162,9 @@ It affects all
 .BR hasher\-priv (8)
 modes which accept chroot parameter.
 
-Default: (none)
+Hardcoded default: (none)
+.br
+System default: ~:/tmp/.private
 .TP
 .B allowed_mountpoints
 This option specifies comma-separated list of mount points which are allowed
