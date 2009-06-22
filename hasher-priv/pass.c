@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2005  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2005, 2009  Dmitry V. Levin <ldv@altlinux.org>
 
   The descriptor passing routines for the hasher-priv program.
 
