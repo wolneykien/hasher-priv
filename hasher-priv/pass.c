@@ -31,6 +31,12 @@
 
 #include "priv.h"
 
+union cmsg_data_u
+{
+	int    *i;
+	unsigned char *c;
+};
+
 /* This function may be executed with child privileges. */
 
 void
@@ -39,6 +45,7 @@ fd_send(int ctl, int pass, const char *data, size_t data_len)
 	struct iovec vec;
 	struct msghdr msg;
 	struct cmsghdr *cmsg;
+	union cmsg_data_u cmsg_data_p;
 	char    buf[CMSG_SPACE(sizeof pass)];
 
 	memset(&msg, 0, sizeof(msg));
@@ -52,7 +59,8 @@ fd_send(int ctl, int pass, const char *data, size_t data_len)
 	cmsg->cmsg_type = SCM_RIGHTS;
 	cmsg->cmsg_len = CMSG_LEN(sizeof pass);
 
-	*(int *) CMSG_DATA(cmsg) = pass;
+	cmsg_data_p.c = CMSG_DATA(cmsg);
+	*cmsg_data_p.i = pass;
 
 	vec.iov_base = (char *) data;
 	vec.iov_len = data_len;
@@ -86,6 +94,7 @@ fd_recv(int ctl, char *data, size_t data_len)
 	struct iovec vec;
 	struct msghdr msg;
 	struct cmsghdr *cmsg;
+	union cmsg_data_u cmsg_data_p;
 	char    buf[CMSG_SPACE(sizeof(int))];
 
 	memset(&msg, 0, sizeof(msg));
@@ -132,5 +141,6 @@ fd_recv(int ctl, char *data, size_t data_len)
 		return -1;
 	}
 
-	return *(int *) CMSG_DATA(cmsg);
+	cmsg_data_p.c = CMSG_DATA(cmsg);
+	return *cmsg_data_p.i;
 }
