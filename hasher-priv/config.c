@@ -597,13 +597,11 @@ parse_env(void)
 		} else
 		{
 			x11_data_len /= 2;
+			if (x11_parse_display() != EXIT_SUCCESS)
+				x11_data_len = 0;
 		}
 	}
 
 	if (x11_data_len == 0)
-	{
-		free((char *) x11_display);
-		free((char *) x11_key);
-		x11_display = x11_key = 0;
-	}
+		x11_drop_display();
 }

@@ -317,7 +317,6 @@ x11_parse_display(void)
 		error(EXIT_SUCCESS, 0,
 		      "Unrecognized DISPLAY=%s, X11 forwarding disabled",
 		      display);
-		x11_display = 0;
 		return EXIT_FAILURE;
 	}
 
@@ -333,7 +332,6 @@ x11_parse_display(void)
 		error(EXIT_SUCCESS, 0,
 		      "Unrecognized DISPLAY=%s, X11 forwarding disabled",
 		      display);
-		x11_display = 0;
 		return EXIT_FAILURE;
 	}
 
@@ -353,12 +351,34 @@ x11_parse_display(void)
 			x11_connect_method = x11_connect_inet;
 	}
 
+	return EXIT_SUCCESS;
+}
+
+/* This function may be executed with root privileges. */
+
+void
+x11_drop_display(void)
+{
+	free((char *) x11_key);
+	free((char *) x11_display);
+	x11_display = x11_key = 0;
+	x11_data_len = 0;
+}
+
+/* This function may be executed with root privileges. */
+
+int
+x11_prepare_connect(void)
+{
+	if (!x11_connect_method)
+		return EXIT_FAILURE;
+
 	if (x11_connect_method == x11_connect_unix &&
 	    (x11_dir_fd = open(X11_UNIX_DIR, O_RDONLY)) < 0)
 	{
 		error(EXIT_SUCCESS, errno, "open: %s", X11_UNIX_DIR);
 		error(EXIT_SUCCESS, 0, "X11 forwarding disabled");
-		x11_display = 0;
+		x11_drop_display();
 		return EXIT_FAILURE;
 	}
 

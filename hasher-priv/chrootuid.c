@@ -105,7 +105,7 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 		error(EXIT_FAILURE, errno, "openpty");
 
 	/* Create socketpair only if X11 forwarding is enabled. */
-	if (x11_parse_display() == EXIT_SUCCESS
+	if (x11_prepare_connect() == EXIT_SUCCESS
 	    && socketpair(AF_UNIX, SOCK_STREAM, 0, ctl))
 		error(EXIT_FAILURE, errno, "socketpair");
 
