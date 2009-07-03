@@ -52,7 +52,7 @@ get_open_max(void)
 void
 sanitize_fds(void)
 {
-	int     fd, max_fd = get_open_max();
+	int     fd, max_fd;
 
 	/* Set safe umask, just in case. */
 	umask(077);
@@ -82,7 +82,7 @@ cloexec_fds(void)
 {
 	int     fd, max_fd = get_open_max();
 
-	/* Set cloexec flag for all the rest. */
+	/* Set close-on-exec flag on all non-standard descriptors. */
 	for (fd = STDERR_FILENO + 1; fd < max_fd; ++fd)
 	{
 		int     flags = fcntl(fd, F_GETFD, 0);
@@ -125,9 +125,9 @@ unblock_fd(int fd)
 	if ((flags = fcntl(fd, F_GETFL, 0)) < 0)
 		error(EXIT_FAILURE, errno, "fcntl F_GETFL");
 
-	flags |= O_NONBLOCK;
+	int     newflags = flags | O_NONBLOCK;
 
-	if (fcntl(fd, F_SETFL, flags) < 0)
+	if (flags != newflags && fcntl(fd, F_SETFL, newflags) < 0)
 		error(EXIT_FAILURE, errno, "fcntl F_SETFL");
 }
 
