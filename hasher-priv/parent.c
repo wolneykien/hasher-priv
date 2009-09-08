@@ -307,21 +307,6 @@ handle_io(io_std_t io)
 	else if (rc < 0)
 		return (errno == EINTR) ? EXIT_SUCCESS : EXIT_FAILURE;
 
-	if (fds_isset(&read_fds, io->slave_read_out_fd))
-	{
-		/* handle child stdout */
-		n = read_retry(io->slave_read_out_fd,
-			       io->slave_buf, sizeof io->slave_buf);
-		if (n <= 0)
-		{
-			io->slave_read_out_fd = -1;
-		} else
-		{
-			xwrite_all(io->master_write_out_fd, io->slave_buf,
-				   (size_t) n);
-		}
-	}
-
 	if (fds_isset(&read_fds, io->slave_read_err_fd))
 	{
 		/* handle child stderr */
@@ -333,6 +318,21 @@ handle_io(io_std_t io)
 		} else
 		{
 			xwrite_all(io->master_write_err_fd, io->slave_buf,
+				   (size_t) n);
+		}
+	}
+
+	if (fds_isset(&read_fds, io->slave_read_out_fd))
+	{
+		/* handle child stdout */
+		n = read_retry(io->slave_read_out_fd,
+			       io->slave_buf, sizeof io->slave_buf);
+		if (n <= 0)
+		{
+			io->slave_read_out_fd = -1;
+		} else
+		{
+			xwrite_all(io->master_write_out_fd, io->slave_buf,
 				   (size_t) n);
 		}
 	}
