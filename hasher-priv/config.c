@@ -47,6 +47,7 @@ mode_t  change_umask = 022;
 int change_nice = 8;
 int     allow_tty_devices, use_pty;
 size_t  x11_data_len;
+int share_network;
 change_rlimit_t change_rlimit[] = {
 
 /* Per-process CPU limit, in seconds.  */
@@ -604,4 +605,7 @@ parse_env(void)
 
 	if (x11_data_len == 0)
 		x11_drop_display();
+
+	if ((e = getenv("share_network")))
+		share_network = str2bool("share_network", e, "environment");
 }
