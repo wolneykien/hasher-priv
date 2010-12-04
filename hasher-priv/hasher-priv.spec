@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 1.3.4
+Version: 1.3.5
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -27,7 +27,7 @@ This package provides helpers for executing privileged operations
 required by hasher utilities.
 
 %prep
-%setup -q
+%setup
 
 %build
 %make_build CC="%__cc" CFLAGS="%optflags" libexecdir="%_libexecdir"
@@ -60,6 +60,10 @@ groupadd -r -f hashman
 %doc DESIGN
 
 %changelog
+* Sat Dec 04 2010 Dmitry V. Levin <ldv@altlinux.org> 1.3.5-alt1
+- Handle child stderr before stdout.
+- Implemented network isolation (by Kirill A. Shutemov).
+
 * Mon Jun 22 2009 Dmitry V. Levin <ldv@altlinux.org> 1.3.4-alt1
 - hasher-priv.conf.5.in: Updated information about default prefix values.
 - Fixed new compilation warnings about dereferencing type-punned pointers.
