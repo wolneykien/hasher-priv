@@ -61,6 +61,11 @@ By default, stdin remains unchanged unless it references to terminal
 device, and stdout with stderr are redirected to pipe created by
 .BR hasher\-priv.
 .TP
+.B share_network
+This boolean specifies whether network inside chroot should be shared
+with host network.
+By default, network inside chroot is isolated from host network.
+.TP
 .B TERM
 This variable will be passed to child process if
 .B use_pty
