@@ -70,7 +70,7 @@ unix_listen(const char *dir_name, const char *file_name)
 
 	if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
 	{
-		error(EXIT_SUCCESS, errno, "socket");
+		error(EXIT_SUCCESS, errno, "socket AF_UNIX");
 		return -1;
 	}
 
@@ -149,7 +149,7 @@ x11_connect_unix( __attribute__ ((unused))
 
 		if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
 		{
-			error(EXIT_SUCCESS, errno, "socket");
+			error(EXIT_SUCCESS, errno, "socket AF_UNIX");
 			fputc('\r', stderr);
 			break;
 		}

@@ -110,9 +110,10 @@ nullify_stdin(void)
 	if (fd != STDIN_FILENO)
 	{
 		if (dup2(fd, STDIN_FILENO) != STDIN_FILENO)
-			error(EXIT_FAILURE, errno, "dup2");
+			error(EXIT_FAILURE, errno, "dup2(%d, %d)",
+			      fd, STDIN_FILENO);
 		if (close(fd) < 0)
-			error(EXIT_FAILURE, errno, "close");
+			error(EXIT_FAILURE, errno, "close(%d)", fd);
 	}
 }
 

@@ -103,7 +103,7 @@ chdiruid(const char *path)
 	/* Set credentials. */
 #ifdef ENABLE_SUPPLEMENTARY_GROUPS
 	if (initgroups(caller_user, caller_gid) < 0)
-		error(EXIT_FAILURE, errno, "initgroups: %s", caller_user);
+		error(EXIT_FAILURE, errno, "chdiruid: initgroups: %s", caller_user);
 #endif /* ENABLE_SUPPLEMENTARY_GROUPS */
 	ch_gid(caller_gid, &saved_gid);
 	ch_uid(caller_uid, &saved_uid);
@@ -125,6 +125,6 @@ chdiruid(const char *path)
 	ch_gid(saved_gid, 0);
 #ifdef ENABLE_SUPPLEMENTARY_GROUPS
 	if (setgroups(0UL, 0) < 0)
-		error(EXIT_FAILURE, errno, "setgroups");
+		error(EXIT_FAILURE, errno, "chdiruid: setgroups");
 #endif /* ENABLE_SUPPLEMENTARY_GROUPS */
 }

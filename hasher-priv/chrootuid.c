@@ -66,7 +66,7 @@ set_rlimits(void)
 	}
 }
 
-static const char *program_subname = "root";
+static const char *program_subname = "chrootuid";
 
 static void
 print_program_subname(void)
@@ -85,8 +85,10 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 	int     ctl[2] = { -1, -1 };
 	pid_t   pid;
 
+	error_print_progname = print_program_subname;
+
 	if (uid < MIN_CHANGE_UID || uid == getuid())
-		error(EXIT_FAILURE, 0, "chrootuid: invalid uid: %u", uid);
+		error(EXIT_FAILURE, 0, "invalid uid: %u", uid);
 
 	chdiruid(chroot_path);
 
@@ -107,7 +109,7 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 	/* Create socketpair only if X11 forwarding is enabled. */
 	if (x11_prepare_connect() == EXIT_SUCCESS
 	    && socketpair(AF_UNIX, SOCK_STREAM, 0, ctl))
-		error(EXIT_FAILURE, errno, "socketpair");
+		error(EXIT_FAILURE, errno, "socketpair AF_UNIX");
 
 	if (!share_network)
 		unshare_network();
@@ -127,8 +129,6 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 
 	if ((pid = fork()) < 0)
 		error(EXIT_FAILURE, errno, "fork");
-
-	error_print_progname = print_program_subname;
 
 	if (pid)
 	{

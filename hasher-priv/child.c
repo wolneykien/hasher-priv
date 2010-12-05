@@ -47,7 +47,8 @@ connect_fds(int pty_fd, int pipe_out, int pipe_err)
 	if (use_pty)
 	{
 		if (dup2(pty_fd, STDIN_FILENO) < 0)
-			error(EXIT_FAILURE, errno, "dup2");
+			error(EXIT_FAILURE, errno, "dup2(%d, %d)",
+			      pty_fd, STDIN_FILENO);
 	} else
 	{
 		/* redirect stdin to /dev/null if and only if
@@ -55,9 +56,12 @@ connect_fds(int pty_fd, int pipe_out, int pipe_err)
 		if (isatty(STDIN_FILENO))
 			nullify_stdin();
 	}
-	if (dup2((use_pty ? pty_fd : pipe_out), STDOUT_FILENO) < 0
-	    || dup2((use_pty ? pty_fd : pipe_err), STDERR_FILENO) < 0)
-		error(EXIT_FAILURE, errno, "dup2");
+	if (dup2((use_pty ? pty_fd : pipe_out), STDOUT_FILENO) < 0)
+		error(EXIT_FAILURE, errno, "dup2(%d, %d)",
+		      (use_pty ? pty_fd : pipe_out), STDOUT_FILENO);
+	if (dup2((use_pty ? pty_fd : pipe_err), STDERR_FILENO) < 0)
+		error(EXIT_FAILURE, errno, "dup2(%d, %d)",
+		      (use_pty ? pty_fd : pipe_err), STDERR_FILENO);
 
 	if (pty_fd > STDERR_FILENO)
 		close(pty_fd);
@@ -176,7 +180,7 @@ handle_child(char *const *env, int pty_fd, int pipe_out, int pipe_err,
 	dfl_signal_handler(SIGTERM);
 
 	if (nice(change_nice) < 0)
-		error(EXIT_FAILURE, errno, "nice");
+		error(EXIT_FAILURE, errno, "nice: %d", change_nice);
 
 	if (ctl_fd >= 0)
 	{

@@ -20,7 +20,7 @@ void unshare_network(void)
 	} req;
 
 	if (unshare(CLONE_NEWNET) < 0)
-		error(EXIT_FAILURE, errno, "unshare");
+		error(EXIT_FAILURE, errno, "unshare CLONE_NEWNET");
 
 	/* Setup loopback interface */
 
@@ -40,7 +40,7 @@ void unshare_network(void)
 	req.i.ifi_change = IFF_UP;
 
 	if (send(rtnetlink_sk, &req, req.n.nlmsg_len, 0) < 0)
-		error(EXIT_FAILURE, errno, "send");
+		error(EXIT_FAILURE, errno, "send AF_NETLINK");
 
 	if (close(rtnetlink_sk) < 0)
 		error(EXIT_FAILURE, errno, "close AF_NETLINK");

@@ -440,7 +440,7 @@ read_config(int fd, const char *name)
 	}
 
 	if (ferror(fp))
-		error(EXIT_FAILURE, errno, "%s", name);
+		error(EXIT_FAILURE, errno, "fgets: %s", name);
 }
 
 static void
