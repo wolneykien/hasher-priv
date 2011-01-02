@@ -11,16 +11,25 @@
 
 #include "priv.h"
 
-void unshare_network(void)
+void
+unshare_network(void)
 {
-	int rtnetlink_sk;
-	struct {
+	int     rtnetlink_sk;
+	struct
+	{
 		struct nlmsghdr n;
 		struct ifinfomsg i;
 	} req;
 
 	if (unshare(CLONE_NEWNET) < 0)
+	{
+		if (errno == ENOSYS || errno == EINVAL) {
+			error(share_network ? EXIT_SUCCESS : EXIT_FAILURE, 0,
+			      "network isolation is not supported by the kernel");
+			return;
+		}
 		error(EXIT_FAILURE, errno, "unshare CLONE_NEWNET");
+	}
 
 	/* Setup loopback interface */
 

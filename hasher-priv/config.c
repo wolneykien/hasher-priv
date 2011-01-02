@@ -47,7 +47,7 @@ mode_t  change_umask = 022;
 int change_nice = 8;
 int     allow_tty_devices, use_pty;
 size_t  x11_data_len;
-int share_network;
+int share_network = -1;
 change_rlimit_t change_rlimit[] = {
 
 /* Per-process CPU limit, in seconds.  */

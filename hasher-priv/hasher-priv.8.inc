@@ -64,7 +64,9 @@ device, and stdout with stderr are redirected to pipe created by
 .B share_network
 This boolean specifies whether network inside chroot should be shared
 with host network.
-By default, network inside chroot is isolated from host network.
+By default, network inside chroot is isolated from host network if
+.BR unshare (CLONE_NEWNET)
+syscall is supported by kernel.
 .TP
 .B TERM
 This variable will be passed to child process if
@@ -126,6 +128,7 @@ explicitly enabled in
 configuration.
 
 [SEE ALSO]
+.BR unshare (2),
 .BR hasher\-priv.conf (5),
 .BR hasher (7),
 .BR hasher\-useradd (8).

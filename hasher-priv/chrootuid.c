@@ -111,7 +111,7 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 	    && socketpair(AF_UNIX, SOCK_STREAM, 0, ctl))
 		error(EXIT_FAILURE, errno, "socketpair AF_UNIX");
 
-	if (!share_network)
+	if (share_network <= 0)
 		unshare_network();
 
 	if (chroot(".") < 0)
