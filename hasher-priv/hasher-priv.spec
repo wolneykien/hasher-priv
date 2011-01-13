@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 1.3.5
+Version: 1.3.6
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -60,6 +60,14 @@ groupadd -r -f hashman
 %doc DESIGN
 
 %changelog
+* Thu Jan 13 2011 Dmitry V. Levin <ldv@altlinux.org> 1.3.6-alt1
+- Made some error messages a bit more specific.
+- By default, when network isolation is not enabled explicitly,
+  do not terminate with a fatal error if unshare(CLONE_NEWNET)
+  is not supported by the kernel, just complain and continue
+  without network isolation.
+  Proposed by Denis Smirnov and Michael Shigorin.
+
 * Sat Dec 04 2010 Dmitry V. Levin <ldv@altlinux.org> 1.3.5-alt1
 - Handle child stderr before stdout.
 - Implemented network isolation (by Kirill A. Shutemov).
