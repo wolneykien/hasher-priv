@@ -32,6 +32,7 @@
 #include <grp.h>
 #include <pty.h>
 #include <sys/socket.h>
+#include <sched.h>
 
 #include "priv.h"
 #include "xmalloc.h"
@@ -110,6 +111,13 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 	if (x11_prepare_connect() == EXIT_SUCCESS
 	    && socketpair(AF_UNIX, SOCK_STREAM, 0, ctl))
 		error(EXIT_FAILURE, errno, "socketpair AF_UNIX");
+
+#ifdef CLONE_NEWIPC
+	if (unshare(CLONE_NEWIPC) < 0 && errno != ENOSYS && errno != EINVAL)
+		error(EXIT_FAILURE, errno, "unshare CLONE_NEWIPC");
+#else
+# warning "unshare(CLONE_NEWIPC) is not available on this system"
+#endif
 
 	if (share_network <= 0)
 		unshare_network();
