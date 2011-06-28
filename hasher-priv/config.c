@@ -48,6 +48,7 @@ int change_nice = 8;
 int     allow_tty_devices, use_pty;
 size_t  x11_data_len;
 int share_network = -1;
+int share_uts = -1;
 change_rlimit_t change_rlimit[] = {
 
 /* Per-process CPU limit, in seconds.  */
@@ -608,4 +609,7 @@ parse_env(void)
 
 	if ((e = getenv("share_network")))
 		share_network = str2bool("share_network", e, "environment");
+
+	if ((e = getenv("share_uts")))
+		share_uts = str2bool("share_uts", e, "environment");
 }

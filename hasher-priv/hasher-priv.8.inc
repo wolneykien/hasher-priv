@@ -68,6 +68,13 @@ By default, network inside chroot is isolated from host network if
 .BR unshare (CLONE_NEWNET)
 syscall is supported by kernel.
 .TP
+.B share_uts
+This boolean specifies whether UTS namespace inside chroot should be shared
+with host UTS namespace.
+By default, UTS namespace inside chroot is isolated from host UTS namespace if
+.BR unshare (CLONE_NEWUTS)
+syscall is supported by kernel.
+.TP
 .B TERM
 This variable will be passed to child process if
 .B use_pty

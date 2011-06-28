@@ -116,6 +116,7 @@ void    x11_handle_select(fd_set *read_fds, fd_set *write_fds,
 			  const char *x11_fake_data);
 
 void	unshare_network(void);
+void	unshare_uts(void);
 
 int     do_getconf(void);
 int     do_getugid1(void);
@@ -142,6 +143,7 @@ extern const char *x11_display, *x11_key;
 extern int allow_tty_devices, use_pty;
 extern size_t x11_data_len;
 extern int share_network;
+extern int share_uts;
 
 extern const char *const *chroot_prefix_list;
 extern const char *chroot_prefix_path;

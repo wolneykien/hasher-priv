@@ -119,6 +119,9 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 # warning "unshare(CLONE_NEWIPC) is not available on this system"
 #endif
 
+	if (share_uts <= 0)
+		unshare_uts();
+
 	if (share_network <= 0)
 		unshare_network();
 
