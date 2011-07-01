@@ -1,11 +1,10 @@
 Name: hasher-priv
-Version: 1.3.6
+Version: 1.3.7
 Release: alt1
 
 Summary: A privileged helper for the hasher project
 License: GPLv2+
 Group: Development/Other
-Packager: Dmitry V. Levin <ldv@altlinux.org>
 
 Source: %name-%version.tar
 
@@ -36,7 +35,7 @@ required by hasher utilities.
 %makeinstall
 
 %pre
-if getent group pkg-build >/dev/null; then
+if getent group pkg-build > /dev/null; then
 	groupmod -n hashman pkg-build
 fi
 if [ -d %_sysconfdir/pkg-build-priv -a ! -d %configdir ]; then
@@ -60,6 +59,13 @@ groupadd -r -f hashman
 %doc DESIGN
 
 %changelog
+* Fri Jul 01 2011 Dmitry V. Levin <ldv@altlinux.org> 1.3.7-alt1
+- Implemented System V IPC namespace isolation.
+- Implemented UTS namespace isolation.
+  By default, if unshare(CLONE_NEWUTS) syscall is supported, then
+  UTS namespace inside chroot is isolated from host UTS namespace,
+  and hostname is set to localhost.localdomain.
+
 * Thu Jan 13 2011 Dmitry V. Levin <ldv@altlinux.org> 1.3.6-alt1
 - Made some error messages a bit more specific.
 - By default, when network isolation is not enabled explicitly,
