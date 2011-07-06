@@ -23,8 +23,8 @@ unshare_network(void)
 
 	if (unshare(CLONE_NEWNET) < 0)
 	{
-		if (errno == ENOSYS || errno == EINVAL) {
-			error(share_network ? EXIT_SUCCESS : EXIT_FAILURE, 0,
+		if (errno == ENOSYS || errno == EINVAL || errno == EPERM) {
+			error(share_network ? EXIT_SUCCESS : EXIT_FAILURE, errno,
 			      "network isolation is not supported by the kernel");
 			return;
 		}

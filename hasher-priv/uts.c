@@ -15,8 +15,8 @@ unshare_uts(void)
 
 	if (unshare(CLONE_NEWUTS) < 0)
 	{
-		if (errno == ENOSYS || errno == EINVAL) {
-			error(share_uts ? EXIT_SUCCESS : EXIT_FAILURE, 0,
+		if (errno == ENOSYS || errno == EINVAL || errno == EPERM) {
+			error(share_uts ? EXIT_SUCCESS : EXIT_FAILURE, errno,
 			      "UTS namespace isolation is not supported by the kernel");
 			return;
 		}
