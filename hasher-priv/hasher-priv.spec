@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 1.3.7
+Version: 1.3.8
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -59,6 +59,9 @@ groupadd -r -f hashman
 %doc DESIGN
 
 %changelog
+* Wed Jul 06 2011 Dmitry V. Levin <ldv@altlinux.org> 1.3.8-alt1
+- chrootuid: if unshare(2) fails with EPERM, treat it like ENOSYS.
+
 * Fri Jul 01 2011 Dmitry V. Levin <ldv@altlinux.org> 1.3.7-alt1
 - Implemented System V IPC namespace isolation.
 - Implemented UTS namespace isolation.
