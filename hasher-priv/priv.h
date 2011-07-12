@@ -34,11 +34,10 @@ typedef enum
 {
 	TASK_NONE = 0,
 	TASK_GETCONF,
+	TASK_KILLUID,
 	TASK_GETUGID1,
-	TASK_KILLUID1,
 	TASK_CHROOTUID1,
 	TASK_GETUGID2,
-	TASK_KILLUID2,
 	TASK_CHROOTUID2,
 	TASK_MAKEDEV,
 	TASK_MAKETTY,
@@ -84,7 +83,7 @@ void    configure(void);
 void    ch_uid(uid_t uid, uid_t *save);
 void    ch_gid(gid_t gid, gid_t *save);
 void    chdiruid(const char *path);
-void    purge_ipc(uid_t uid);
+void    purge_ipc(uid_t uid1, uid_t uid2);
 void    handle_child(char *const *env, int pty_fd, int pipe_out, int pipe_err, int ctl_fd) __attribute__ ((noreturn));
 int     handle_parent(pid_t pid, int pty_fd, int pipe_out, int pipe_err, int ctl_fd);
 void    block_signal_handler(int no, int what);
@@ -119,11 +118,10 @@ void	unshare_network(void);
 void	unshare_uts(void);
 
 int     do_getconf(void);
+int     do_killuid(void);
 int     do_getugid1(void);
-int     do_killuid1(void);
 int     do_chrootuid1(void);
 int     do_getugid2(void);
-int     do_killuid2(void);
 int     do_chrootuid2(void);
 int     do_makeconsole(void);
 int     do_makedev(void);

@@ -62,16 +62,14 @@ print_help(void)
 	       "\nValid args are any of:\n\n"
 	       "getconf:\n"
 	       "       print config file name;\n"
+	       "killuid:\n"
+	       "       kill all processes of user1 and user2;\n"
 	       "getugid1:\n"
 	       "       print uid:gid pair for user1;\n"
-	       "killuid1:\n"
-	       "       kill all processes of user1;\n"
 	       "chrootuid1 <chroot path> <program> [program args]:\n"
 	       "       execute program in given chroot with credentials of user1;\n"
 	       "getugid2:\n"
 	       "       print uid:gid pair for user2;\n"
-	       "killuid2:\n"
-	       "       kill all processes of user2;\n"
 	       "chrootuid2 <chroot path> <program> [program args]:\n"
 	       "       execute program in given chroot with credentials of user2;\n"
 	       "makedev <chroot path>:\n"
@@ -156,16 +154,16 @@ parse_cmdline(int argc, const char *argv[])
 		if (ac != 1)
 			show_usage("%s: invalid usage", av[0]);
 		return TASK_GETCONF;
+	} else if (!strcmp("killuid", av[0]))
+	{
+		if (ac != 1)
+			show_usage("%s: invalid usage", av[0]);
+		return TASK_KILLUID;
 	} else if (!strcmp("getugid1", av[0]))
 	{
 		if (ac != 1)
 			show_usage("%s: invalid usage", av[0]);
 		return TASK_GETUGID1;
-	} else if (!strcmp("killuid1", av[0]))
-	{
-		if (ac != 1)
-			show_usage("%s: invalid usage", av[0]);
-		return TASK_KILLUID1;
 	} else if (!strcmp("chrootuid1", av[0]))
 	{
 		if (ac < 3)
@@ -178,11 +176,6 @@ parse_cmdline(int argc, const char *argv[])
 		if (ac != 1)
 			show_usage("%s: invalid usage", av[0]);
 		return TASK_GETUGID2;
-	} else if (!strcmp("killuid2", av[0]))
-	{
-		if (ac != 1)
-			show_usage("%s: invalid usage", av[0]);
-		return TASK_KILLUID2;
 	} else if (!strcmp("chrootuid2", av[0]))
 	{
 		if (ac < 3)

@@ -69,16 +69,14 @@ main(int ac, const char *av[])
 	{
 		case TASK_GETCONF:
 			return do_getconf();
+		case TASK_KILLUID:
+			return do_killuid();
 		case TASK_GETUGID1:
 			return do_getugid1();
-		case TASK_KILLUID1:
-			return do_killuid1();
 		case TASK_CHROOTUID1:
 			return do_chrootuid1();
 		case TASK_GETUGID2:
 			return do_getugid2();
-		case TASK_KILLUID2:
-			return do_killuid2();
 		case TASK_CHROOTUID2:
 			return do_chrootuid2();
 		case TASK_MAKEDEV:

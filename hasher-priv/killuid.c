@@ -37,34 +37,26 @@
 
 extern int __libc_enable_secure;
 
-static int
-killuid(uid_t uid)
+int
+do_killuid(void)
 {
-	if (uid < MIN_CHANGE_UID || uid == getuid())
-		error(EXIT_FAILURE, 0, "killuid: invalid uid: %u", uid);
+	uid_t u = getuid();
+
+	if (change_uid1 < MIN_CHANGE_UID || change_uid1 == u)
+		error(EXIT_FAILURE, 0, "killuid: invalid uid: %u", change_uid1);
+	if (change_uid2 < MIN_CHANGE_UID || change_uid2 == u)
+		error(EXIT_FAILURE, 0, "killuid: invalid uid: %u", change_uid2);
 
 	if (prctl(PR_SET_DUMPABLE, 0) && !__libc_enable_secure)
 		error(EXIT_FAILURE, errno, "killuid: prctl PR_SET_DUMPABLE");
 
-	if (setuid(uid) < 0)
-		error(EXIT_FAILURE, errno, "killuid: setuid");
+	if (setreuid(change_uid1, change_uid2) < 0)
+		error(EXIT_FAILURE, errno, "killuid: setreuid");
 
 	if (kill(-1, SIGKILL))
 		error(EXIT_FAILURE, errno, "killuid: kill");
 
-	purge_ipc(uid);
+	purge_ipc(change_uid1, change_uid2);
 
 	return 0;
-};
-
-int
-do_killuid1(void)
-{
-	return killuid(change_uid1);
-}
-
-int
-do_killuid2(void)
-{
-	return killuid(change_uid2);
 }

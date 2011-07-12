@@ -34,7 +34,7 @@ rm_ttydev=
 
 killuid()
 {
-	@helper@ $n killuid@N@
+	@helper@ $n killuid
 }
 
 exit_handler()

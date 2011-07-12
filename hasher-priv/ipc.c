@@ -41,7 +41,7 @@ union sem_un
 };
 
 static void
-purge_sem(uid_t uid)
+purge_sem(uid_t uid1, uid_t uid2)
 {
 	int     maxid, id;
 	struct seminfo info;
@@ -64,7 +64,8 @@ purge_sem(uid_t uid)
 		if ((semid = semctl(id, 0, SEM_STAT, arg)) < 0)
 			continue;
 
-		if (uid != buf.sem_perm.uid)
+		if (uid1 != buf.sem_perm.uid &&
+		    uid2 != buf.sem_perm.uid)
 			continue;
 
 		arg.val = 0;
@@ -79,7 +80,7 @@ union shm_un
 };
 
 static void
-purge_shm(uid_t uid)
+purge_shm(uid_t uid1, uid_t uid2)
 {
 	int     maxid, id;
 	struct shm_info info;
@@ -101,7 +102,8 @@ purge_shm(uid_t uid)
 		if ((shmid = shmctl(id, SHM_STAT, &buf)) < 0)
 			continue;
 
-		if (uid != buf.shm_perm.uid)
+		if (uid1 != buf.shm_perm.uid &&
+		    uid2 != buf.shm_perm.uid)
 			continue;
 
 		(void) shmctl(shmid, IPC_RMID, 0);
@@ -115,7 +117,7 @@ union msg_un
 };
 
 static void
-purge_msg(uid_t uid)
+purge_msg(uid_t uid1, uid_t uid2)
 {
 	int     maxid, id;
 	struct msginfo info;
@@ -137,7 +139,8 @@ purge_msg(uid_t uid)
 		if ((msqid = msgctl(id, MSG_STAT, &buf)) < 0)
 			continue;
 
-		if (uid != buf.msg_perm.uid)
+		if (uid1 != buf.msg_perm.uid &&
+		    uid2 != buf.msg_perm.uid)
 			continue;
 
 		(void) msgctl(msqid, IPC_RMID, 0);
@@ -145,9 +148,9 @@ purge_msg(uid_t uid)
 }
 
 void
-purge_ipc(uid_t uid)
+purge_ipc(uid_t uid1, uid_t uid2)
 {
-	purge_sem(uid);
-	purge_shm(uid);
-	purge_msg(uid);
+	purge_sem(uid1, uid2);
+	purge_shm(uid1, uid2);
+	purge_msg(uid1, uid2);
 }

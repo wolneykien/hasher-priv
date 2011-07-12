@@ -88,7 +88,7 @@ Query pseudouser identifiers.
 .PP
 Following operation modes have minimal security implications:
 .TP
-.BR killuid1 ", " killuid2
+.B killuid
 Kill all processes running by pseudousers.
 .TP
 .BR chrootuid1 ", " chrootuid2
