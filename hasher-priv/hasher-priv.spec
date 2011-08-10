@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 1.3.8
+Version: 1.3.9
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -59,6 +59,9 @@ groupadd -r -f hashman
 %doc DESIGN
 
 %changelog
+* Wed Aug 10 2011 Dmitry V. Levin <ldv@altlinux.org> 1.3.9-alt1
+- Merge "killuid1" and "killuid2" commands into new "killuid" command.
+
 * Wed Jul 06 2011 Dmitry V. Levin <ldv@altlinux.org> 1.3.8-alt1
 - chrootuid: if unshare(2) fails with EPERM, treat it like ENOSYS.
 
