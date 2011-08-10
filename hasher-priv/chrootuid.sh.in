@@ -39,8 +39,7 @@ killuid()
 
 exit_handler()
 {
-	local rc=$?
-	trap - EXIT
+	local rc=$1
 	if [ -n "$chroot_prefix" -a -n "$mounted" ]; then
 		@helper@ $n umount "$chroot_prefix" ||
 			[ $rc = 0 ] || rc=1
@@ -55,7 +54,9 @@ exit_handler()
 
 killuid
 
-trap exit_handler EXIT HUP INT QUIT PIPE TERM
+trap 'exit 143' HUP INT QUIT PIPE TERM
+trap 'exit_handler $?' EXIT
+
 
 need_maketty=
 if [ -n "$chroot_prefix" -a -n "$mountpoints" ]; then
