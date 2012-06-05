@@ -1,5 +1,5 @@
 Name: hasher-priv
-Version: 1.3.9
+Version: 1.3.10
 Release: alt1
 
 Summary: A privileged helper for the hasher project
@@ -59,6 +59,10 @@ groupadd -r -f hashman
 %doc DESIGN
 
 %changelog
+* Tue Jun 05 2012 Dmitry V. Levin <ldv@altlinux.org> 1.3.10-alt1
+- Made IPC namespace isolation controllable by share_ipc environment
+  variable.
+
 * Wed Aug 10 2011 Dmitry V. Levin <ldv@altlinux.org> 1.3.9-alt1
 - Merge "killuid1" and "killuid2" commands into new "killuid" command.
 
