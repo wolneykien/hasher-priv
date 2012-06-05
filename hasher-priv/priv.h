@@ -114,6 +114,8 @@ void    x11_handle_select(fd_set *read_fds, fd_set *write_fds,
 			  const char *x11_saved_data,
 			  const char *x11_fake_data);
 
+void	setup_network(void);
+void	unshare_ipc(void);
 void	unshare_network(void);
 void	unshare_uts(void);
 
