@@ -61,6 +61,13 @@ By default, stdin remains unchanged unless it references to terminal
 device, and stdout with stderr are redirected to pipe created by
 .BR hasher\-priv.
 .TP
+.B share_ipc
+This boolean specifies whether IPC namespace inside chroot should be shared
+with host IPC namespace.
+By default, IPC namespace inside chroot is isolated from host IPC namespace if
+.BR unshare (CLONE_NEWIPC)
+syscall is supported by kernel.
+.TP
 .B share_network
 This boolean specifies whether network inside chroot should be shared
 with host network.

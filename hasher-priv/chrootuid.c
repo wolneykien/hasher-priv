@@ -76,6 +76,24 @@ print_program_subname(void)
 		program_subname);
 }
 
+static void
+unshare_ipc(void)
+{
+#ifdef CLONE_NEWIPC
+	if (unshare(CLONE_NEWIPC) < 0)
+	{
+		if (errno == ENOSYS || errno == EINVAL || errno == EPERM) {
+			error(share_ipc ? EXIT_SUCCESS : EXIT_FAILURE, errno,
+			      "IPC namespace isolation is not supported by the kernel");
+			return;
+		}
+		error(EXIT_FAILURE, errno, "unshare CLONE_NEWIPC");
+	}
+#else
+# warning "unshare(CLONE_NEWIPC) is not available on this system"
+#endif
+}
+
 static int
 chrootuid(uid_t uid, gid_t gid, const char *ehome,
 	  const char *euser, const char *epath)
@@ -112,13 +130,8 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 	    && socketpair(AF_UNIX, SOCK_STREAM, 0, ctl))
 		error(EXIT_FAILURE, errno, "socketpair AF_UNIX");
 
-#ifdef CLONE_NEWIPC
-	if (unshare(CLONE_NEWIPC) < 0 &&
-	    errno != ENOSYS && errno != EINVAL && errno != EPERM)
-		error(EXIT_FAILURE, errno, "unshare CLONE_NEWIPC");
-#else
-# warning "unshare(CLONE_NEWIPC) is not available on this system"
-#endif
+	if (share_ipc <= 0)
+		unshare_ipc();
 
 	if (share_uts <= 0)
 		unshare_uts();
