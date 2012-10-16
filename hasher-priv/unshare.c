@@ -52,7 +52,7 @@ do_unshare(int clone_flags, const char *clone_name,
 void
 unshare_ipc(void)
 {
-#ifdef CLONE_NEWUTS
+#ifdef CLONE_NEWIPC
 	do_unshare(CLONE_NEWIPC, "CLONE_NEWIPC", share_ipc, "IPC namespace");
 #else
 # warning "unshare(CLONE_NEWIPC) is not available on this system"
