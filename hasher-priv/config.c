@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2003-2008  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2012  Dmitry V. Levin <ldv@altlinux.org>
 
   Configuration support module for the hasher-priv program.
 
@@ -38,6 +38,7 @@
 const char *const *chroot_prefix_list;
 const char *chroot_prefix_path;
 const char *allowed_mountpoints;
+const char *requested_mountpoints;
 const char *change_user1, *change_user2;
 const char *term;
 const char *x11_display, *x11_key;
@@ -48,6 +49,7 @@ int change_nice = 8;
 int     allow_tty_devices, use_pty;
 size_t  x11_data_len;
 int share_ipc = -1;
+int share_mount = -1;
 int share_network = -1;
 int share_uts = -1;
 change_rlimit_t change_rlimit[] = {
@@ -261,7 +263,7 @@ parse_wlim(const char *name, const char *value,
 	modify_wlim(pval, value, optname, filename, 1);
 }
 
-static void
+static const char *
 parse_mountpoints(const char *value, const char *filename)
 {
 	char   *targets = xstrdup(value);
@@ -276,8 +278,7 @@ parse_mountpoints(const char *value, const char *filename)
 	}
 
 	free(targets);
-	free((char *) allowed_mountpoints);
-	allowed_mountpoints = xstrdup(value);
+	return xstrdup(value);
 }
 
 static int
@@ -377,8 +378,10 @@ set_config(const char *name, const char *value, const char *filename)
 	else if (!strcasecmp("nice", name))
 		change_nice = str2nice(name, value, filename);
 	else if (!strcasecmp("allowed_mountpoints", name))
-		parse_mountpoints(value, filename);
-	else if (!strcasecmp("allow_ttydev", name))
+	{
+		free((char *) allowed_mountpoints);
+		allowed_mountpoints = parse_mountpoints(value, filename);
+	} else if (!strcasecmp("allow_ttydev", name))
 		allow_tty_devices = str2bool(name, value, filename);
 	else if (!strncasecmp(rlim_prefix, name, sizeof(rlim_prefix) - 1))
 		parse_rlim(name + sizeof(rlim_prefix) - 1, value, name,
@@ -611,9 +614,18 @@ parse_env(void)
 	if ((e = getenv("share_ipc")))
 		share_ipc = str2bool("share_ipc", e, "environment");
 
+	if ((e = getenv("share_mount")))
+		share_mount = str2bool("share_mount", e, "environment");
+
 	if ((e = getenv("share_network")))
 		share_network = str2bool("share_network", e, "environment");
 
 	if ((e = getenv("share_uts")))
 		share_uts = str2bool("share_uts", e, "environment");
+
+	if ((e = getenv("requested_mountpoints")))
+	{
+		free((char *) requested_mountpoints);
+		requested_mountpoints = parse_mountpoints(e, "environment");
+	}
 }

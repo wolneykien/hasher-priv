@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2003-2008  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2012  Dmitry V. Levin <ldv@altlinux.org>
 
   Command line parser for the hasher-priv program.
 
@@ -99,7 +99,7 @@ print_version(void)
 }
 
 const char *chroot_path;
-const char *mountpoint;
+const char *single_mountpoint;
 const char **chroot_argv;
 unsigned caller_num;
 
@@ -206,7 +206,7 @@ parse_cmdline(int argc, const char *argv[])
 		if (ac != 3)
 			show_usage("%s: invalid usage", av[0]);
 		chroot_path = av[1];
-		mountpoint = av[2];
+		single_mountpoint = av[2];
 		return TASK_MOUNT;
 	} else if (!strcmp("umount", av[0]))
 	{

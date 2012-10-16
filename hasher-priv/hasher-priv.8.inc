@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004, 2005  Dmitry V. Levin <ldv@altlinux.org>
+.\" Copyright (C) 2004-2012  Dmitry V. Levin <ldv@altlinux.org>
 .\" 
 .\" Documentation for the hasher-priv program.
 .\"
@@ -68,6 +68,13 @@ By default, IPC namespace inside chroot is isolated from host IPC namespace if
 .BR unshare (CLONE_NEWIPC)
 syscall is supported by kernel.
 .TP
+.B share_mount
+This boolean specifies whether mount namespace inside chroot should be shared
+with host mount namespace.
+By default, mount namespace inside chroot is isolated from host mount namespace if
+.BR unshare (CLONE_NEWNS)
+syscall is supported by kernel.
+.TP
 .B share_network
 This boolean specifies whether network inside chroot should be shared
 with host network.
@@ -100,6 +107,12 @@ Kill all processes running by pseudousers.
 .TP
 .BR chrootuid1 ", " chrootuid2
 Execute program in build chroot with credentials of pseudouser.
+When
+.B share_mount
+is not enabled, this operation is more security sensitive because
+it also unshares mount namespace and mounts resources like
+.B mount
+does.
 .PP
 Following operation modes have medium security implications:
 .TP
@@ -122,7 +135,7 @@ and therefore install DoS attack against host system.
 .TP
 .B mount
 Mount appropriate file system according to specified mount point.
-for example, proc and sysfs virtual file systems provide access to various
+For example, proc and sysfs virtual file systems provide access to various
 system resources which could be abused by pseudousers, devpts virtual
 file system provides access to all pty device files which also could be
 abused by pseudousers if these files have inappropriate permissions.

@@ -72,6 +72,9 @@ static struct mnt_ent
 #ifndef MS_REC
 #define MS_REC		16384
 #endif
+#ifndef MS_SLAVE
+#define MS_SLAVE	(1 << 19)
+#endif
 
 static struct
 {
@@ -269,8 +272,43 @@ lookup_mount_entry(const char *mpoint)
 int
 do_mount(void)
 {
-	ensure_mountpoint_is_allowed(mountpoint);
+	ensure_mountpoint_is_allowed(single_mountpoint);
 	load_fstab();
-	xmount(lookup_mount_entry(mountpoint));
+	struct mnt_ent *e = lookup_mount_entry(single_mountpoint);
+	if (test_unshare_mount())
+		return 0; /* mount namespace isolation activated */
+	xmount(e);
 	return 0;
+}
+
+void
+setup_mountpoints(void)
+{
+	char   *mpoints =
+		requested_mountpoints ? xstrdup(requested_mountpoints) : 0;
+	char   *mpoint_ctx = 0;
+	char   *mpoint = mpoints ? strtok_r(mpoints, " \t,", &mpoint_ctx) : 0;
+
+	if (mpoint)
+	{
+		load_fstab();
+
+		/*
+		 * Just in case that some filesystem is mounted as shared,
+		 * remount it as slave in our namespace so that
+		 * no further mounts show up outside.
+		 */
+		if (mount("/", "/", NULL, MS_SLAVE | MS_REC, NULL) < 0 &&
+		    errno != EINVAL)
+			error(EXIT_FAILURE, errno,
+			      "mount MS_SLAVE: %s", chroot_path);
+
+		for (; mpoint; mpoint = strtok_r(0, " \t,", &mpoint_ctx))
+		{
+			ensure_mountpoint_is_allowed(mpoint);
+			xmount(lookup_mount_entry(mpoint));
+		}
+	}
+
+	free(mpoints);
 }

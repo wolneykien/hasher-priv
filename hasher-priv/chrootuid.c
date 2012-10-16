@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2003-2008  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2012  Dmitry V. Levin <ldv@altlinux.org>
 
   The chrootuid actions for the hasher-priv program.
 
@@ -89,6 +89,9 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 
 	if (uid < MIN_CHANGE_UID || uid == getuid())
 		error(EXIT_FAILURE, 0, "invalid uid: %u", uid);
+
+	/* Unshare mount namespace, mount all requested mountpoints. */
+	unshare_mount();
 
 	chdiruid(chroot_path);
 

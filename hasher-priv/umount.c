@@ -89,6 +89,9 @@ do_umount(void)
 	if (!allowed_mountpoints)
 		error(EXIT_FAILURE, 0, "umount: no mount points allowed");
 
+	if (test_unshare_mount())
+		return 0; /* mount namespace isolation activated */
+
 	chdiruid(chroot_path);
 
 	char   *cwd = getcwd(0, 0UL);

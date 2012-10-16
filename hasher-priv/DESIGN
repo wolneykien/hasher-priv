@@ -68,6 +68,8 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
     + purge all SYSV IPC objects belonging to specified uid pair
   + chrootuid1/chrootuid2
     + check for valid uid specified
+    + unless share_mount is enabled, unshare mount namespace and mount all
+      mountpoints specified by requested_mountpoints environment variable
     + safe chdir to chroot_path
     + sanitize file descriptors again
     + if use_pty is disabled, create pipe to handle child's stdout and stderr
@@ -116,10 +118,12 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
     + safe chdir to dev
     + create devices: tty, ptmx
   + mount
+    + exit if share_mount is not enabled
     + safe chdir to chroot_path
     + safe chdir to appropriate mount point
     + mount given file system
   + umount
+    + exit if share_mount is not enabled
     + for each mount point with chroot_path prefix listed in /proc/mounts
       + safe chdir to chroot_path
       + safe chdir to appropriate mount point

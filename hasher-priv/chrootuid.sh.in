@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2003-2007  Dmitry V. Levin <ldv@altlinux.org>
+# Copyright (C) 2003-2012  Dmitry V. Levin <ldv@altlinux.org>
 # 
 # The chrootuid@N@ helper for the hasher-priv project.
 #
@@ -59,6 +59,7 @@ trap 'exit_handler $?' EXIT
 
 
 need_maketty=
+requested_mountpoints=
 if [ -n "$chroot_prefix" -a -n "$mountpoints" ]; then
 	for target in `printf %s "$mountpoints" |tr ',' ' '`; do
 		@helper@ $n mount "$chroot_prefix" "$target" &&
@@ -66,6 +67,8 @@ if [ -n "$chroot_prefix" -a -n "$mountpoints" ]; then
 			exit
 		[ "$target" != /dev/pts ] || need_maketty=1
 	done
+	requested_mountpoints="$mountpoints"
+	export requested_mountpoints
 fi
 
 if [ -n "$need_maketty" ]; then
