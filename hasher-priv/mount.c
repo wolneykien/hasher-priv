@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2004-2007  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2004-2012  Dmitry V. Levin <ldv@altlinux.org>
 
   The mount action for the hasher-priv program.
 
@@ -178,12 +178,17 @@ size_t var_fstab_size;
 static void
 load_fstab(void)
 {
+	safe_chdir("/", stat_rootok_validator);
+	safe_chdir("etc/hasher-priv", stat_rootok_validator);
+
 	const char *name = "fstab";
-	struct stat st;
 	int     fd = open(name, O_RDONLY | O_NOFOLLOW | O_NOCTTY);
 
 	if (fd < 0)
 		error(EXIT_FAILURE, errno, "open: %s", name);
+	safe_chdir("/", stat_rootok_validator);
+
+	struct stat st;
 
 	if (fstat(fd, &st) < 0)
 		error(EXIT_FAILURE, errno, "fstat: %s", name);
@@ -222,47 +227,50 @@ load_fstab(void)
 	(void) fclose(fp);
 }
 
-int
-do_mount(void)
+static void
+ensure_mountpoint_is_allowed(const char *mpoint)
 {
 	char   *targets =
 		allowed_mountpoints ? xstrdup(allowed_mountpoints) : 0;
 	char   *target = targets ? strtok(targets, " \t,") : 0;
 
 	for (; target; target = strtok(0, " \t,"))
-		if (!strcasecmp(target, mountpoint))
+		if (!strcmp(target, mpoint))
 			break;
 
 	if (!target)
 		error(EXIT_FAILURE, 0,
-		      "mount: %s: mount point not allowed", mountpoint);
-
-	safe_chdir("/", stat_rootok_validator);
-	safe_chdir("etc/hasher-priv", stat_rootok_validator);
-	load_fstab();
-	safe_chdir("/", stat_rootok_validator);
-
-	size_t i;
-
-	for (i = 0; i < var_fstab_size; ++i)
-		if (!strcmp(target, var_fstab[i]->mnt_dir))
-			break;
-
-	if (i < var_fstab_size)
-		xmount(var_fstab[i]);
-	else
-	{
-		for (i = 0; i < def_fstab_size; ++i)
-			if (!strcmp(target, def_fstab[i].mnt_dir))
-				break;
-
-		if (i < def_fstab_size)
-			xmount(&def_fstab[i]);
-		else
-			error(EXIT_FAILURE, 0,
-			      "mount: %s: mount point not supported", target);
-	}
+		      "mount: %s: mount point not allowed", mpoint);
 
 	free(targets);
+}
+
+static struct mnt_ent *
+lookup_mount_entry(const char *mpoint)
+{
+	size_t i;
+	struct mnt_ent *e = 0;
+
+	for (i = 0; !e && i < var_fstab_size; ++i)
+		if (!strcmp(mpoint, var_fstab[i]->mnt_dir))
+			e = var_fstab[i];
+
+	for (i = 0; !e && i < def_fstab_size; ++i)
+		if (!strcmp(mpoint, def_fstab[i].mnt_dir))
+			e = &def_fstab[i];
+
+	if (!e)
+		error(EXIT_FAILURE, 0,
+		      "mount: %s: mount point not supported", mpoint);
+
+	return e;
+}
+
+int
+do_mount(void)
+{
+	ensure_mountpoint_is_allowed(mountpoint);
+	load_fstab();
+	xmount(lookup_mount_entry(mountpoint));
 	return 0;
 }
