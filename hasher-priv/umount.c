@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2004-2007  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2004-2012  Dmitry V. Levin <ldv@altlinux.org>
 
   The umount action for the hasher-priv program.
 
@@ -130,7 +130,7 @@ do_umount(void)
 	free(v);
 
 	if (!unmounted)
-		error(EXIT_FAILURE, 0, "umount: no file systems mounted");
+		error(EXIT_FAILURE, 0, "umount: no file systems unmounted");
 
 	return 0;
 }
