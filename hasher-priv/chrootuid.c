@@ -116,7 +116,8 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 
 	unshare_ipc();
 	unshare_uts();
-	unshare_network();
+	if (!share_caller_network)
+		unshare_network();
 
 	if (chroot(".") < 0)
 		error(EXIT_FAILURE, errno, "chroot: %s", chroot_path);
@@ -163,6 +164,9 @@ chrootuid(uid_t uid, gid_t gid, const char *ehome,
 			&& (close(pipe_out[0]) || close(pipe_err[0])))
 		    || (x11_display && close(ctl[0])))
 			error(EXIT_FAILURE, errno, "close");
+
+		if (share_caller_network)
+			unshare_network();
 
 		if (setgid(gid) < 0)
 			error(EXIT_FAILURE, errno, "setgid");

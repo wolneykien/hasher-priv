@@ -146,6 +146,7 @@ extern const char *x11_display, *x11_key;
 
 extern int allow_tty_devices, use_pty;
 extern size_t x11_data_len;
+extern int share_caller_network;
 extern int share_ipc;
 extern int share_mount;
 extern int share_network;

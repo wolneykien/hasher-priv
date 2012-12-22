@@ -78,7 +78,8 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
       open /tmp/.X11-unix directory readonly for later use with fchdir()
     + unless share_ipc is enabled, isolate System V IPC namespace
     + unless share_uts is enabled, unshare UTS namespace
-    + unless share_network is enabled, unshare network
+    + if X11 forwarding to a tcp address was not requested,
+      unless share_network is enabled, unshare network
     + chroot to "."
     + clear supplementary group access list
     + set rlimits
@@ -96,6 +97,8 @@ Here is a hasher-priv (euid=root,egid=hashman,gid!=egid) control flow:
         + remove CHLD signal handler
         + return child proccess exit code
       + in child:
+        + if X11 forwarding to a tcp address was requested,
+          unless share_network is enabled, unshare network
         + setgid/setuid to specified user
         + setsid
         + change controlling terminal to pty

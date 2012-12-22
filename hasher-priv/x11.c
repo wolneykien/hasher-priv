@@ -347,8 +347,10 @@ x11_parse_display(void)
 
 		if (slash && !strcmp(slash + 1, "unix"))
 			x11_connect_method = x11_connect_unix;
-		else
+		else {
 			x11_connect_method = x11_connect_inet;
+			share_caller_network = 1;
+		}
 	}
 
 	return EXIT_SUCCESS;

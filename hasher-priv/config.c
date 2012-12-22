@@ -48,6 +48,7 @@ mode_t  change_umask = 022;
 int change_nice = 8;
 int     allow_tty_devices, use_pty;
 size_t  x11_data_len;
+int share_caller_network = 0;
 int share_ipc = -1;
 int share_mount = -1;
 int share_network = -1;
