@@ -24,7 +24,7 @@ setup_network(void)
 
 	rtnetlink_sk = socket(AF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE);
 	if (rtnetlink_sk < 0)
-		error(EXIT_FAILURE, errno, "socket AF_NETLINK");
+		error(EXIT_FAILURE, errno, "socket AF_NETLINK NETLINK_ROUTE");
 
 	memset(&req, 0, sizeof(req));
 	req.n.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
@@ -38,7 +38,7 @@ setup_network(void)
 	req.i.ifi_change = IFF_UP;
 
 	if (send(rtnetlink_sk, &req, req.n.nlmsg_len, 0) < 0)
-		error(EXIT_FAILURE, errno, "send AF_NETLINK");
+		error(EXIT_FAILURE, errno, "send AF_NETLINK RTM_NEWLINK");
 
 	if (close(rtnetlink_sk) < 0)
 		error(EXIT_FAILURE, errno, "close AF_NETLINK");
