@@ -36,6 +36,8 @@
 #include "priv.h"
 #include "xmalloc.h"
 
+int unshared_mount = 0;
+
 static struct mnt_ent
 {
 	const char *mnt_fsname;
@@ -276,11 +278,13 @@ do_mount(void)
 	load_fstab();
 	struct mnt_ent *e = lookup_mount_entry(single_mountpoint);
 	if (test_unshare_mount())
-		return 0; /* mount namespace isolation activated */
+		/* mount namespace isolation activated or explicitly requested */
+		return 0;
 	xmount(e);
 	return 0;
 }
 
+/* called by unshare_mount() after successful CLONE_NEWNS */
 void
 setup_mountpoints(void)
 {
@@ -302,6 +306,8 @@ setup_mountpoints(void)
 		    errno != EINVAL)
 			error(EXIT_FAILURE, errno,
 			      "mount MS_SLAVE: %s", chroot_path);
+
+		unshared_mount = 1;
 
 		for (; mpoint; mpoint = strtok_r(0, " \t,", &mpoint_ctx))
 		{
