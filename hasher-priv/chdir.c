@@ -102,6 +102,27 @@ safe_chdir(const char *path, VALIDATE_FPTR validator)
 }
 
 /*
+ * Ensure that owner group is change_gid1,
+ * no world writable permissions, and group writable
+ * bit is set if and only if sticky bit is also set.
+ */
+
+/* This function may be executed with caller privileges. */
+static void
+stat_group1_ok_validator(struct stat *st, const char *name)
+{
+	if (st->st_gid != change_gid1)
+		error(EXIT_FAILURE, 0,
+		      "%s: expected group %u, found group %u",
+		      name, change_gid1, st->st_gid);
+
+	if ((st->st_mode & S_IWOTH)
+	    || ((st->st_mode & S_IWGRP) && !(st->st_mode & S_ISVTX)))
+		error(EXIT_FAILURE, 0,
+		      "%s: bad perms: %o", name, st->st_mode & 07777);
+}
+
+/*
  * Ensure that owner is caller_uid:change_gid1,
  * no world writable permissions, and group writable
  * bit is set if and only if sticky bit is also set.
@@ -116,15 +137,26 @@ stat_caller_ok_validator(struct stat *st, const char *name)
 		      "%s: expected owner %u, found owner %u",
 		      name, caller_uid, st->st_uid);
 
-	if (st->st_gid != change_gid1)
-		error(EXIT_FAILURE, 0,
-		      "%s: expected group %u, found group %u",
-		      name, change_gid1, st->st_gid);
+	stat_group1_ok_validator(st, name);
+}
 
-	if ((st->st_mode & S_IWOTH)
-	    || ((st->st_mode & S_IWGRP) && !(st->st_mode & S_ISVTX)))
+/*
+ * Ensure that owner is either caller_uid:change_gid1
+ * or change_uid1:change_gid1,
+ * no world writable permissions,
+ * and group writable bit is set if and only if sticky bit is also set.
+ */
+
+/* This function may be executed with caller privileges. */
+void
+stat_caller_or_user1_ok_validator(struct stat *st, const char *name)
+{
+	if (st->st_uid != caller_uid && st->st_uid != change_uid1)
 		error(EXIT_FAILURE, 0,
-		      "%s: bad perms: %o", name, st->st_mode & 07777);
+		      "%s: expected owner %u or %u, found owner %u",
+		      name, caller_uid, change_uid1, st->st_uid);
+
+	stat_group1_ok_validator(st, name);
 }
 
 /*
