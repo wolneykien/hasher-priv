@@ -64,7 +64,7 @@ xumount(const char *mpoint)
 		chdiruid(chroot_path);
 		if (dir[0] != '\0')
 			chdiruid(dir);
-		safe_chdir(base, stat_anyok_validator);
+		safe_chdir(base, stat_any_ok_validator);
 
 		if (umount2(".", MNT_DETACH) < 0)
 			break;

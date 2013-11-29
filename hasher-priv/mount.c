@@ -183,22 +183,22 @@ size_t var_fstab_size;
 static void
 load_fstab(void)
 {
-	safe_chdir("/", stat_rootok_validator);
-	safe_chdir("etc/hasher-priv", stat_rootok_validator);
+	safe_chdir("/", stat_root_ok_validator);
+	safe_chdir("etc/hasher-priv", stat_root_ok_validator);
 
 	const char *name = "fstab";
 	int     fd = open(name, O_RDONLY | O_NOFOLLOW | O_NOCTTY);
 
 	if (fd < 0)
 		error(EXIT_FAILURE, errno, "open: %s", name);
-	safe_chdir("/", stat_rootok_validator);
+	safe_chdir("/", stat_root_ok_validator);
 
 	struct stat st;
 
 	if (fstat(fd, &st) < 0)
 		error(EXIT_FAILURE, errno, "fstat: %s", name);
 
-	stat_rootok_validator(&st, name);
+	stat_root_ok_validator(&st, name);
 
 	if (!S_ISREG(st.st_mode))
 		error(EXIT_FAILURE, 0, "%s: not a regular file", name);

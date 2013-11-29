@@ -109,7 +109,7 @@ safe_chdir(const char *path, VALIDATE_FPTR validator)
 
 /* This function may be executed with caller privileges. */
 void
-stat_userok_validator(struct stat *st, const char *name)
+stat_caller_ok_validator(struct stat *st, const char *name)
 {
 	if (st->st_uid != caller_uid)
 		error(EXIT_FAILURE, 0,
@@ -134,7 +134,7 @@ stat_userok_validator(struct stat *st, const char *name)
 
 /* This function may be executed with root privileges. */
 void
-stat_rootok_validator(struct stat *st, const char *name)
+stat_root_ok_validator(struct stat *st, const char *name)
 {
 	if (st->st_uid)
 		error(EXIT_FAILURE, 0, "%s: bad owner: %u", name, st->st_uid);
@@ -146,7 +146,7 @@ stat_rootok_validator(struct stat *st, const char *name)
 
 /* This function may be executed with root privileges. */
 void
-stat_anyok_validator( __attribute__ ((unused))
+stat_any_ok_validator( __attribute__ ((unused))
 		     struct stat *st, __attribute__ ((unused))
 		     const char *name)
 {

@@ -461,7 +461,7 @@ load_config(const char *name)
 	if (fstat(fd, &st) < 0)
 		error(EXIT_FAILURE, errno, "fstat: %s", name);
 
-	stat_rootok_validator(&st, name);
+	stat_root_ok_validator(&st, name);
 
 	if (!S_ISREG(st.st_mode))
 		error(EXIT_FAILURE, 0, "%s: not a regular file", name);
@@ -524,11 +524,11 @@ check_user(const char *user_name, uid_t * user_uid, gid_t * user_gid,
 void
 configure(void)
 {
-	safe_chdir("/", stat_rootok_validator);
-	safe_chdir("etc/hasher-priv", stat_rootok_validator);
+	safe_chdir("/", stat_root_ok_validator);
+	safe_chdir("etc/hasher-priv", stat_root_ok_validator);
 	load_config("system");
 
-	safe_chdir("user.d", stat_rootok_validator);
+	safe_chdir("user.d", stat_root_ok_validator);
 	load_config(caller_user);
 
 	if (caller_num)
@@ -547,7 +547,7 @@ configure(void)
 		free(fname);
 	}
 
-	safe_chdir("/", stat_rootok_validator);
+	safe_chdir("/", stat_root_ok_validator);
 
 	check_user(change_user1, &change_uid1, &change_gid1, "user1");
 	check_user(change_user2, &change_uid2, &change_gid2, "user2");

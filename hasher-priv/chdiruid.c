@@ -55,7 +55,7 @@ static void
 chdiruid_simple(const char *path)
 {
 	/* Change and verify directory. */
-	safe_chdir(path, stat_userok_validator);
+	safe_chdir(path, stat_caller_ok_validator);
 
 	char   *cwd;
 
