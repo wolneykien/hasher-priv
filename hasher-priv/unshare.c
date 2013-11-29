@@ -54,6 +54,7 @@ test_unshare_mount(void)
 	return test_unshare(CLONE_NEWNS, share_mount);
 #else
 # warning "unshare(CLONE_NEWNS) is not available on this system"
+	return share_flag ? 0 : -1;
 #endif
 }
 
