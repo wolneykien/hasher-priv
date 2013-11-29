@@ -272,7 +272,7 @@ parse_mountpoints(const char *value, const char *filename)
 
 	for (; target; target = strtok(0, " \t,"))
 	{
-		if (target[0] != '/')
+		if (target[0] != '/' || target[1] == '/')
 			error(EXIT_FAILURE, 0,
 			      "%s: mount point \"%s\" not supported",
 			      filename, target);

@@ -235,6 +235,10 @@ load_fstab(void)
 static void
 ensure_mountpoint_is_allowed(const char *mpoint)
 {
+	if (mpoint[0] != '/' || mpoint[1] == '/')
+		error(EXIT_FAILURE, 0,
+		      "mount point \"%s\" not supported", mpoint);
+
 	char   *targets =
 		allowed_mountpoints ? xstrdup(allowed_mountpoints) : 0;
 	char   *target = targets ? strtok(targets, " \t,") : 0;
