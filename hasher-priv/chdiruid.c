@@ -52,10 +52,10 @@ is_prefix(const char *prefix, const char *sample)
 
 /* This function may be executed with caller privileges. */
 static void
-chdiruid_simple(const char *path)
+chdiruid_simple(const char *path, VALIDATE_FPTR validator)
 {
 	/* Change and verify directory. */
-	safe_chdir(path, stat_caller_ok_validator);
+	safe_chdir(path, validator);
 
 	char   *cwd;
 
@@ -108,15 +108,20 @@ chdiruid(const char *path)
 	ch_gid(caller_gid, &saved_gid);
 	ch_uid(caller_uid, &saved_uid);
 
+	VALIDATE_FPTR validator = unshared_mount ?
+		stat_caller_or_user1_ok_validator: stat_caller_ok_validator;
+
 	/* Change and verify directory, check for chroot prefix path. */
-	if (path[0] == '/' || !strchr(path, '/'))
-		chdiruid_simple(path);
+	if (path[0] == '/')
+		chdiruid_simple(path, stat_caller_ok_validator);
+	else if (!strchr(path, '/'))
+		chdiruid_simple(path, validator);
 	else
 	{
 		char   *elem, *p = xstrdup(path);
 
 		for (elem = strtok(p, "/"); elem; elem = strtok(0, "/"))
-			chdiruid_simple(elem);
+			chdiruid_simple(elem, validator);
 		free(p);
 	}
 
