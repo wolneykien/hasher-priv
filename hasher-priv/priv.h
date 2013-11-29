@@ -61,7 +61,7 @@ typedef struct
 	unsigned long bytes_written;
 } work_limit_t;
 
-typedef void VALIDATE_FPTR(struct stat *, const char *);
+typedef void (*VALIDATE_FPTR)(struct stat *, const char *);
 
 void    sanitize_fds(void);
 void    cloexec_fds(void);
