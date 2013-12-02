@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2011-2012  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2011-2013  Dmitry V. Levin <ldv@altlinux.org>
 
   unshare(2) helpers for the hasher-priv program.
 

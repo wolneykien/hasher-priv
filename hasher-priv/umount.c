@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2004-2012  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2004-2013  Dmitry V. Levin <ldv@altlinux.org>
 
   The umount action for the hasher-priv program.
 

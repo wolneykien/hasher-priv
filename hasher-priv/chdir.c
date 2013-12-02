@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2003-2005  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2003-2013  Dmitry V. Levin <ldv@altlinux.org>
 
   The chdir-with-validation module for the hasher-priv program.
 

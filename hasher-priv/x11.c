@@ -1,6 +1,6 @@
 
 /*
-  Copyright (C) 2005-2008  Dmitry V. Levin <ldv@altlinux.org>
+  Copyright (C) 2005-2013  Dmitry V. Levin <ldv@altlinux.org>
 
   The X11 forwarding support_str for the hasher-priv program.
 

@@ -90,7 +90,7 @@ static void __attribute__ ((noreturn))
 print_version(void)
 {
 	printf("hasher-priv version %s\n"
-	       "\nCopyright (C) 2003-2007  Dmitry V. Levin <ldv@altlinux.org>\n"
+	       "\nCopyright (C) 2003-2013  Dmitry V. Levin <ldv@altlinux.org>\n"
 	       "\nThis is free software; see the source for copying conditions.\n"
 	       "There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
 	       "\nWritten by Dmitry V. Levin <ldv@altlinux.org>\n",
