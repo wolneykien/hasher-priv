@@ -105,7 +105,7 @@ hasher-useradd: hasher-useradd.in
 	chmod --reference=$< $@
 
 %.8: % %.8.inc Makefile
-	$(HELP2MAN8) -i $@.inc ./$< >$@
+	$(HELP2MAN8) -i $@.inc -o $@ ./$<
 
 # We need dependencies only if goal isn't "indent" or "clean".
 ifneq ($(MAKECMDGOALS),indent)
