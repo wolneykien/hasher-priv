@@ -102,7 +102,7 @@ indent:
 
 hasher-useradd: hasher-useradd.in
 	sed -e 's/@VERSION@/$(VERSION)/g' <$< >$@
-	chmod --reference=$< $@
+	chmod 755 $@
 
 %.8: % %.8.inc Makefile
 	$(HELP2MAN8) -i $@.inc -o $@ ./$<
