@@ -58,5 +58,10 @@ do_killuid(void)
 
 	purge_ipc(change_uid1, change_uid2);
 
+	if (setreuid(change_uid2, change_uid1) < 0)
+		error(EXIT_FAILURE, errno, "killuid: setreuid");
+
+	purge_ipc(change_uid1, change_uid2);
+
 	return 0;
 }
