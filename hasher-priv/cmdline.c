@@ -15,8 +15,7 @@
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /* Code in this file may be executed with root privileges. */
@@ -93,7 +92,7 @@ print_version(void)
 	       "\nCopyright (C) 2003-2013  Dmitry V. Levin <ldv@altlinux.org>\n"
 	       "\nThis is free software; see the source for copying conditions.\n"
 	       "There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
-	       "\nWritten by Dmitry V. Levin <ldv@altlinux.org>\n",
+	       "\nWritten by Dmitry V. Levin <ldv@altlinux.org> et al.\n",
 	       PROJECT_VERSION);
 	exit(EXIT_SUCCESS);
 }
