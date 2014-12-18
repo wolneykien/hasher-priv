@@ -1,0 +1,20 @@
+Source: hasher-priv
+Section: main/devel
+Priority: extra
+Maintainer: Paul Wolneykien <manowar@altlinux.org>
+Build-Depends: debhelper (>= 8.0.0), help2man
+Standards-Version: 3.9.2
+Homepage: http://metrotek.spb.ru/
+
+Package: hasher-priv
+Section: main/devel
+Architecture: any
+Depends: adduser, coreutils, ${shlibs:Depends}, ${misc:Depends}
+Description: A privileged helper for the hasher and pocket projects
+
+Package: hasher-priv-dbg
+Section: main/debug
+Architecture: any
+Depends: hasher-priv
+Description: A privileged helper for the hasher and pocket projects
+ This package contains the debugging information (symbols).

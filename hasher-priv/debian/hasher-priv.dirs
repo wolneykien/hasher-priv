@@ -1,0 +1,3 @@
+etc/hasher-priv
+etc/hasher-priv/user.d
+usr/libexec/hasher-priv

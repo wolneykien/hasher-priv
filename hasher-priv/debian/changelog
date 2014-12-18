@@ -1,0 +1,5 @@
+hasher-priv (1.5.0-1) experimental; urgency=low
+
+  * Initial release for Debian GNU/Linux.
+
+ -- Paul Wolneykien <manowar@altlinux.org>  Thu, 18 Dec 2014 12:04:00 +0300

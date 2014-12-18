@@ -1,0 +1,3 @@
+usr/libexec/hasher-priv/*.sh
+usr/libexec/hasher-priv/hasher-priv
+usr/sbin/*
