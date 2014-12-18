@@ -1,3 +1,6 @@
 usr/lib/hasher-priv/*.sh
 usr/lib/hasher-priv/hasher-priv
 usr/sbin/*
+etc/hasher-priv/fstab
+etc/hasher-priv/system
+usr/share/man/man?/*
