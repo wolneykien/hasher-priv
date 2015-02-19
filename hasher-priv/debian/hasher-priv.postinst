@@ -21,8 +21,9 @@ case "$1" in
         chmod 0750 /usr/lib/hasher-priv
         chown root:hashman /usr/lib/hasher-priv
 
-        chmod 6710 /usr/lib/hasher-priv/hasher-priv
+        chmod 0710 /usr/lib/hasher-priv/hasher-priv
         chown root:hashman /usr/lib/hasher-priv/hasher-priv
+        chmod 6710 /usr/lib/hasher-priv/hasher-priv
 
         chmod 0755 /usr/lib/hasher-priv/*.sh
         chown root:root /usr/lib/hasher-priv/*.sh
