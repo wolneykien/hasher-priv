@@ -4,7 +4,8 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-.PHONY: override_dh_strip
+NATIVE = $(filter $(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
+MAN8PAGES = hasher-priv.8
 
 override_dh_strip:
 	dh_strip -phasher-priv --dbg-package=hasher-priv-dbg
@@ -12,5 +13,11 @@ override_dh_strip:
 override_dh_auto_clean:
 	$(MAKE) clean
 
+override_dh_auto_build: $(if $(NATIVE),,$(MAN8PAGES))
+	$(MAKE) CC=$(if $(NATIVE),$(CC),$(DEB_HOST_GNU_TYPE)-gcc) CFLAGS="$(CFLAGS) -Wno-error=conversion"
+
 %:
 	dh $@
+
+%.8: %.8.prebuild
+	cp -vf $< $@

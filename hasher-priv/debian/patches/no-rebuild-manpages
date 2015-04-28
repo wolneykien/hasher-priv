@@ -1,0 +1,13 @@
+Index: SOURCE/Makefile
+===================================================================
+--- SOURCE.orig/Makefile
++++ SOURCE/Makefile
+@@ -104,7 +104,7 @@ hasher-useradd: hasher-useradd.in
+ 	chmod 755 $@
+ 
+ %.8: % %.8.inc Makefile
+-	$(HELP2MAN8) -i $@.inc -o $@ ./$<
++	[ -e $@ ] || $(HELP2MAN8) -i $@.inc -o $@ ./$<
+ 
+ # We need dependencies only if goal isn't "indent" or "clean".
+ ifneq ($(MAKECMDGOALS),indent)
